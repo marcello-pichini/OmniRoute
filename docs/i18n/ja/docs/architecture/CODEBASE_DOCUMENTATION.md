@@ -457,7 +457,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -487,11 +487,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 個のトップレベル エグゼキューター モジュール (`*.ts`から`base.ts`、 `index.ts` 、およびテスト—た数、 `npm run check:docs-counts`が測定する数)。すべてのエグゼキューター クラスは、直接または`DefaultExecutor`または別のエグゼキューターを通じて`BaseExecutor` (`base.ts`) を拡張します。残りのモジュールは、プロバイダーごとのヘルパー (ツール スキーマ、 fetch/TTSアダプター、quirk ハンドラー) です。執行者には次のものが含まれます。
+170 個のトップレベル エグゼキューター モジュール (`*.ts`から`base.ts`、 `index.ts` 、およびテスト—た数`npm run check:docs-counts`が測定する)。すべてのエグゼキューター クラスは、直接または`DefaultExecutor`または別のエグゼキューターを通じて`BaseExecutor` (`base.ts`) を拡張します。残りのモジュールは、プロバイダーごとのヘルパー (ツール スキーマ、 fetch/TTSアダプター、quirk ハンドラー) です。執行者には次のものが含まれます。
 
 `antigravity`、 `azure-openai`、 `blackbox-web`、 `cliproxyapi`、 `chatgpt-web-codex`、 `cloudflare-ai`、 `codex`、 `commandCode`、 `cursor`、 `default`、 `devin-cli`、 `muse-spark-web`、 `nlpcloud`、 `opencode`、 `perplexity-web`、 `petals`、 `pollinations`、 `qoder`、 `vertex`、 `devin-desktop`、さらに`claudeIdentity.ts` (共有 ID ヘルパー) と`index.ts` (レジストリ)。
 
-> 注: ここにリストされていないプロバイダーは、汎用の OpenAI 互換エグゼキューターを使用して`default.ts`によって提供されます。完全なプロバイダー カタログ (381 プロバイダー) は`src/shared/constants/providers.ts`にあります。
+> 注: ここにリストされていないプロバイダーは、汎用の OpenAI 互換エグゼキューターを使用して`default.ts`によって提供されます。完全なプロバイダー カタログ (393 プロバイダー) は`src/shared/constants/providers.ts`にあります。
 
 ### 4.3 `open-sse/translator/`
 
@@ -513,7 +513,7 @@ open-sse/
 
 | 懸念                         | ファイル                                                                                                                                                                                                                                                 |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| コンボルーティング           | `combo.ts` (20 戦略)、 `comboConfig.ts`、 `comboMetrics.ts`、 `comboManifestMetrics.ts`、 `comboAgentMiddleware.ts`                                                                                                                                      |
+| コンボルーティング           | `combo.ts` (21 戦略)、 `comboConfig.ts`、 `comboMetrics.ts`、 `comboManifestMetrics.ts`、 `comboAgentMiddleware.ts`                                                                                                                                      |
 | オートコンボエンジン         | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | 回復力                       | `accountFallback.ts` (クールダウン+ロックアウト)、 `errorClassifier.ts`、 `requestRejectedStreak.ts`、 `emergencyFallback.ts`、 `rateLimitManager.ts`、 `rateLimitSemaphore.ts`、 `accountSemaphore.ts`、 `accountSelector.ts`                           |
 | 割り当て                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
@@ -529,7 +529,7 @@ open-sse/
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 個のユニークなツール**`server.ts`で接続されています ( `schemas/tools.ts` +メモリ、スキル、GitHub スキル、プール、ゲーミフィケーション、プラグイン、 Notion、 Obsidian、ローカル コーパスおよび圧縮モジュール— Union の`countUniqueMcpTools`によってカウントされる 45 の正規)。
+- **110 個のユニークなツール**`server.ts`で接続されています ( `schemas/tools.ts`の 45 の標準+メモリ、スキル、GitHub スキル、プール、ゲーミフィケーション、プラグイン、 Notion、 Obsidian、ローカル コーパスおよび圧縮モジュール— Union は`countUniqueMcpTools`によってカウントされます)。
 - **3つのトランスポート**: stdio、 HTTPストリーミング可能、 SSE。
 - **33 スコープ**`src/shared/constants/mcpScopes.ts`内の—ベース リストは実行時に適用され、フル セットは各ツール モジュールによって宣言されたスコープの結合です。
 - 監査テーブル: `mcp_tool_audit` ( `audit.ts`によって設定されます)。

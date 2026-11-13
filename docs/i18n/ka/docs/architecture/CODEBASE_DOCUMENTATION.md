@@ -458,7 +458,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -488,11 +488,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 უმაღლესი დონის შემსრულებელი მოდული (`*.ts` მინუს `base.ts`, `index.ts` და ტესტები — დათვლა `npm run check:docs-counts` ზომები). თითოეული შემსრულებელი კლასი ვრცელდება `BaseExecutor` (`base.ts`), პირდაპირ ან `DefaultExecutor` ან სხვა შემსრულებლის მეშვეობით; დარჩენილი მოდულები არის თითო პროვაიდერის დამხმარეები (ინსტრუმენტების სქემები, fetch/TTS გადამყვანები, უცნაურობის დამმუშავებლები). შემსრულებლები მოიცავს:
+170 უმაღლესი დონის შემსრულებელი მოდული (`*.ts` მინუს `base.ts`, `index.ts` და ტესტები — დათვლა `npm run check:docs-counts` ზომები). ყველა შემსრულებელი კლასი ვრცელდება `BaseExecutor` (`base.ts`), პირდაპირ ან `DefaultExecutor` ან სხვა შემსრულებლის მეშვეობით; დანარჩენი მოდულები არის თითო პროვაიდერის დამხმარეები (ინსტრუმენტების სქემები, fetch/TTS გადამყვანები, უცნაურობის დამმუშავებლები). შემსრულებლები მოიცავს:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex` `devin-desktop` `claudeIdentity.ts` იდენტობა ( `index.ts` ) დახმარება.
 
-> შენიშვნა: პროვაიდერებს, რომლებიც აქ არ არის ჩამოთვლილი, ემსახურებიან `default.ts` ზოგადი OpenAI-თან თავსებადი შემსრულებელის გამოყენებით. პროვაიდერების სრული კატალოგი (381 პროვაიდერი) ცხოვრობს `src/shared/constants/providers.ts` ში.
+> შენიშვნა: პროვაიდერებს, რომლებიც აქ არ არის ჩამოთვლილი, ემსახურებიან `default.ts` ზოგადი OpenAI-თან თავსებადი შემსრულებელის გამოყენებით. პროვაიდერების სრული კატალოგი (393 პროვაიდერი) ცხოვრობს `src/shared/constants/providers.ts` ში.
 
 ### 4.3 `open-sse/translator/`
 
@@ -514,7 +514,7 @@ Hub-and-spoke თარგმანი (OpenAI არის კერა).
 
 | შეშფოთება                   | ფაილები                                                                                                                                                                                                                                                  |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| კომბინირებული მარშრუტიზაცია | `combo.ts` (20 სტრატეგია), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| კომბინირებული მარშრუტიზაცია | `combo.ts` (21 სტრატეგია), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
 | Auto Combo ძრავა            | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | გამძლეობა                   | `accountFallback.ts` (cooldown + lockout), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                         |
 | კვოტები                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

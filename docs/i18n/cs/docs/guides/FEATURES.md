@@ -57,29 +57,19 @@ Připojení OpenRouter mohou v Rozšířených nastaveních ukládat `preset` pr
 
 ---
 
-## 🎨 Kombinace
+## 🎨 komba
 
-Vytvářejte kombinace směrování modelů s 19 veřejnými strategiemi: priority, weighted, round-robin, context-relay, fill-first, p2c (výběr ze dvou možností), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (poslední známý funkční poskytovatel), context-optimized, cache-optimized, **fusion** (paralelně rozešle požadavek skupině modelů a poté pomocí hodnoticího modelu syntetizuje jednu odpověď) a **pipeline**. Každá kombinace řetězí více modelů s automatickým přechodem na záložní variantu a zahrnuje rychlé šablony a kontroly připravenosti.
+Vytvářejte komba směrování modelů s 21 veřejnými strategiemi: priorita, vážená, cyklická, kontextová, vyplňovací, p2c (možnost dvou možností), náhodná, nejméně používaná, optimalizovaná z hlediska nákladů, s ohledem na reset, okno pro obnovení, první expirace, rezerva, vážená kvóta, přísná náhodná, automatická, kontextová, lgovidpkgp optimalizovaná mezipaměť,** fúze** (vějíř do panelu modelů paralelně, poté syntetizujte jednu odpověď prostřednictvím porotce) a** potrubí** . Každé kombo řetězí více modelů s automatickým nouzovým návratem a zahrnuje rychlé šablony a kontroly připravenosti.
 
-Nedávná vylepšení kombinací:
+Nedávná vylepšení komba:
 
-- **Strukturovaný nástroj pro tvorbu kombinací** — každý krok vytvoříte výběrem poskytovatele, modelu a konkrétního účtu či připojení
-- **Podpora opakovaných poskytovatelů** — stejného poskytovatele můžete v jedné kombinaci použít vícekrát, pokud je n-tice `(provider, model, connection)` jedinečná
-- **Stav cílů kombinace** — analytické a stavové přehledy nyní rozlišují jednotlivé cíle či kroky kombinace, místo aby vše slučovaly do řetězců modelů
-- **Řazení složených úrovní** — `defaultTier -> fallbackTier` nyní ovlivňuje pořadí provádění a přechodu na záložní varianty za běhu u kroků kombinace nejvyšší úrovně
-- **Šablony systémových výzev** — `system_message` kombinace podporuje na straně serveru
-  zástupné symboly `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` a `{{FINGERPRINT}}`,
-  které se těsně před odesláním nahradí podle skutečně směrovaného cíle.
-  Jsou omezené seznamem povolených hodnot a nejsou rekurzivní; neznámé zástupné symboly zůstávají doslovné a prázdné hodnoty
-  se rozbalí na prázdný řetězec; klientské systémové výzvy se nikdy nepřepisují. `{{FINGERPRINT}}`
-  se vyhodnocuje pouze u bezplatných poskytovatelů založených na otisku s připnutým nebo
-  automaticky rotovaným otiskem — jinde se rozbalí na prázdný řetězec (např.
-  u připojení s jediným otiskem nebo poskytovatelů bez otisků). Nahrazování zahrnuje
-  standardní smyčku odesílání, round-robin a připnuté relace mezipaměti kontextu;
-  strategie fusion, chaos, pipeline a nested-execute zatím zástupné symboly
-  nenahrazují.
+- **Strukturovaný kombo builder** — vytvořte každý krok výběrem poskytovatele, modelu a přesného account/connection
+- **Opakovaná podpora poskytovatele** — opakovaně používá stejného poskytovatele mnohokrát v jedné kombinaci, pokud je n-tice `(provider, model, connection)` jedinečná
+- **Kombinovaný cíl zdraví** Analytické a zdravotní povrchy — nyní rozlišují jednotlivá kombinovaná targets/steps namísto sbalování všeho do modelových řetězců
+- **Složené uspořádání vrstev** — `defaultTier -> fallbackTier` nyní ovlivňuje pořadí běhu execution/fallback pro kombinované kroky nejvyšší úrovně
+- **Šablony systémových výzev** — combo `system_message` podporuje zástupné symboly `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` a `{{FINGERPRINT}}` na straně serveru, rozšířené ze skutečně směrovaného cíle těsně před odesláním. Seznam povolených a nerekurzivní; neznámé zástupné symboly zůstávají doslovné; prázdné hodnoty expandovat na prázdné; výzvy klientského systému se nikdy nepřepisují. `{{FINGERPRINT}}` se řeší pouze u bezplatných poskytovatelů založených na otisku prstu s připnutým nebo automaticky otočeným otiskem prstu — se rozbalí a vyprázdní jinam (např. připojení s jedním otiskem prstu, poskytovatelé bez fp). Rozšíření pokrývá standardní odesílací smyčku, relace typu round-robin a připnuté kontextové mezipaměti; fusion, chaos, pipeline a nested-execute strategie zatím nerozšiřují zástupné symboly.
 
-![Přehled kombinací](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

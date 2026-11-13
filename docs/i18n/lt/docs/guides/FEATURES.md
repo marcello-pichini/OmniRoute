@@ -57,29 +57,19 @@ OpenRouter ryšiams išplėstiniuose nustatymuose galima išsaugoti kiekvienam r
 
 ---
 
-## 🎨 Deriniai
+## 🎨 Combos
 
-Kurkite modelių maršruto parinkimo derinius naudodami 19 viešų strategijų: priority, weighted, round-robin, context-relay, fill-first, p2c (dviejų pasirinkimų principas), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (paskutinis žinomas geras teikėjas), context-optimized, cache-optimized, **fusion** (lygiagrečiai išsiunčia užklausą modelių grupei, tada pasitelkia vertintoją vienam atsakymui susintetinti) ir **pipeline**. Kiekvienas derinys sujungia kelis modelius su automatiniu atsarginiu perjungimu, taip pat turi greituosius šablonus ir parengties patikras.
+Sukurkite modelio maršruto parinkimo derinius naudodami 21 viešąją strategiją: prioritetas, svertinis, apvalus, konteksto relė, užpildymas pirmiausia, p2c (dviejų pasirinkimų galia), atsitiktinis, mažiausiai naudojamas, optimizuotas sąnaudoms, iš naujo nustatomas, nustatymo iš naujo langas, galiojimo laikas pirmiausia, aukštis, pagal kvotą, griežtai žinomas, optimizuotas pagal kontekstą, optimizuotas talpykloje,** susiliejimas** (lygiagrečiai perkelkite į modelių grupę, tada per teisėją sintezuokite vieną atsakymą) ir** dujotiekis** . Kiekvienas derinys sujungia kelis modelius su automatiniu atsarginiu režimu ir apima greitus šablonus bei parengties patikras.
 
-Naujausi derinių patobulinimai:
+Naujausi kombinuoti patobulinimai:
 
-- **Struktūrizuota derinių kūrimo priemonė** — kiekvieną veiksmą kurkite pasirinkdami teikėją, modelį ir konkrečią paskyrą / ryšį
-- **Pakartotinio teikėjų naudojimo palaikymas** — tame pačiame derinyje tą patį teikėją naudokite kelis kartus, jei `(provider, model, connection)` trejetas yra unikalus
-- **Derinio paskirties būklė** — analizės ir būklės rodiniuose dabar atskiriamos konkrečios derinio paskirtys / veiksmai, užuot viską sujungus į modelių eilutes
-- **Sudėtinė pakopų tvarka** — `defaultTier -> fallbackTier` dabar turi įtakos aukščiausio lygio derinio veiksmų vykdymo ir atsarginio perjungimo tvarkai vykdymo metu
-- **Sistemos raginimų šablonai** — derinio `system_message` serverio pusėje palaiko
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ir `{{FINGERPRINT}}`
-  vietaženklius, kurie prieš pat išsiunčiant išskleidžiami pagal faktiškai parinktą paskirtį.
-  Leidžiami tik į leidžiamųjų sąrašą įtraukti vietaženkliai, jie nėra rekursyvūs; nežinomi vietaženkliai paliekami nepakeisti; tuščios reikšmės
-  išskleidžiamos į tuščią tekstą; kliento sistemos raginimai niekada neperrašomi. `{{FINGERPRINT}}`
-  nustatomas tik kontroliniais identifikatoriais pagrįstiems nemokamiems teikėjams, turintiems prisegtą arba
-  automatiškai keičiamą kontrolinį identifikatorių — kitais atvejais jis išskleidžiamas į tuščią tekstą (pvz.,
-  ryšiams su vienu kontroliniu identifikatoriumi, ne fp teikėjams). Išskleidimas taikomas
-  standartiniam išsiuntimo ciklui, round-robin ir prisegtiems konteksto talpyklos seansams;
-  fusion, chaos, pipeline ir įdėtojo vykdymo strategijos vietaženklių
-  kol kas neišskleidžia.
+- **Struktūrinis kombinuotas statytojas** — sukurkite kiekvieną veiksmą pasirinkdami tiekėją, modelį ir tikslų account/connection
+- **Pakartotinis teikėjo palaikymas** — pakartotinai naudoti tą patį teikėją daug kartų vienoje kombinacijoje, kol `(provider, model, connection)` eilutė yra unikali
+- **Kombinuotas tikslas sveikata** — analytics ir sveikatos paviršiai dabar išskiria atskirus kombinuotus targets/steps o ne viską sutraukia į modelio eilutes
+- **Sudėtinis pakopų užsakymas** — `defaultTier -> fallbackTier` dabar turi įtakos vykdymo laiko execution/fallback tvarkai aukščiausio lygio kombinuotiems žingsniams
+- **Sistemos raginimo šablonai** — combo `system_message` palaiko serverio `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ir `{{FINGERPRINT}}` vietos rezervavimo ženklus, išplėstus iš faktiškai nukreipto tikslo prieš pat išsiuntimą. Leidžiamas sąrašas ir nerekursyvus; nežinomi vietiniai ženklai lieka tiesioginiai; tuščios reikšmės išplečiamos į tuščias; kliento sistemos raginimai niekada neperrašomi. `{{FINGERPRINT}}` išsprendžia tik pirštų atspaudais pagrįstus nemokamus teikėjus, turinčius prisegtą arba automatiškai pasuktą piršto atspaudą. — jis išplečiamas ir tuščias kitur (pvz., vieno piršto atspaudo ryšiai, ne fp teikėjai). Išplėtimas apima standartinę siuntimo ciklo, apvalaus veikimo ir prisegtos konteksto talpyklos seansus; sintezė, chaosas, vamzdynas ir įdėtos vykdymo strategijos dar neišplečia vietos rezervavimo ženklų.
 
-![Derinių valdymo skydas](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

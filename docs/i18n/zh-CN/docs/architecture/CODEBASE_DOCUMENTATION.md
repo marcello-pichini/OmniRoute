@@ -445,7 +445,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -475,11 +475,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 个顶级执行器模块（`*.ts`减去`base.ts`、 `index.ts`并测试—计数`npm run check:docs-counts`测量值）。每个执行器类直接或通过`DefaultExecutor`或另一个执行器扩展`BaseExecutor` (`base.ts`)；其余模块是每个提供者的帮助程序（工具模式、 fetch/TTS适配器、怪异处理程序）。执行者包括：
+170 个顶级执行器模块（`*.ts`减去`base.ts`、 `index.ts`并测试—计数`npm run check:docs-counts`测量值）。每个执行器类直接或通过`DefaultExecutor`或另一个执行器扩展`BaseExecutor` (`base.ts`)；其余模块是每个提供者的帮助程序（工具模式、 fetch/TTS适配器、怪异处理程序）。执行者包括：
 
 `antigravity`、 `azure-openai`、 `blackbox-web`、 `cliproxyapi`、 `chatgpt-web-codex`、 `cloudflare-ai`、 `codex`、 `commandCode`、 `cursor`、 `default`、 `devin-cli`、 `muse-spark-web`、 `nlpcloud`、 `opencode`、 `perplexity-web`、 `petals`、 `pollinations`、 `qoder`、 `vertex`、 `devin-desktop`，加上`claudeIdentity.ts` （共享身份助手）和`index.ts` （注册表）。
 
-> 注意：此处未列出的提供者由`default.ts`使用通用 OpenAI 兼容执行器提供服务。完整的提供者目录（381 个提供者）位于`src/shared/constants/providers.ts`中。
+> 注意：此处未列出的提供者由`default.ts`使用通用 OpenAI 兼容执行器提供服务。完整的提供者目录（393 个提供者）位于`src/shared/constants/providers.ts`中。
 
 ### 4.3 `open-sse/translator/`
 
@@ -501,7 +501,7 @@ open-sse/
 
 | 忧虑           | 文件                                                                                                                                                                                                                                                     |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 组合路由       | `combo.ts` (20 种策略), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
+| 组合路由       | `combo.ts` (21 种策略), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
 | 汽车组合发动机 | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | 弹力           | `accountFallback.ts` (冷却+锁定), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                  |
 | 配额           | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
@@ -530,7 +530,7 @@ open-sse/
 
 ### 4.8 `open-sse/utils/`
 
-流媒体原语和提供者助手： `stream.ts`、 `streamHandler.ts`、 `streamHelpers.ts`、 `streamPayloadCollector.ts`、 `streamReadiness.ts`、 `sseHeartbeat.ts`、 `proxyFetch.ts`、 `proxyDispatcher.ts`、 `tlsClient.ts`、 `networkProxy.ts`、 `awsSigV4.ts`、 `cacheControlPolicy.ts`、 `cursorChecksum.ts`、 `cursorAgentProtobuf.ts`、 `cursorVersionDetector.ts`、 `comfyuiClient.ts`、 `kieTask.ts`、 `bypassHandler.ts`、 `aiSdkCompat.ts`、 `thinkTagParser.ts`、 `urlSanitize.ts`、 `usageTracking.ts`、 `requestLogger.ts`、 `progressTracker.ts`、 `cors.ts`、 `error.ts`、 `logger.ts`、 `sleep.ts`、 `ollamaTransform.ts`。
+流式处理原语和提供者助手： `stream.ts`、 `streamHandler.ts`、 `streamHelpers.ts`、 `streamPayloadCollector.ts`、 `streamReadiness.ts`、 `sseHeartbeat.ts`、 `proxyFetch.ts`、 `proxyDispatcher.ts`、 `tlsClient.ts`、 `networkProxy.ts`、 `awsSigV4.ts`、 `cacheControlPolicy.ts`、 `cursorChecksum.ts`、 `cursorAgentProtobuf.ts`、 `cursorVersionDetector.ts`、 `comfyuiClient.ts`、 `kieTask.ts`、 `bypassHandler.ts`、 `aiSdkCompat.ts`、 `thinkTagParser.ts`、 `urlSanitize.ts`、 `usageTracking.ts`、 `requestLogger.ts`、 `progressTracker.ts`、 `cors.ts`、 `error.ts`、 `logger.ts`、 `sleep.ts`、 `ollamaTransform.ts`。
 
 ---
 

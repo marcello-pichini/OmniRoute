@@ -242,9 +242,9 @@ src/
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `components/`                    | Компонента контролне табле API: адаптери преко `packages/ui-kit` — види `docs/architecture/DESIGN_SYSTEM.md` |
 | `constants/iconMap.ts`           | `ICON_MAP`: имена икона које користе екрани → Луциде компоненте (`<Icon>`)                                   |
-| `constants/providers.ts`         | **381 провајдер** са Zod валидацијом (извор истине)                                                          |
+| `constants/providers.ts`         | **393 провајдера** са Zod валидацијом (извор истине)                                                         |
 | `constants/cliTools.ts`          | Екстерни регистар CLI алата                                                                                  |
-| `constants/routingStrategies.ts` | **20 стратегија рутирања** са приоритетима                                                                   |
+| `constants/routingStrategies.ts` | **21 стратегија рутирања** са приоритетима                                                                   |
 | `constants/publicApiRoutes.ts`   | Руте које захтевају ауторизацију носиоца (у односу на управљање).                                            |
 | `constants/upstreamHeaders.ts`   | Листа одбијених заглавља за упстреам захтеве                                                                 |
 | `validation/schemas.ts`          | ~ 80 Zod шеме (један извор истине за API уговоре)                                                            |
@@ -258,42 +258,42 @@ src/
 
 ---
 
-## `open-sse/` — Радни простор механизма за стримовање
+## `open-sse/` — Стреаминг Енгине Воркспаце
 
-Засебан npm радни простор (`@omniroute/open-sse`). Обрађује захтеве и извршавање код добављача.
+Одвојите нпм радни простор (`@omniroute/open-sse`). Рукује извршавање + провајдера за обраду захтева.
 
 ```
 open-sse/
-├── handlers/            # 16 датотека (12 обрађивача + 4 помоћна модула): chatCore, responsesHandler, embeddings, audio, image, video, music, rerank, moderations, search, итд.
-├── executors/           # 150 извршних модула (класе које проширују BaseExecutor + помоћни модули за сваког добављача)
-├── translator/          # Конвертори формата (9 за захтеве, 9 за одговоре, 9 помоћних)
+├── handlers/            # 16 files (12 handlers + 4 helpers): chatCore, responsesHandler, embeddings, audio, image, video, music, rerank, moderations, search, etc.
+├── executors/           # 163 executor modules (classes extending BaseExecutor + per-provider helpers)
+├── translator/          # Format converters (9 request, 9 response, 9 helpers)
 ├── transformer/         # Responses API ↔ Chat Completions (TransformStream)
-├── services/            # ~80+ сервисних модула (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, итд.)
-├── mcp-server/          # MCP сервер (110 алата, 3 транспорта, 33 опсега)
-├── config/              # Регистри добављача/модела, конфигурација заглавља, алијаси модела
-├── utils/               # TLS клијент, proxy fetch/dispatcher, мрежни помоћни модули
-├── index.ts             # Улазна тачка радног простора
-├── package.json         # Манифест радног простора
-├── tsconfig.json        # TS конфигурација радног простора
-└── types.d.ts           # Декларације типова радног простора
+├── services/            # ~80+ service modules (combo, accountFallback, autoCombo, reasoningCache, claude code/chatgpt stealth, modelDeprecation, taskAwareRouter, workflowFSM, etc.)
+├── mcp-server/          # MCP server (110 tools, 3 transports, 33 scopes)
+├── config/              # Provider/model registries, header config, model aliases
+├── utils/               # TLS client, proxy fetch/dispatcher, network helpers
+├── index.ts             # Workspace entry
+├── package.json         # Workspace manifest
+├── tsconfig.json        # Workspace TS config
+└── types.d.ts           # Workspace type declarations
 ```
 
 ### `open-sse/mcp-server/`
 
-| Путања                      | Намена                                                                           |
-| --------------------------- | -------------------------------------------------------------------------------- |
-| `server.ts`                 | Животни циклус MCP сервера (stdio + HTTP транспорти)                             |
-| `httpTransport.ts`          | HTTP Streamable + SSE транспорти (`/api/mcp/sse`, `/api/mcp/stream`)             |
-| `audit.ts`                  | Евидентирање ревизије у табелу `mcp_tool_audit`                                  |
-| `scopeEnforcement.ts`       | Провера опсега за сваки алат                                                     |
-| `runtimeHeartbeat.ts`       | Сигнал стања у `DATA_DIR/runtime/mcp-heartbeat.json`                             |
-| `descriptionCompressor.ts`  | Компримује метаподатке описа алата ради уштеде контекста                         |
-| `schemas/tools.ts`          | 36 основних дефиниција алата + опсези                                            |
-| `tools/advancedTools.ts`    | Имплементације напредних алата                                                   |
-| `tools/memoryTools.ts`      | 3 меморијска алата (претрага/додавање/брисање)                                   |
-| `tools/skillTools.ts`       | 4 алата за вештине (листа/омогућавање/извршавање/извршавања)                     |
-| `tools/compressionTools.ts` | 5 алата за компресију                                                            |
-| `README.md`                 | Интерни README MCP сервера (унакрсно повезан из `docs/frameworks/MCP-SERVER.md`) |
+| Пут                         | Сврха                                                                  |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `server.ts`                 | животни циклус MCP сервера (стдио + HTTP транспорт)                    |
+| `httpTransport.ts`          | HTTP Стреамабле + SSE транспорти (`/api/mcp/sse`, `/api/mcp/stream`)   |
+| `audit.ts`                  | Ревизорска евиденција у `mcp_tool_audit` табели                        |
+| `scopeEnforcement.ts`       | Валидација опсега по алату                                             |
+| `runtimeHeartbeat.ts`       | Здравствени откуцаји срца до `DATA_DIR/runtime/mcp-heartbeat.json`     |
+| `descriptionCompressor.ts`  | Компресујте метаподатке описа алата да бисте сачували контекст         |
+| `schemas/tools.ts`          | 36 дефиниција основних алата + опсега                                  |
+| `tools/advancedTools.ts`    | Напредне имплементације алата                                          |
+| `tools/memoryTools.ts`      | 3 меморијска алата (search/add/clear)                                  |
+| `tools/skillTools.ts`       | 4 алата за вештине (list/enable/execute/executions)                    |
+| `tools/compressionTools.ts` | 5 алата за компресију                                                  |
+| `README.md`                 | Интерни MCP сервер README (повезан са `docs/frameworks/MCP-SERVER.md`) |
 
 ---
 
@@ -412,9 +412,9 @@ open-sse/
 | `CLI-TOOLS.md`              | Екстерне CLI интеграције + Унутрашње OmniRoute CLI                                         |
 | `I18N.md`                   | и18н архитектура, додавање језика, 67 локалитета                                           |
 | `UNINSTALL.md`              | Чисте кораке деинсталирања                                                                 |
-| `PROVIDER_REFERENCE.md`     | **Аутоматски генерисано** каталог 381 провајдера (реген: `npm run gen:provider-reference`) |
+| `PROVIDER_REFERENCE.md`     | **Аутоматски генерисано** каталог 393 провајдера (реген: `npm run gen:provider-reference`) |
 
-### Дубоки зарон подсистема
+### Дубински зарон подсистема
 
 | Доц                                         | Сврха                                                                                     |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -437,13 +437,13 @@ open-sse/
 
 ### Компресија
 
-| Доц                             | Сврха                                       |
-| ------------------------------- | ------------------------------------------- |
-| `COMPRESSION_GUIDE.md`          | Преглед режима компресије + мапа пута       |
-| `COMPRESSION_ENGINES.md`        | Цавеман + RTK мотори, уговор о регистрацији |
-| `COMPRESSION_RULES_FORMAT.md`   | Пакет правила Цавеман JSON шема             |
-| `COMPRESSION_LANGUAGE_PACKS.md` | Инвентар пакета правила по језику           |
-| `RTK_COMPRESSION.md`            | RTK декларативни цевовод (56 филтера)       |
+| Доц                             | Сврха                                    |
+| ------------------------------- | ---------------------------------------- |
+| `COMPRESSION_GUIDE.md`          | Преглед режима компресије + мапа пута    |
+| `COMPRESSION_ENGINES.md`        | Цавеман + RTK мотори, регистарски уговор |
+| `COMPRESSION_RULES_FORMAT.md`   | Пакет правила Цавеман JSON шема          |
+| `COMPRESSION_LANGUAGE_PACKS.md` | Инвентар пакета правила по језику        |
+| `RTK_COMPRESSION.md`            | RTK декларативни цевовод (56 филтера)    |
 
 ### Деплоимент
 

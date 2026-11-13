@@ -317,7 +317,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Tüm Yönlendirme Stratejileri
 
-OmniRoute birleşik motor destekleri** 20 yönlendirme stratejisi** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` bildirildi). Auto Combo motorunun kendisi `auto` stratejisi kapsamında ortaya çıkıyor; diğerleri kalıcı kombinasyonlar için kullanılabilir.
+OmniRoute birleşik motor destekleri** 21 yönlendirme stratejisi** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` bildirildi). Auto Combo motorunun kendisi `auto` stratejisi kapsamında ortaya çıkıyor; diğerleri kalıcı kombinasyonlar için kullanılabilir.
 
 | Strateji            | Tanım                                                                                                                                                                                                            |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -332,11 +332,12 @@ OmniRoute birleşik motor destekleri** 20 yönlendirme stratejisi** ( `src/share
 | `cost-optimized`    | Katalog fiyatlandırmasına göre istek başına $'ı en aza indirin                                                                                                                                                   |
 | `reset-aware` ⭐    | Kota sıfırlama süresine göre önceliklendirin — kısa sıfırlama aralıkları daha üst sıralarda yer alır                                                                                                             |
 | `reset-window`      | Kota penceresi en kısa sürede sıfırlanan hedefleri tercih edin                                                                                                                                                   |
-| `headroom`          | En fazla kota boşluğuna sahip hedefi seçin                                                                                                                                                                       |
+| `expiry-first`      | Aksi takdirde kotası kullanılmadan dolacak olan hesabı ilk önce harcayın — en yakın sıfırlama tarihine kadar kalan en yüksek miktar ilk önce gider                                                               |
+| `headroom`          | En fazla kalan kota payına sahip hedefi seçin                                                                                                                                                                    |
 | `quota-weighted`    | Tükenen hesapları atlayın, ardından kalan kotanın uçuş sırasındaki yüke bölünmesiyle orantılı olarak geri kalanlar arasından seçim yapın; mevcut görüşmeler sabit kalıyor                                        |
 | `strict-random`     | Tekrarların tekilleştirilmesi olmadan rastgele                                                                                                                                                                   |
 | `auto`              | Otomatik Birleşik puanlamayı (16 faktörlü) — kullanın** tavsiye edilen**                                                                                                                                         |
-| `lkgp`              | Bilinen Son İyi Yol (son başarılı sağlayıcıya sabitlenir, ardından kurallara geri döner)                                                                                                                         |
+| `lkgp`              | Bilinen Son İyi Yol (en son başarılı sağlayıcıya sabitlenir, ardından kurallara geri döner)                                                                                                                      |
 | `context-optimized` | Mevcut bağlam boyutuna en uygun hedefi seçin                                                                                                                                                                     |
 | `cache-optimized`   | Hedefleri istem-önbellek benzeşimine göre yeniden sıralayın — bu isteğin önbelleğe alınmış önekini zaten tutması en muhtemel bağlantı ilk önce denenir (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
 | `fusion` 🧬         | Modellerden oluşan bir paneli paralel olarak genişletin, ardından bir jüri aracılığıyla bir cevabı sentezleyin (aşağıya bakın)                                                                                   |
@@ -344,7 +345,7 @@ OmniRoute birleşik motor destekleri** 20 yönlendirme stratejisi** ( `src/share
 
 ⭐ = v3.8.0'daki yenilikler · 🧬 = v3.8.36'daki yenilikler
 
-### `weighted` anlambilimi
+### `weighted` semantiği
 
 `weighted` bir** istek başına orantılı rastgele çekiliş** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), ekolayzır değil:
 
@@ -358,6 +359,20 @@ Kesin rotasyon için `round-robin` kullanın; `weighted` üzerindeki eşit ağı
 ### Ajan boru hattı modu
 
 En az iki modele sahip bir `pipeline` kombinasyonu, `config.agenticOrchestration.enabled` ile planner/executor yönlendirmeyi tercih edebilir. İlk hedef planlama ve nihai cevaplara sahiptir; ikinci hedef istemciye özgü araç çağrıları yayar. OmniRoute istek protokolünden gelen araç-sonuç devamlılıklarını tespit eder, planlayıcıya başka bir araç turunun gerekli olup olmadığını sorar ve dinamik olarak yürütücüyü veya planlayıcıyı müşteriye yönelik son adım yapar.
+
+İsteğe bağlı `config.agenticOrchestration.contextCompaction` her planlayıcı veya uygulayıcı gönderiminden önce ayrı bir yük bütçesi uygular. Açıkça etkinleştirin:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Bunlar, belirteç bağlam pencereleri veya garanti edilen yukarı akış sınırları değil, operatör tarafından seçilen serileştirilmiş JSON karakter bütçeleridir. Tam model IDs varsayılanı geçersiz kılar. Eşiğin üzerinde sıkıştırma, aynı takım tanımlarını kaldırır, büyük boyutlu takım kanıtlarını bir özet ile kırpar ve eski tam geçmiş gruplarını hedef orana doğru kaldırır. system/developer talimatlarını, en son kullanıcı isteğini, paralel calls/results dahil son araç turunu ve Gemini önde gelen yönlendirme talimatını korur. Üst düzey talimatlar ve araç ayarları korunur. Bir ihmal işaretleyicisi, kaldırılan geçmişi kaydeder; bu deterministik bir düzeltmedir, anlamsal bir özet değil. Sabitlenmiş bağlam hâlâ bütçeyi aşıyorsa istek, modelle iletişime geçmeden önce 413 değerini döndürür. Sıkıştırma devre dışı bırakıldığında veya eşiğin altındayken istek değişmeden geçer.
 
 Araç-sonucu devamlılıklarında OmniRoute, birbirini takip eden iki tamamlanmış tur aynı araç çağrılarını değişmeden sonuçlarla tekrarladığında veya ardışık iki turda açıkça işaretlenen her sonuç başarısız olduğunda yürütmeyi durdurur. Değiştirilen sonuçlar tekrarlanan aramalara (örneğin yoklama) izin verir. Koruma, yeni bir kullanıcı isteği üzerine sıfırlanır, paralel çağrıları tek bir turda gruplandırır ve Anthropic, Sohbet Tamamlamaları, Yanıtlar ve Gemini geçmişlerini destekler. Planlayıcı nedeni alır ve başka bir araç turu talep etse bile nihai cevabın sahibi olur.
 
@@ -851,42 +866,37 @@ Katman tanımları ve sağlayıcı sınıflandırması için [`docs/guides/TIERS
 
 ### Deterministik yönlendirme-karar matrisi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts`, gerçek combo işlem hattı ve sahte bir üst hizmet
-üzerinden 19 genel stratejinin tamamının uçtan uca yönlendirme **kararını** doğrular.
-Kapsam şunları içerir:
+`tests/integration/combo-matrix/*.test.ts` yönlendirmeyi kanıtlıyor** karar** 21 genel stratejinin tümünün, sahte bir yukarı akışla gerçek birleşik boru hattı aracılığıyla uçtan uca. Kapsam şunları içerir:
 
-- 19 `ROUTING_STRATEGY_VALUES` stratejisinin tamamı (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (dahili) uçtan uca: gerçek `selectQuotaShareTarget` bağlantı noktası üzerinden DRR adaleti + doygunluk durumunda önceliğin düşürülmesi (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Her hedef sayısı genelinde `context-relay` evrensel devir kapsamı.
+- 21 `ROUTING_STRATEGY_VALUES` stratejisinin tümü (sıralı, ağırlıklı, maliyet, bağlam, füzyon,…).
+- `quota-share` (dahili) uçtan uca: gerçek `selectQuotaShareTarget` dikişi (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`) aracılığıyla DRR adaleti + doygunluğunun önceliklendirilmesi.
+- Her hedef sayısında `context-relay` evrensel aktarım kapsamı.
 
-Bu paket, deterministik olması ve canlı kimlik bilgileri gerektirmemesi için CI'da (`test:integration` işi)
-`--test-concurrency=1` ve `--test-force-exit` ile çalıştırılır.
+Bu paket, `--test-concurrency=1` ve `--test-force-exit` ile CI (`test:integration` job) ile çalışır, dolayısıyla deterministiktir ve canlı kimlik bilgileri gerektirmez.
 
-### Koşullu canlı smoke testi (CI'da DEĞİL — gerçek sağlayıcılar)
+### Geçitli canlı duman ( CI — gerçek sağlayıcılarda NOT )
 
-| Komut                                  | Ne yapar                                                                                                 |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` ile işlem içi gerçek yönlendirme; canlı bir OmniRoute DB'sinin anlık görüntüsünü alır |
-| `npm run test:combo:live:vps`          | Canlı bir OmniRoute sunucusuna HTTP çağrıları yapar (`COMBO_LIVE_BASE_URL` değerini ayarlayın)           |
-| `npm run test:combo:live:vps:failover` | Aynı işlemi kasıtlı yük devretme senaryolarıyla gerçekleştirir                                           |
+| Emretmek                               | Ne işe yarar                                                                                  |
+| :------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` ile süreç içi gerçek yönlendirme; canlı bir OmniRoute DB anlık görüntüleri |
+| `npm run test:combo:live:vps`          | canlı bir OmniRoute sunucusuna karşı HTTP çağrıları ( `COMBO_LIVE_BASE_URL` ayarlayın)        |
+| `npm run test:combo:live:vps:failover` | Kasıtlı yük devretme senaryolarında da durum aynıdır                                          |
 
-Bu smoke testleri gerçek bağlantı yolunu (combo → sağlayıcı → tamamlama) çalıştırır. Canlı kimlik
-bilgileri ve VPS erişimi gerektirdikleri için kasıtlı olarak CI kapsamı dışında tutulurlar.
+Bu duman testleri gerçek kablo yolunu (kombinasyon → sağlayıcısı → tamamlama) uygular. Canlı kimlik bilgileri ve VPS erişimi gerektirdiğinden kasıtlı olarak CI hariç tutulurlar.
 
 ---
 
 ## Dosyalar
 
-| Dosya                                                     | Amaç                                                                                                                      |
-| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktörlü puanlama işlevi, `DEFAULT_WEIGHTS`, havuz normalizasyonu                                                      |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Model × görev uygunluğu araması                                                                                           |
-| `open-sse/services/autoCombo/engine.ts`                   | Seçim mantığı, bandit, bütçe sınırı                                                                                       |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Hariç tutma, problar, olay modu                                                                                           |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 ağırlık profili (hızlı yayın, maliyet tasarrufu, kalite öncelikli, çevrimdışı dostu, güvenilirlik öncelikli, kaos modu) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` önek ayrıştırıcısı + 6 varyant                                                                                    |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Canlı bağlantılardan bellek içi `AutoComboConfig` oluşturur                                                               |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Sağlayıcı kayıt defterini taklit etmek için test kancası                                                                  |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateji)                                                                                   |
-| `src/sse/handlers/chat.ts`                                | Entegrasyon: auto-prefix kısa devresi                                                                                     |
+| Dosya                                                     | Amaç                                                                                                               |
+| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktörlü puanlama fonksiyonu, `DEFAULT_WEIGHTS`, havuz normu                                                    |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Model × görev uygunluğu araması                                                                                    |
+| `open-sse/services/autoCombo/engine.ts`                   | Seçim mantığı, haydut, bütçe sınırı                                                                                |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Hariç tutma, sondalar, olay modu                                                                                   |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 ağırlık profili (hızlı gönderim, maliyet tasarrufu, önce kalite, çevrimdışı dostu, önce güvenilirlik, kaos modu) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` önek ayrıştırıcısı + 6 çeşitleri                                                                           |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Canlı bağlantılardan bellek içi `AutoComboConfig` oluşturur                                                        |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Sağlayıcı kayıt defterini taklit etmek için test kancası                                                           |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateji)                                                                            |
+| `src/sse/handlers/chat.ts`                                | Entegrasyon: otomatik önek kısa devre                                                                              |

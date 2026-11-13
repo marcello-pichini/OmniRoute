@@ -20,30 +20,30 @@ När en IDE agent (t.ex. GitHub Copilot, Cursor, Claude Code) ringer ett API sam
 
 Det betyder att du kan:
 
-- **Omdirigera vilken agent som helst till vilken leverantör som helst** : Copilot pratar med OpenAI? Omdirigera den till Anthropic Claude, Gemini, eller någon av OmniRoute 381-leverantörer.
+- **Omdirigera vilken agent som helst till vilken leverantör som helst** : Copilot pratar med OpenAI? Omdirigera den till Anthropic Claude, Gemini, eller någon av OmniRoute 393 leverantörer.
 - **Tillämpa modellmappningar** : `gemini-3-flash` → `claude-sonnet-4.7` transparent på hanterarnivå.
 - **Observera all agenttrafik** : varje avlyssnad begäran publiceras till [Trafikinspektören](./TRAFFIC_INSPECTOR.md).
-- **Applicera OmniRoute resilience** : kombinerad routing, strömbrytare, fallbacks och kostnadsspårningsarbete för IDE agenttrafik också.
+- **Använd OmniRoute resilience** : kombinerad routing, strömbrytare, fallbacks och kostnadsspårningsarbete för IDE agenttrafik också.
 
 ### Positionering kontra marknaden
 
-| Särdrag            | 9 router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
-| ------------------ | :------: | :------: | :-------------: | :-----------------------: |
-| Antigravity        |    ✓     |    ✓     |        —        |             ✓             |
-| GitHub Copilot     |    ✓     |    ✓     |        —        |             ✓             |
-| Kiro (AWS)         |    ✓     |    ✓     |        —        |             ✓             |
-| OpenAI Codex       |    —     |    ✓     |        —        |             ✓             |
-| Cursor IDE         |    ✓     |    ✓     |        —        |             ✓             |
-| Zed industrier     |    —     |    ✓     |        —        |             ✓             |
-| Claude kod         |    —     |    —     |        ✓        |             ✓             |
-| Öppna kod          |    —     |    —     |        ✓        |             ✓             |
-| Trae               |    —     |    —     |        —        |       🔍 Undersöker       |
-| Instrumentbräda UI |    ✓     |    ✗     |        ✗        |             ✓             |
-| Trafikinspektör    |    ✗     |    ✗     |        ✓        |             ✓             |
-| OmniRoute routing  |    ✗     |    ✗     |        ✗        |             ✓             |
-| Modellmappning UI  |    ✗     |    ✗     |        ✗        |             ✓             |
-| Bypass lista       |    ✗     |    ✗     |        ✓        |             ✓             |
-| Uppströms CA cert  |    ✗     |    ✗     |        ✓        |             ✓             |
+| Särdrag                 | 9 router | anti-api | llm-interceptor | **OmniRoute AgentBridge** |
+| ----------------------- | :------: | :------: | :-------------: | :-----------------------: |
+| Antigravity             |    ✓     |    ✓     |        —        |             ✓             |
+| GitHub Copilot          |    ✓     |    ✓     |        —        |             ✓             |
+| Kiro (AWS)              |    ✓     |    ✓     |        —        |             ✓             |
+| OpenAI Codex            |    —     |    ✓     |        —        |             ✓             |
+| Cursor IDE              |    ✓     |    ✓     |        —        |             ✓             |
+| Zed industrier          |    —     |    ✓     |        —        |             ✓             |
+| Claude kod              |    —     |    —     |        ✓        |             ✓             |
+| Öppna kod               |    —     |    —     |        ✓        |             ✓             |
+| Trae                    |    —     |    —     |        —        |       🔍 Undersöker       |
+| Instrumentpanel UI      |    ✓     |    ✗     |        ✗        |             ✓             |
+| Trafikinspektör         |    ✗     |    ✗     |        ✓        |             ✓             |
+| OmniRoute routing       |    ✗     |    ✗     |        ✗        |             ✓             |
+| Modellmappning UI       |    ✗     |    ✗     |        ✗        |             ✓             |
+| Bypass lista            |    ✗     |    ✗     |        ✓        |             ✓             |
+| Uppströms CA certifikat |    ✗     |    ✗     |        ✓        |             ✓             |
 
 ---
 

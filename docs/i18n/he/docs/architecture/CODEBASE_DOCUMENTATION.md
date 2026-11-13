@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 מודולי ביצוע ברמה העליונה (`*.ts` מינוס `base.ts`, `index.ts` ובדיקות — ספירת `npm run check:docs-counts` מודד). כל מחלקה executor משתרעת על `BaseExecutor` (`base.ts`), ישירות או דרך `DefaultExecutor` או executor אחר; המודולים הנותרים הם עוזרים לכל ספק (סכימות כלים, מתאמי fetch/TTS, מטפלי מוזרויות). המבצעים כוללים:
+170 מודולי ביצוע ברמה העליונה (`*.ts` מינוס `base.ts`, `index.ts` ובדיקות — ספירת `npm run check:docs-counts` מודד). כל מחלקה executor משתרעת על `BaseExecutor` (`base.ts`), ישירות או דרך `DefaultExecutor` או executor אחר; המודולים הנותרים הם עוזרים לכל ספק (סכימות כלים, מתאמי fetch/TTS, מטפלי מוזרויות). המבצעים כוללים:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop` `muse-spark-web` `claudeIdentity.ts` `index.ts` (רישום).
 
-> הערה: ספקים שאינם רשומים כאן מוגשת על ידי `default.ts` באמצעות ה-executor הגנרי תואם OpenAI. קטלוג הספקים המלא (381 ספקים) חי ב- `src/shared/constants/providers.ts`.
+> הערה: ספקים שאינם רשומים כאן מוגשת על ידי `default.ts` באמצעות ה-executor הגנרי תואם OpenAI. קטלוג הספקים המלא (393 ספקים) חי ב- `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,14 +512,14 @@ open-sse/
 
 | דְאָגָה                 | קבצים                                                                                                                                                                                                                                                    |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ניתוב משולב             | `combo.ts` (20 אסטרטגיות), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| ניתוב משולב             | `combo.ts` (21 אסטרטגיות), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
 | מנוע קומבו אוטומטי      | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | כּוֹשֵׁר הִתאוֹשְׁשׁוּת | `accountFallback.ts` (נעילת + של התקררות), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                         |
 | מכסות                   | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
 | שמירה במטמון            | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
 | ניתוב מודיעין           | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
 | טיפול בדגם              | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| דְחִיסָה                | חיווט מנוע דחיסה מלא `compression/` —                                                                                                                                                                                                                    |
+| דְחִיסָה                | חיווט מנוע דחיסה מלאה `compression/` —                                                                                                                                                                                                                   |
 | סשן + אסימון            | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
 | שכבה / מניפסט           | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
 | IP / רשת                | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |

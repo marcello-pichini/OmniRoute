@@ -304,67 +304,67 @@ Aplikované príklady nájdete v `open-sse/utils/stream.ts` a `open-sse/utils/st
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Stránky ovládacieho panela (23 sekcií)
-│   ├── api/                # Trasy API (51 adresárov)
-│   └── login/              # Stránky autentifikácie (.tsx)
-├── domain/                 # Mechanizmus pravidiel (policyEngine, comboResolver, costRules atď.)
-├── lib/                    # Základná obchodná logika (.ts)
-│   ├── a2a/                # Server protokolu Agent-to-Agent v0.3
-│   ├── acp/                # Register protokolu Agent Communication Protocol
-│   ├── compliance/         # Mechanizmus pravidiel súladu
-│   ├── db/                 # Doménové moduly SQLite + 130 migrácií
-│   ├── memory/             # Trvalá konverzačná pamäť
-│   ├── oauth/              # Poskytovatelia, služby a nástroje OAuth
-│   ├── skills/             # Rozšíriteľný rámec zručností
-│   ├── usage/              # Sledovanie používania a výpočet nákladov
-│   └── localDb.ts          # Iba vrstva opätovného exportu — nikdy sem nepridávajte logiku
-├── middleware/              # Middleware požiadaviek (promptInjectionGuard)
-├── mitm/                   # Proxy MITM (certifikát, DNS, smerovanie cieľa)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Komponenty React (.tsx)
-│   ├── constants/          # Definície poskytovateľov (329), rozsahy MCP, 20 stratégií smerovania
-│   ├── utils/              # Istič, sanitizátor, pomocné nástroje autentifikácie
-│   └── validation/         # Schémy Zod v4
-└── sse/                    # Kanál proxy SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 21 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # Pracovný priestor @omniroute/open-sse
-├── executors/              # 150 modulov vykonávateľov (triedy vykonávateľov + pomocné nástroje pre jednotlivých poskytovateľov)
-├── handlers/               # 11 obslužných programov požiadaviek (chat, odpovede, vnorenia, obrázky atď.)
-├── mcp-server/             # Server MCP (110 jedinečných nástrojov, 3 transporty, 33 rozsahov)
-├── services/               # 178 služieb najvyššej úrovne (combo, autoCombo, rateLimitManager atď.)
-├── translator/             # Prekladače formátov (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Transformátor Responses API
-└── utils/                  # 22 modulov nástrojov (stream, TLS, proxy, protokolovanie)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 150 executor modules (executor classes + per-provider helpers)
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Desktopová aplikácia Electron (multiplatformová)
+electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Nástroj na spúšťanie testov Node.js (1 574 testovacích súborov)
-├── integration/            # Integračné testy
-├── e2e/                    # Testy Playwright
-├── security/               # Bezpečnostné testy
-├── translator/             # Testy špecifické pre prekladač
-└── load/                   # Záťažové testy
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Záznamy architektonických rozhodnutí
-├── architecture/            # Architektúra a odolnosť systému
-├── comparison/              # OmniRoute v porovnaní s alternatívami
-├── compression/             # Príručky a pravidlá kompresie
-├── dev/                     # Príručky pre vývoj
-├── diagrams/                # Diagramy architektúry
-├── frameworks/              # MCP, A2A, OpenCode, pamäť, zručnosti
-├── guides/                  # Používateľská príručka, Docker, nastavenie, riešenie problémov
-├── i18n/                    # Internacionalizované preklady README
-├── marketing/               # Marketingové materiály
-├── ops/                     # Nasadenie, proxy, pokrytie, vydania
-├── providers/               # Dokumentácia pre jednotlivých poskytovateľov
-├── reference/               # Referenčná dokumentácia API, premenné prostredia, nástroje CLI, bezplatné úrovne
-├── releases/                # Poznámky k vydaniam
-├── routing/                 # Mechanizmus automatických kombinácií, opakované prehrávanie uvažovania
-├── screenshots/             # Snímky obrazovky ovládacieho panela
-├── security/                # Ochranné mechanizmy, súlad, utajenie, tokeny
-└── specs/                   # Špecifikácie návrhu
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
+├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---

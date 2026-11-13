@@ -446,7 +446,7 @@ Dibahagikan kepada subdirektori yang berfokus:
 
 ## 4. `open-sse/` — Ruang kerja enjin penstriman
 
-Ruang kerja npm berasingan diterbitkan sebagai `@omniroute/open-sse`. Memiliki pemprosesan permintaan, pelaksana, penterjemah, perkhidmatan, pengubah dan pelayan MCP.
+Ruang kerja npm yang berasingan diterbitkan sebagai `@omniroute/open-sse`. Memiliki pemprosesan permintaan, pelaksana, penterjemah, perkhidmatan, pengubah dan pelayan MCP.
 
 ```
 open-sse/
@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -481,16 +481,16 @@ open-sse/
 | `search.ts`             | Carian web                                                                              |
 | `sseParser.ts`          | penghurai acara SSE                                                                     |
 | `usageExtractor.ts`     | Tarik kiraan token keluar dari aliran hulu                                              |
-| `responseSanitizer.ts`  | Bunyi khusus pembekal jalur                                                             |
+| `responseSanitizer.ts`  | Kebisingan khusus pembekal jalur                                                        |
 | `responseTranslator.ts` | Gam antara respons pembekal dan lapisan penterjemah                                     |
 
 ### 4.2 `open-sse/executors/`
 
-159 modul pelaksana peringkat atas (`*.ts` tolak `base.ts`, `index.ts` dan ujian — kiraan `npm run check:docs-counts` ukuran). Setiap kelas pelaksana memanjangkan `BaseExecutor` (`base.ts`), secara langsung atau melalui `DefaultExecutor` atau pelaksana lain; modul yang selebihnya ialah pembantu setiap penyedia (skema alat, penyesuai fetch/TTS, pengendali quirk). Pelaksana termasuk:
+170 modul pelaksana peringkat atas (`*.ts` tolak `base.ts`, `index.ts` dan ujian — kiraan `npm run check:docs-counts` ). Setiap kelas pelaksana memanjangkan `BaseExecutor` (`base.ts`), secara langsung atau melalui `DefaultExecutor` atau pelaksana lain; modul yang selebihnya ialah pembantu setiap penyedia (skema alat, penyesuai fetch/TTS, pengendali kebiasaan). Pelaksana termasuk:
 
-`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`(bantuan), `claudeIdentity.ts` (bantuan), `index.ts` dan kongsi).
+`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`(bantuan), `claudeIdentity.ts` (bantuan) ( `index.ts` )
 
-> Nota: pembekal yang tidak disenaraikan di sini disediakan oleh `default.ts` menggunakan pelaksana serasi OpenAI generik. Katalog pembekal penuh (381 pembekal) tinggal di `src/shared/constants/providers.ts`.
+> Nota: pembekal yang tidak disenaraikan di sini disediakan oleh `default.ts` menggunakan pelaksana serasi OpenAI generik. Katalog pembekal penuh (393 pembekal) tinggal di `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Sorotan (senarai penuh di bawah `open-sse/services/`):
 
 | Kebimbangan          | Fail                                                                                                                                                                                                                                                     |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Penghalaan kombo     | `combo.ts` (20 strategi), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                      |
+| Penghalaan kombo     | `combo.ts` (21 strategi), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                      |
 | Enjin Auto Combo     | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Ketahanan            | `accountFallback.ts` (kunci keluar + penyejukan), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                  |
 | Kuota                | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

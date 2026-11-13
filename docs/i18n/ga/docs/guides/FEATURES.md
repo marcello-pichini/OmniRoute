@@ -55,28 +55,19 @@ Is féidir le ceangail OpenRouter stóráil `preset` in aghaidh an cheangail i S
 
 ---
 
-## 🎨 Ceangail
+## Comhcheangail 🎨
 
-Cruthaigh combos ródaithe samhail le 19 straitéis phoiblí: tosaíocht, méáite, timthriall, aisréalta comhthéacs, líonadh-ar dtús, p2c (cumhacht dhá rogha), randamach, úsáid is lú, costas-optimálaithe, athshocrú-bhunaithe, fuinneog-athshocrú, headroom, randamacht dhílis, uathoibríoch, lkgp (soláthraí dea-aitheanta is déanaí), comhthéacs-optimálaithe, taisce-optimálaithe, **cumasc** (seol amach go cothrom le pionna samhlanna i bhfíor-am, ansin déan sintéis ar fhreagra amháin trí bhreitheamh), agus **píobáin**. Ceangail gach combo samhlanna iolracha le aisfhalú uathoibríoch agus cuimsíonn sé teimpléid thapa agus seiceálta réidhochta.
+Cruthaigh samhlacha ródaithe le 21 straitéis phoiblí: tosaíocht, ualaithe, spideog bhabhta, sealaíocht comhthéacs, fill-first, p2c (cumhacht de dhá rogha), randamach, is lú úsáid, optamaithe ó thaobh costais, athshocraigh feasach, athshocrú-fhuinneog, dul in éag-an chéad, spás cloiginn, cuóta-ualaithe, docht-randamach, auto, optamaithe-comhthéacs-shonraithe, optamaithe-deireadh-, comhthéacs-optamaithe, barrfheabhsaithe** comhleá** (lucht leanúna amach go dtí painéal samhlacha ag an am céanna, ansin sintéis freagra amháin trí bhreitheamh), agus** píblíne** . Slabhraíonn gach teaglama samhlacha iolracha le cúltaca uathoibríoch agus áirítear teimpléid thapa agus seiceálacha ullmhachta.
 
-Feabhsuithe déanaí ar combos:
+Feabhsuithe teaglama le déanaí:
 
-- **Tógálaí cumaisc struchtúrtha** — cruthaigh gach céim tríd an soláthraí, samhail, agus cuntas/ceangal beacht a roghnú
-- **Tacaíocht soláthraí athdhéanta** — athúsáid an soláthraí céanna iolranta uaireanta i combo amháin fad is atá an teaglaim `(soláthraí, samhail, ceangal)` uathúil
-- **Sláinte spriocanna combo** — anailísigh agus dromchlaí sláinte anois idirdhealú a dhéanamh idir spriocanna/céimeanna combo aonair seachas gach rud a chomhdhlúthú i sreanga samhlacha
-- **Ordú cille composite** — `defaultTier -> fallbackTier` anois tionchar ar ordú rithú/aisfhalú rithiúna do chéimeanna combo barrleibhéal
-- **Teimpléid treorach córais** — tacaíonn `system_message` combo le seiceálacha
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` agus `{{FINGERPRINT}}`
-  spásanna folmha, leathnaithe ón sprioc ródaithe iarbhíth díreach roimh sheoladh.
-  Liostaithe agus nach athchúrsáiltear; fanann spásanna folmha anaithnid litriúil; luachanna folmha
-  leathnaithe go folamh; ní athscríobhtar treoracha córais cliént. Réitíonn `{{FINGERPRINT}}`
-  ach do sholáthraithe saor in aisce bunaithe ar lorgdhigit le lorgdhigit pinnte nó
-  rothlaithe-uathoibríoch — leathnaítear é go folamh in áiteanna eile (m.sh.
-  ceangail lorgdhigit aonair, soláthraithe neamh-lorgdhigit). Clúdaíonn leathnú an
-  lúb seoladh caighdeánach, timthriall, agus seisiúin taisce comhthéacs pinnte;
-  ní leathnaíonn cumasc, chaos, píobáin agus straitéisí néalcheangail spásanna folmha fós.
+- **Tógálaí teaglama struchtúrtha** — cruthaigh gach céim trí sholáthraí, múnla, agus account/connection cruinn a roghnú
+- **Tacaíocht soláthraí arís agus arís eile** — an soláthraí céanna a athúsáid go minic i teaglama amháin chomh fada agus a bhíonn an tuple `(provider, model, connection)` uathúil
+- **Sláinte sprice teaglama** Déanann anailísíocht — agus dromchlaí sláinte idirdhealú anois ar teaglama targets/steps aonair in ionad gach rud a laghdú ina shamhailteaghráin
+- **Ordú sraithe ilchodach** Tá tionchar anois ag — `defaultTier -> fallbackTier` ar ordú runtime execution/fallback do chéimeanna teaglama barrleibhéil
+- **Teimpléid leid córais** tacaíonn — teaglama `system_message` le sealbhóirí áitribhithe `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` agus `{{FINGERPRINT}}` ar thaobh an fhreastalaí, leathnaithe ón sprioc iarbhír-ródaithe díreach roimh seolta. Ceadaithe agus neamh-athfhillteach; fanann áitshealbhóirí anaithnide go litriúil; leathnaíonn luachanna folamh go folamh; ní athscríobhtar leideanna córais cliant riamh. Ní réitíonn `{{FINGERPRINT}}` ach amháin do sholáthróirí saor méarloirg a bhfuil méarloirg pinn nó rothlú uathoibríoch acu — leathnaítear go folamh áit eile (m.sh. naisc aon-mhéarloirg, soláthraithe neamh-fp). Clúdaíonn an leathnú an lúb seolta caighdeánach, an bhabhta-robín, agus na seisiúin comhthéacs-taisce pinnáilte; ní leathnaíonn straitéisí comhleá, caos, píblíne agus forghníomhaithe neadaithe áitsealbhóirí fós.
 
-![Deais Ceangail](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

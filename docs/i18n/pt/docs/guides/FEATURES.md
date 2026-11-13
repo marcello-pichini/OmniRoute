@@ -57,29 +57,19 @@ As ligações OpenRouter podem armazenar um `preset` por ligação nas Definiç�
 
 ---
 
-## 🎨 Combinações
+## Combos 🎨
 
-Crie combinações de encaminhamento de modelos com 19 estratégias públicas: prioridade, ponderada, round-robin, retransmissão de contexto, preenchimento prioritário, p2c (escolha entre duas opções), aleatória, menos utilizado, otimizada por custo, sensível à reposição, janela de reposição, margem disponível, aleatória estrita, automática, lkgp (último fornecedor funcional conhecido), otimizada por contexto, otimizada por cache, **fusão** (distribui o pedido em paralelo por um painel de modelos e, em seguida, sintetiza uma única resposta através de um avaliador) e **pipeline**. Cada combinação encadeia vários modelos com recurso alternativo automático e inclui modelos de configuração rápida e verificações de prontidão.
+Crie combos de encaminhamento de modelo com 21 estratégias públicas: prioridade, ponderado, round-robin, retransmissão de contexto, preenchimento primeiro, p2c (potência de duas opções), aleatório, menos utilizado, com custo otimizado, com reconhecimento de redefinição, janela de redefinição, expiração primeiro, headroom, ponderado por quota, aleatório estrito, automático, lkgp (último fornecedor válido), otimizado para contexto, otimizado para cache,** fusão** (distribuir-se por um painel de modelos em paralelo e, em seguida, sintetizar uma resposta através de um juiz) e** gasoduto** . Cada combinação encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.
 
-Melhorias recentes nas combinações:
+Melhorias recentes no combinado:
 
-- **Construtor estruturado de combinações** — crie cada passo selecionando o fornecedor, o modelo e a conta/ligação exata
-- **Suporte para fornecedores repetidos** — reutilize o mesmo fornecedor várias vezes numa combinação, desde que a tupla `(provider, model, connection)` seja única
-- **Estado dos destinos das combinações** — as vistas de análise e estado distinguem agora destinos/passos individuais das combinações, em vez de agregarem tudo em cadeias de modelos
-- **Ordenação por níveis compostos** — `defaultTier -> fallbackTier` influencia agora a ordem de execução/recurso alternativo em tempo de execução para os passos de nível superior das combinações
-- **Modelos de mensagens de sistema** — o `system_message` da combinação suporta, no lado do servidor, os marcadores de posição
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}`,
-  expandidos a partir do destino efetivamente selecionado imediatamente antes do envio.
-  São permitidos apenas os marcadores autorizados e não há expansão recursiva; os marcadores desconhecidos permanecem literais; os valores vazios
-  são expandidos para vazio; as mensagens de sistema do cliente nunca são reescritas. `{{FINGERPRINT}}`
-  é resolvido apenas para fornecedores gratuitos baseados em impressões digitais com uma impressão digital fixa ou
-  rodada automaticamente — nos restantes casos, é expandido para vazio (por exemplo,
-  ligações com uma única impressão digital, fornecedores sem impressões digitais). A expansão abrange o
-  ciclo de envio padrão, round-robin e sessões fixas de cache de contexto;
-  as estratégias de fusão, caos, pipeline e execução aninhada ainda não expandem
-  marcadores de posição.
+- **Construtor de combo estruturado** — cria cada passo selecionando fornecedor, modelo e account/connection exato
+- **Suporte repetido do fornecedor** — reutiliza o mesmo fornecedor muitas vezes num combo, desde que a tupla `(provider, model, connection)` seja única
+- **Saúde alvo combinada** — Analytics e Health Surfaces distinguem agora combinações individuais targets/steps em vez de agrupar tudo em strings de modelo
+- **Ordenação de camadas compostas** — `defaultTier -> fallbackTier` influencia agora a ordem execution/fallback do tempo de execução para passos combinados de nível superior
+- **Modelos de prompt do sistema** — combo `system_message` suporta espaços reservados `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}` do lado do servidor, expandidos a partir do destino realmente encaminhado imediatamente antes do envio. Lista de permissões e não recursiva; espaços reservados desconhecidos permanecem literais; valores vazios expandem-se para vazios; os avisos do sistema cliente nunca são reescritos. `{{FINGERPRINT}}` resolve apenas para fornecedores gratuitos baseados em impressões digitais com uma impressão digital fixada ou girada automaticamente. — expande-se para vazio noutro local (por exemplo, ligações de impressão digital única, fornecedores não-FP). A expansão cobre o loop de despacho padrão, round-robin e sessões de cache de contexto fixadas; As estratégias de fusão, caos, pipeline e execução aninhada ainda não expandem os espaços reservados.
 
-![Painel de Combinações](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

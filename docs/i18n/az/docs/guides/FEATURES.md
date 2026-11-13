@@ -57,28 +57,19 @@ OpenRouter bağlantıları Qabaqcıl Parametrlərdə hər bağlantı üçün ayr
 
 ---
 
-## 🎨 Kombinasiyalar
+## 🎨 Combos
 
-19 açıq strategiya ilə model marşrutlaşdırma kombinasiyaları yaradın: prioritet, çəkili, növbəli, kontekst ötürmə, əvvəlcə doldurma, p2c (iki seçim qüvvəsi), təsadüfi, ən az istifadə olunan, xərc baxımından optimallaşdırılmış, sıfırlanmanı nəzərə alan, sıfırlama pəncərəsi, ehtiyat tutumu, ciddi təsadüfi, avtomatik, lkgp (son məlum olan işlək provayder), kontekst baxımından optimallaşdırılmış, keş baxımından optimallaşdırılmış, **fusion** (model panelinə paralel sorğular göndərir, sonra hakim vasitəsilə vahid cavab sintez edir) və **pipeline**. Hər kombinasiya avtomatik ehtiyat keçidi ilə bir neçə modeli zəncirləyir və sürətli şablonlar ilə hazırlıq yoxlamalarını əhatə edir.
+21 ictimai strategiya ilə model marşrutlaşdırma kombinləri yaradın: prioritet, çəkili, dairəvi sistem, kontekst-rele, birinci doldurun, p2c (iki seçimin gücü), təsadüfi, ən az istifadə olunan, xərc optimallaşdırılıb, sıfırdan xəbərdar, sıfırlama-pəncərə, ilk istifadə müddəti, boşluq, kvota-çəkili, avtonom-çəkili seçim (son tanınmış-yaxşı-provayder), kontekst üçün optimallaşdırılmış, keş-optimallaşdırılmış,** birləşmə** (paralel olaraq modellər panelinə çıxın, sonra hakim vasitəsilə bir cavabı sintez edin) və** boru kəməri** . Hər bir kombinasiya avtomatik geri qaytarma ilə çoxsaylı modelləri birləşdirir və sürətli şablonlar və hazırlıq yoxlamalarını ehtiva edir.
 
-Kombinasiyalar üzrə son təkmilləşdirmələr:
+Son kombinasiya təkmilləşdirmələri:
 
-- **Strukturlaşdırılmış kombinasiya qurucusu** — provayderi, modeli və dəqiq hesabı/bağlantını seçərək hər addımı yaradın
-- **Təkrarlanan provayder dəstəyi** — `(provider, model, connection)` korteji unikal olduğu müddətdə eyni provayderdən bir kombinasiyada bir neçə dəfə istifadə edin
-- **Kombinasiya hədəfinin vəziyyəti** — analitika və sistem vəziyyəti ekranları artıq hər şeyi model sətirlərində birləşdirmək əvəzinə ayrı-ayrı kombinasiya hədəflərini/addımlarını fərqləndirir
-- **Kompozit səviyyə sıralaması** — `defaultTier -> fallbackTier` artıq yuxarı səviyyəli kombinasiya addımlarının icra zamanı yerinə yetirilmə/ehtiyat keçid ardıcıllığına təsir göstərir
-- **Sistem göstərişi şablonları** — kombinasiyanın `system_message` sahəsi server tərəfində
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` və `{{FINGERPRINT}}`
-  yer tutucularını dəstəkləyir; bunlar göndərilməzdən dərhal əvvəl faktiki marşrutlaşdırılmış hədəfin məlumatları ilə əvəzlənir.
-  Yalnız icazə verilmiş siyahıdakı yer tutucular dəstəklənir və əvəzetmə rekursiv deyil; naməlum yer tutucular olduğu kimi qalır, boş dəyərlər
-  boş mətnə çevrilir; müştərinin sistem göstərişləri heç vaxt yenidən yazılmır. `{{FINGERPRINT}}`
-  yalnız sabitlənmiş və ya avtomatik rotasiya olunan barmaq izinə malik, barmaq izi əsaslı pulsuz provayderlər üçün müəyyən edilir — digər hallarda (məsələn,
-  tək barmaq izli bağlantılarda və fp istifadə etməyən provayderlərdə) boş mətnə çevrilir. Əvəzetmə
-  standart göndərmə dövrünü, növbəli marşrutlaşdırmanı və sabitlənmiş kontekst-keş sessiyalarını əhatə edir;
-  fusion, chaos, pipeline və iç-içə execute strategiyaları hələlik
-  yer tutucuları əvəzləmir.
+- **Strukturlaşdırılmış kombo qurucusu** — provayder, model və dəqiq account/connection seçməklə hər bir addım yaradın
+- **Təkrarlanan provayder dəstəyi** — eyni provayderi bir kombinasiyada dəfələrlə təkrar istifadə edin, çünki `(provider, model, connection)` tuple unikaldır
+- **Kombo hədəf sağlamlıq** — analitikası və sağlamlıq səthləri indi hər şeyi model sətirlərinə çökdürmək əvəzinə fərdi kombinasiya targets/steps fərqləndirir
+- **Kompozit səviyyəli sifariş** — `defaultTier -> fallbackTier` indi yüksək səviyyəli kombin addımlar üçün icra müddəti execution/fallback sırasına təsir edir
+- **Sistem xəbərdarlığı şablonları** — combo `system_message` göndərilməzdən dərhal əvvəl faktiki yönləndirilmiş hədəfdən genişləndirilmiş server tərəfi `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` və `{{FINGERPRINT}}` yer tutucularını dəstəkləyir. İcazə verilən və rekursiv olmayan; naməlum yer tutucular hərfi olaraq qalır; boş dəyərlər boşluğa qədər genişlənir; müştəri sisteminin göstərişləri heç vaxt yenidən yazılmır. `{{FINGERPRINT}}` yalnız bərkidilmiş və ya avtomatik fırlanan barmaq izi olan barmaq izinə əsaslanan pulsuz provayderlər üçün həll edilir — başqa yerdə boşalmağa genişlənir (məsələn, tək barmaq izi bağlantıları, fp olmayan provayderlər). Genişlənmə standart dispetçer dövrəsini, dəyirmi-robin və bərkidilmiş kontekst-keş seanslarını əhatə edir; birləşmə, xaos, boru kəməri və iç-içə icra strategiyaları yer tutucuları hələ genişləndirmir.
 
-![Kombinasiyalar İdarəetmə Paneli](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

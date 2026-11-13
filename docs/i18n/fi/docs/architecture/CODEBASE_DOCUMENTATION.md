@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 huipputason suoritusmoduulia (`*.ts` miinus `base.ts`, `index.ts` ja testit — count `npm run check:docs-counts` -mitat). Jokainen suorittajaluokka laajentaa `BaseExecutor` :n (`base.ts`), suoraan tai `DefaultExecutor` tai muun suorittajan kautta; loput moduulit ovat palveluntarjoajakohtaisia avustajia (työkalukaaviot, fetch/TTS -sovittimet, quirk-käsittelijät). Toteuttajiin kuuluvat:
+170 huipputason suoritusmoduulia (`*.ts` miinus `base.ts`, `index.ts` ja testit — count `npm run check:docs-counts` -mitat). Jokainen suorittajaluokka laajentaa `BaseExecutor` :n (`base.ts`), suoraan tai `DefaultExecutor` tai muun suorittajan kautta; loput moduulit ovat palveluntarjoajakohtaisia avustajia (työkalukaaviot, fetch/TTS -sovittimet, quirk-käsittelijät). Toteuttajiin kuuluvat:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex` `devin-desktop` `claudeIdentity.ts` `nlpcloud` jaettu identiteettiapu) ja `index.ts` (rekisteri).
 
-> Huomautus: `default.ts` palvelee palveluntarjoajia, joita ei ole lueteltu tässä, käyttämällä yleistä OpenAI-yhteensopivaa suorittajaa. Täydellinen tarjoajaluettelo (381 tarjoajaa) sijaitsee `src/shared/constants/providers.ts` ssä.
+> Huomautus: `default.ts` palvelee palveluntarjoajia, joita ei ole lueteltu tässä, käyttämällä yleistä OpenAI-yhteensopivaa suorittajaa. Täydellinen tarjoajaluettelo (393 tarjoajaa) sijaitsee `src/shared/constants/providers.ts` ssä.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Kohokohdat (koko luettelo kohdassa `open-sse/services/`):
 
 | Koskea              | Tiedostot                                                                                                                                                                                                                                                |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yhdistelmäreititys  | `combo.ts` (20 strategiaa), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| Yhdistelmäreititys  | `combo.ts` (21 strategiaa), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
 | Auto Combo moottori | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Joustavuus          | `accountFallback.ts` (jäähdytys + lockout), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                        |
 | Kiintiöt            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

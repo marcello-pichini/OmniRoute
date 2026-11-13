@@ -57,31 +57,19 @@ OpenRouter savienojumos sadaļā Advanced Settings var saglabāt katram savienoj
 
 ---
 
-## 🎨 Kombinācijas
+## 🎨 Combos
 
-Izveidojiet modeļu maršrutēšanas kombinācijas ar 19 publiskām stratēģijām: prioritāte, svērtā izvēle, cikliskā izvēle, konteksta pārsūtīšana, pirmā aizpildīšana, p2c (divu iespēju izvēle), nejauša izvēle, vismazāk izmantotā, izmaksu optimizēta, atiestatīšanai pielāgota, atiestatīšanas logs, rezerves kapacitāte, stingri nejauša izvēle, automātiska, lkgp (pēdējais zināmais labais pakalpojumu sniedzējs), kontekstam optimizēta, kešatmiņai optimizēta, **fusion** (paralēli nosūta pieprasījumu modeļu panelim un pēc tam sintezē vienu atbildi, izmantojot vērtētāju) un **pipeline**. Katra kombinācija sasaista vairākus modeļus ar automātisku atkāpšanos un ietver ātrās veidnes un gatavības pārbaudes.
+Izveidojiet modeļu maršrutēšanas kombinācijas ar 21 publisku stratēģiju: prioritāte, svērtais, apļveida, konteksta relejs, aizpildīšana vispirms, p2c (divu iespēju jauda), nejauša, vismazāk izmantota, izmaksu optimizēta, reset-aware, atiestatīšanas logs, derīguma termiņš vispirms, slodze, kvotas svērtais, strikts-randgod, (automātiski izsvērts, strikts-randomod), optimizēts kontekstam, optimizēts kešatmiņai,** saplūšana** (paralēli izplūst modeļu panelī, pēc tam ar tiesneša starpniecību sintezē vienu atbildi) un** cauruļvads** . Katra kombinācija apvieno vairākus modeļus ar automātisku atkāpšanos un ietver ātras veidnes un gatavības pārbaudes.
 
-Jaunākie kombināciju uzlabojumi:
+Nesenie kombinētie uzlabojumi:
 
-- **Strukturēts kombināciju veidotājs** — izveidojiet katru darbību, atlasot pakalpojumu sniedzēju, modeli un konkrēto kontu/savienojumu
-- **Atkārtoti izmantojamu pakalpojumu sniedzēju atbalsts** — izmantojiet vienu un to pašu pakalpojumu sniedzēju vienā kombinācijā vairākas reizes, ja vien `(provider, model, connection)` kortežs ir unikāls
-- **Kombinācijas mērķu veselība** — analītikas un veselības pārskati tagad atšķir atsevišķus kombinācijas mērķus/darbības, nevis apvieno visu modeļu virknēs
-- **Saliktā līmeņa secība** — `defaultTier -> fallbackTier` tagad ietekmē augstākā līmeņa kombinācijas darbību izpildes/atkāpšanās secību
-- **Sistēmas uzvedņu veidnes** — kombinācijas `system_message` atbalsta servera pusē
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` un `{{FINGERPRINT}}`
-  vietturus, kas tiek izvērsti no faktiski maršrutētā mērķa tieši pirms nosūtīšanas.
-  Tie ir atļauto vietturu sarakstā un nav rekursīvi; nezināmi vietturi paliek
-  burtiskā veidā; tukšas vērtības tiek izvērstas par tukšu tekstu; klienta sistēmas
-  uzvednes nekad netiek pārrakstītas. `{{FINGERPRINT}}` tiek atrisināts tikai
-  pirkstu nospiedumā balstītiem bezmaksas pakalpojumu sniedzējiem ar piesaistītu vai
-  automātiski rotētu pirkstu nospiedumu — citur tas tiek izvērsts par tukšu tekstu
-  (piemēram, viena pirkstu nospieduma savienojumos un pakalpojumu sniedzējiem, kas
-  nav balstīti uz pirkstu nospiedumu). Izvēršana aptver standarta nosūtīšanas ciklu,
-  ciklisko izvēli un piesaistītas konteksta kešatmiņas sesijas;
-  stratēģijas fusion, chaos, pipeline un nested-execute pagaidām vietturus
-  neizvērš.
+- **Strukturēts kombinētais veidotājs** — izveidojiet katru darbību, atlasot pakalpojumu sniedzēju, modeli un precīzu account/connection
+- **Atkārtots pakalpojumu sniedzēja atbalsts** — atkārtoti izmanto vienu un to pašu pakalpojumu sniedzēju vairākas reizes vienā kombinācijā, ja vien `(provider, model, connection)` korte ir unikāla
+- **Kombinētā mērķa veselība** — analytics un veselības virsmas tagad izšķir atsevišķus kombinētos targets/steps, nevis sakļauj visu modeļu virknēs
+- **Salikto līmeņu pasūtīšana** — `defaultTier -> fallbackTier` tagad ietekmē izpildlaika execution/fallback secību augstākā līmeņa kombinētajām darbībām
+- **Sistēmas uzvedņu veidnes** — combo `system_message` atbalsta servera puses `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` un `{{FINGERPRINT}}` vietturus, kas izvērsti no faktiski maršrutētā mērķa tieši pirms nosūtīšanas. Atļauts un nerekursīvs; nezināmi vietturi paliek burtiski; tukšas vērtības izvēršas par tukšām; klienta sistēmas uzvednes nekad netiek pārrakstītas. `{{FINGERPRINT}}` atrisina tikai tiem bezmaksas pakalpojumu sniedzējiem, kuru pamatā ir pirkstu nospiedumi un kuriem ir piesprausts vai automātiski pagriezts pirksta nospiedums. — tas tiek izvērsts, lai iztukšotu citur (piemēram, savienojumi ar vienu pirksta nospiedumu, pakalpojumu sniedzēji, kas nav fp nodrošinātāji). Paplašināšana aptver standarta nosūtīšanas cilpas, apļveida un piespraustās konteksta kešatmiņas sesijas; saplūšana, haoss, konveijera un ligzdotas izpildes stratēģijas vēl nepaplašina vietturus.
 
-![Kombināciju informācijas panelis](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

@@ -57,15 +57,15 @@ Il-konnessjonijiet tal-OpenRouter jistgħu jistivixxu `preset` ta' konnessjoni w
 
 ## 🎨 Combos
 
-Oħloq kombinazzjonijiet ta' rotta tal-mudell b'19 strateġiji pubbliċi: priorità, ponderat, round-robin, context-relay, fill-first, p2c (power-of-two choices), casual, l-iktar użat, ottimizzat għal-ispejjeż, konxju tat-twaqqif, tieqa tat-twaqqif, headroom, random stret, awtomatiku, lkgp (last-known-good-provider), ottimizzat għal-kontest, ottimizzat għal-cache, **fusion** (faxx griż lejn pannell ta' mudelli b'mod parallelu, imbagħad sinteżi risposta waħda permezz ta' ġudikant), u **pipeline**. Kull kombo jgħaqqad diversi mudelli b'fallback awtomatiku u jinkludi mudelli rapidi u verifiki ta' lestija.
+Oħloq mudell ta 'routing combos b'21 strateġija pubblika: prijoritarju, peżat, round-robin, context-relay, fill-first, p2c (qawwa ta' żewġ għażliet), każwali, l-inqas użat, kost-ottimizzat, reset-aware, reset-window, expiry-first, headroom, quota-weighted, stretta-random, awto-provdut, lkgpgod ottimizzat għall-cache,** fużjoni** (fan out għal panel ta 'mudelli b'mod parallel, imbagħad sintetizza tweġiba waħda permezz ta' imħallef), u** pipeline** . Kull kombo ktajjen mudelli multipli b'riżerva awtomatiku u jinkludi mudelli ta 'malajr u kontrolli ta' prontezza.
 
-Titjib reċenti tal-kombos:
+Titjib kombo reċenti:
 
-- **Bini strutturat tal-kombo** — kull pass jiġi maħluq billi jgħażel il-fornitur, il-mudell, u l-kont/konnessjoni eżatt
-- **Appoġġ għal fornituri ripetuti** — l-istess fornitur jintuża ħafna drabi f'kombo waħda kemm il-vettura `(provider, model, connection)` hija unika
-- **Saħħa tal-miri tal-kombo** — l-analiżi u l-wiċċ tas-saħħa issa jiddistingwixxu miri/passi individwali tal-kombo minflok jiġbru kollox f'sekwenzi tal-mudell
-- **Taqsim tal-livelli komposti** — `defaultTier -> fallbackTier` issa jinfluwenza l-ordni ta' esekuzzjoni/fallback tal-passi tal-kombo tal-quċċata
-- **Mudelli tal-messaġġ tas-sistema** — il-kombo `system_message` jappoġġa placeholders server-side bħal `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}`, u `{{FINGERPRINT}}`, imwessqa mill-mira fil-veloċità fil-veloċità qabel l-għoti. Permess u mhux rikorsiv; placeholders magħrufa jitbiegħed bħala leterali; valuri vojta jitwessqu għal vojt; prompts tal-klijent m'għandhomx jiġu miktuba mill-ġdid. `{{FINGERPRINT}}` jiġri biss għal fornitur b'xejn bbażat fuq fingerprint b'fingerprint imwaħhal jew awtomatikament imdawwar — jitwessqu għal vojt fil-postijiet l-oħra (pereżempju, konnessjonijiet b'fingerprint wieħed, fornituri mhux b'fp). L-estensjoni tkopri l-loop standard tal-għoti, round-robin, u sessjonijiet ta' kontest-cache imwaħla; strateġiji ta' fusion, ħaġa, pipeline, u nested-execute għad mhomx jespandu placeholders.
+- **Bennej combo strutturat** — toħloq kull pass billi tagħżel fornitur, mudell, u account/connection eżatt
+- **Appoġġ ripetut tal-fornitur** — jerġa' juża l-istess fornitur ħafna drabi f'combo wieħed sakemm it-tuple `(provider, model, connection)` ikun uniku
+- **Combo mira saħħa** L-analitiċi — u l-uċuħ tas-saħħa issa jiddistingwu targets/steps combo individwali minflok ma jiġġarrab kollox fi spag tal-mudell
+- **Ordni ta' saff komposti** — `defaultTier -> fallbackTier` issa jinfluwenza l-ordni tar-runtime execution/fallback għall-passi kombo tal-ogħla livell
+- **Mudelli fil-pront tas-sistema** — combo `system_message` jappoġġja placeholders `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` u `{{FINGERPRINT}}` fuq in-naħa tas-server, estiżi mill-mira attwalment imqassma eżatt qabel id-dispaċċ. Allowlisted u mhux rikorsiv; placeholders mhux magħrufa jibqgħu letterali; valuri vojta jespandu għal vojta; il-promps tas-sistema tal-klijent qatt ma jinkiteb mill-ġdid. `{{FINGERPRINT}}` jirrisolvi biss għal fornituri b'xejn ibbażati fuq marki tas-swaba' b'marki tas-swaba' mpinnjati jew imdawra awtomatikament — jespandi għal vojt band'oħra (eż. konnessjonijiet ta' marki tas-swaba' wieħed, fornituri mhux fp). L-espansjoni tkopri s-sessjonijiet standard tad-dispatch loop, round-robin, u pinned context-cache; fużjoni, kaos, pipeline u strateġiji nested-execute għadhom ma jespandux placeholders.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 

@@ -294,72 +294,72 @@ Se `open-sse/utils/stream.ts` och `open-sse/utils/streamHandler.ts` för tilläm
 
 ---
 
-## Projektstruktur
+## Projektets struktur
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Kontrollpanelsidor (23 sektioner)
-│   ├── api/                # API-rutter (51 kataloger)
-│   └── login/              # Autentiseringssidor (.tsx)
-├── domain/                 # Policymotor (policyEngine, comboResolver, costRules osv.)
-├── lib/                    # Central affärslogik (.ts)
-│   ├── a2a/                # Server för Agent-to-Agent v0.3-protokollet
-│   ├── acp/                # Register för Agent Communication Protocol
-│   ├── compliance/         # Policymotor för regelefterlevnad
-│   ├── db/                 # SQLite-domänmoduler + 130 migreringar
-│   ├── memory/             # Beständigt konversationsminne
-│   ├── oauth/              # OAuth-leverantörer, tjänster och verktyg
-│   ├── skills/             # Utbyggbart färdighetsramverk
-│   ├── usage/              # Användningsspårning och kostnadsberäkning
-│   └── localDb.ts          # Endast lager för återexport — lägg aldrig till logik här
-├── middleware/              # Middleware för begäranden (promptInjectionGuard)
-├── mitm/                   # MITM-proxy (certifikat, DNS, målroutning)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React-komponenter (.tsx)
-│   ├── constants/          # Leverantörsdefinitioner (329), MCP-omfattningar, 20 routningsstrategier
-│   ├── utils/              # Kretsbrytare, sanerare, autentiseringshjälpare
-│   └── validation/         # Zod v4-scheman
-└── sse/                    # SSE-proxypipeline
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 21 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse-arbetsyta
-├── executors/              # 150 exekveringsmoduler (exekveringsklasser + leverantörsspecifika hjälpare)
-├── handlers/               # 11 begärandehanterare (chatt, svar, inbäddningar, bilder osv.)
-├── mcp-server/             # MCP-server (110 unika verktyg, 3 transporter, 33 omfattningar)
-├── services/               # 178 tjänster på toppnivå (combo, autoCombo, rateLimitManager osv.)
-├── translator/             # Formatöversättare (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Transformerare för Responses API
-└── utils/                  # 22 verktygsmoduler (strömning, TLS, proxy, loggning)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 150 executor modules (executor classes + per-provider helpers)
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron-skrivbordsapp (plattformsoberoende)
+electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js-testkörare (1 574 testfiler)
-├── integration/            # Integrationstester
-├── e2e/                    # Playwright-tester
-├── security/               # Säkerhetstester
-├── translator/             # Översättarspecifika tester
-└── load/                   # Belastningstester
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Arkitekturbeslutsdokument
-├── architecture/            # Systemarkitektur och motståndskraft
-├── comparison/              # OmniRoute jämfört med alternativ
-├── compression/             # Komprimeringsguider och regler
-├── dev/                     # Utvecklingsguider
-├── diagrams/                # Arkitekturdiagram
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Användarguide, Docker, konfiguration, felsökning
-├── i18n/                    # Internationaliserade README-översättningar
-├── marketing/               # Marknadsföringsmaterial
-├── ops/                     # Driftsättning, proxy, täckning, utgåvor
-├── providers/               # Leverantörsspecifik dokumentation
-├── reference/               # API-referens, miljövariabler, CLI-verktyg, kostnadsfria nivåer
-├── releases/                # Versionsinformation
-├── routing/                 # Automatisk kombinationsmotor, återuppspelning av resonemang
-├── screenshots/             # Skärmbilder av kontrollpanelen
-├── security/                # Skyddsräcken, regelefterlevnad, smygläge, token
-└── specs/                   # Designspecifikationer
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---

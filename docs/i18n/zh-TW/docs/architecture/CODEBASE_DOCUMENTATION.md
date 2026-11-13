@@ -458,7 +458,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -488,11 +488,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 個頂級執行器模組（`*.ts`減去`base.ts`、 `index.ts`並測試—計數`npm run check:docs-counts`測量值）。每個執行器類別直接或透過`DefaultExecutor`或另一個執行器擴展`BaseExecutor` (`base.ts`)；其餘模組是每個提供者的幫助程式（工具模式、 fetch/TTS適配器、怪異處理程序）。執行者包括：
+170 個頂級執行器模組（`*.ts`減去`base.ts`、 `index.ts`並測試—計數`npm run check:docs-counts`測量值）。每個執行器類別直接或透過`DefaultExecutor`或另一個執行器擴展`BaseExecutor` (`base.ts`)；其餘模組是每個提供者的幫助程式（工具模式、 fetch/TTS適配器、怪異處理程序）。執行者包括：
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (shared identity helper) and `index.ts` (registry).
 
-> 注意：此處未列出的提供者由`default.ts`使用通用 OpenAI 相容執行器提供服務。完整的提供者目錄（381 個提供者）位於`src/shared/constants/providers.ts`。
+> 注意：此處未列出的提供者由`default.ts`使用通用 OpenAI 相容執行器提供服務。完整的提供者目錄（393 個提供者）位於`src/shared/constants/providers.ts`。
 
 ### 4.3 `open-sse/translator/`
 
@@ -514,7 +514,7 @@ open-sse/
 
 | 憂慮           | 文件                                                                                                                                                                                                                                                     |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 組合路由       | `combo.ts` (20 個策略), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
+| 組合路由       | `combo.ts` (21 個策略), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
 | 汽車組合發動機 | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | 彈性           | `accountFallback.ts` (冷卻+鎖定), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                                  |
 | 配額           | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

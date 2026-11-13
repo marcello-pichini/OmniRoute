@@ -57,29 +57,19 @@ As conexões do OpenRouter podem armazenar um `preset` por conexão nas Configur
 
 ---
 
-## 🎨 Combos
+## Combos 🎨
 
-Crie combos de roteamento de modelos com 19 estratégias públicas: priority, weighted, round-robin, context-relay, fill-first, p2c (escolhas de potência de dois), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (último provedor conhecido como funcional), context-optimized, cache-optimized, **fusion** (distribui a solicitação para um painel de modelos em paralelo e, em seguida, sintetiza uma única resposta por meio de um juiz) e **pipeline**. Cada combo encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.
+Crie combos de roteamento de modelo com 21 estratégias públicas: prioridade, ponderado, round-robin, retransmissão de contexto, preenchimento primeiro, p2c (potência de duas opções), aleatório, menos usado, com custo otimizado, com reconhecimento de redefinição, janela de redefinição, expiração primeiro, headroom, ponderado por cota, aleatório estrito, automático, lkgp (último provedor válido), otimizado para contexto, otimizado para cache,** fusão** (distribua-se para um painel de modelos em paralelo e, em seguida, sintetize uma resposta por meio de um juiz) e** gasoduto** . Cada combinação encadeia vários modelos com fallback automático e inclui modelos rápidos e verificações de prontidão.
 
-Melhorias recentes nos combos:
+Melhorias recentes no combo:
 
-- **Criador de combos estruturado** — crie cada etapa selecionando o provedor, o modelo e a conta/conexão exata
-- **Suporte a provedores repetidos** — reutilize o mesmo provedor várias vezes em um combo, desde que a tupla `(provider, model, connection)` seja exclusiva
-- **Integridade dos destinos do combo** — as superfícies de análise e integridade agora distinguem destinos/etapas individuais do combo, em vez de agrupar tudo em strings de modelo
-- **Ordenação de camadas compostas** — `defaultTier -> fallbackTier` agora influencia a ordem de execução/fallback em tempo de execução das etapas de nível superior do combo
-- **Modelos de prompt do sistema** — o `system_message` do combo oferece suporte, no lado do servidor, aos
-  placeholders `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}`,
-  expandidos com base no destino efetivamente roteado imediatamente antes do envio.
-  Eles são incluídos em uma lista de permissões e não são recursivos; placeholders desconhecidos permanecem literais; valores vazios
-  são expandidos como vazios; prompts de sistema do cliente nunca são reescritos. `{{FINGERPRINT}}`
-  é resolvido somente para provedores gratuitos baseados em fingerprint com uma fingerprint fixada ou
-  alternada automaticamente — em outros casos, ele é expandido como vazio (por exemplo,
-  conexões de fingerprint única, provedores não fp). A expansão abrange o
-  loop de envio padrão, round-robin e sessões fixadas de cache de contexto;
-  as estratégias fusion, chaos, pipeline e nested-execute ainda não expandem
-  placeholders.
+- **Construtor de combo estruturado** — cria cada etapa selecionando provedor, modelo e account/connection exato
+- **Suporte repetido do provedor** — reutiliza o mesmo provedor muitas vezes em um combo, desde que a tupla `(provider, model, connection)` seja única
+- **Saúde alvo combinada** — Analytics e Health Surfaces agora distinguem combinações individuais targets/steps em vez de agrupar tudo em strings de modelo
+- **Ordenação de camadas compostas** — `defaultTier -> fallbackTier` agora influencia a ordem execution/fallback do tempo de execução para etapas combinadas de nível superior
+- **Modelos de prompt do sistema** — combo `system_message` suporta espaços reservados `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}` do lado do servidor, expandidos a partir do destino realmente roteado logo antes do envio. Lista de permissões e não recursiva; espaços reservados desconhecidos permanecem literais; valores vazios expandem para vazios; os prompts do sistema cliente nunca são reescritos. `{{FINGERPRINT}}` resolve apenas para provedores gratuitos baseados em impressão digital com uma impressão digital fixada ou girada automaticamente. — ele se expande para vazio em outro lugar (por exemplo, conexões de impressão digital única, provedores não-FP). A expansão cobre o loop de despacho padrão, round-robin e sessões de cache de contexto fixadas; As estratégias de fusão, caos, pipeline e execução aninhada ainda não expandem os espaços reservados.
 
-![Painel de Combos](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

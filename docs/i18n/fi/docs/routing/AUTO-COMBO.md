@@ -303,7 +303,7 @@ arvot syötetään moottorin olemassa oleviin `config.modePack` / `config.budget
 
 ## Kaikki reititysstrategiat
 
-OmniRoute yhdistelmämoottori tukee** 20 reititysstrategiaa** (ilmoitettu muodossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Itse Auto Combo -moottori on esillä `auto` strategian alla; muut ovat saatavilla pysyviin komboihin.
+OmniRoute yhdistelmämoottori tukee** 21 reititysstrategiaa** (ilmoitettu muodossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Itse Auto Combo -moottori on esillä `auto` strategian alla; muut ovat saatavilla pysyviin komboihin.
 
 | strategia           | Kuvaus                                                                                                                                                                                                                        |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -318,6 +318,7 @@ OmniRoute yhdistelmämoottori tukee** 20 reititysstrategiaa** (ilmoitettu muodos
 | `cost-optimized`    | Minimoi $ per pyyntö luettelon hinnoittelussa                                                                                                                                                                                 |
 | `reset-aware` ⭐    | Priorisoi kiintiön palautusajan mukaan — lyhyet palautusikkunat sijoittuivat korkeammalle                                                                                                                                     |
 | `reset-window`      | Suosi tavoitteita, joiden kiintiöikkuna nollautuu pian                                                                                                                                                                        |
+| `expiry-first`      | Käytä tili, jonka kiintiö vanhentuisi käyttämättömänä ensin —                                                                                                                                                                 |
 | `headroom`          | Valitse kohde, jolla on eniten jäljellä olevaa kiintiövaraa                                                                                                                                                                   |
 | `quota-weighted`    | Ohita loppuun käytetyt tilit ja valitse loput suhteessa jäljellä olevaan kiintiöön jaettuna lennon aikana; nykyiset keskustelut pysyvät kiinnitettyinä                                                                        |
 | `strict-random`     | Satunnainen ilman toistojen kopioimista                                                                                                                                                                                       |
@@ -326,7 +327,7 @@ OmniRoute yhdistelmämoottori tukee** 20 reititysstrategiaa** (ilmoitettu muodos
 | `context-optimized` | Valitse kohde, joka sopii parhaiten nykyiseen kontekstin kokoon                                                                                                                                                               |
 | `cache-optimized`   | Järjestä kohteet uudelleen kehotteen välimuistin affiniteetilla — yritetään ensin yhteyttä, jossa todennäköisimmin jo on tämän pyynnön välimuistissa oleva etuliite (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
 | `fusion` 🧬         | Selaa mallien paneeliin rinnakkain ja syntetisoi sitten yksi vastaus tuomarin kautta (katso alla)                                                                                                                             |
-| `pipeline`          | Suorita kohteita peräkkäin ja lanka kunkin vaiheen tulos seuraavan vaiheen syötteeseen; vain lopullinen vastaus palautetaan (#6396)                                                                                           |
+| `pipeline`          | Suorita kohteet peräkkäin, ketjuttamalla kunkin vaiheen tulos seuraavan vaiheen syötteeseen; vain lopullinen vastaus palautetaan (#6396)                                                                                      |
 
 ⭐ = Uutta v3.8.0:ssa · 🧬 = Uutta v3.8.36:ssa
 
@@ -345,6 +346,20 @@ Käytä tiukkaa pyöritystä varten `round-robin`; `weighted` :n samat painot an
 
 `pipeline` yhdistelmä, jossa on vähintään kaksi mallia, voi valita planner/executor reitityksen `config.agenticOrchestration.enabled` kanssa. Ensimmäinen kohde omistaa suunnittelun ja lopulliset vastaukset; toinen kohde lähettää asiakaskohtaisia työkalukutsuja. OmniRoute havaitsee työkalun tuloksen jatkumiset pyyntöprotokollasta, kysyy suunnittelijalta, tarvitaanko uusi työkalukierros, ja tekee dynaamisesti joko toteuttajan tai suunnittelijan asiakkaan puoleisen viimeisen vaiheen.
 
+Valinnainen `config.agenticOrchestration.contextCompaction` käyttää erillistä hyötykuormabudjettia ennen jokaista suunnittelijan tai toteuttajan lähettämistä. Ota se käyttöön erikseen:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Nämä ovat operaattorin valitsemia sarjoitettuja JSON merkkibudjetteja, eivät merkkikontekstiikkunoita tai taattuja ylävirran rajoja. Tarkka malli IDs ohittaa oletusasetuksen. Kynnyksen ylittävä tiivistys poistaa identtiset työkalumäärittelyt, leikkaa liian suuret työkalun todisteet tiivisteellä ja poistaa vanhat täydelliset historiaryhmät kohti tavoitesuhdetta. Se säilyttää system/developer -ohjeet, viimeisimmän käyttäjäpyynnön, viimeisen työkalukierroksen, mukaan lukien rinnakkaiskäskyt calls/results, ja Gemini:n johtavan reitityskäskyn. Huipputason ohjeet ja työkaluasetukset säilyvät. Poistomerkki tallentaa poistetun historian; tämä on deterministinen trimmaus, ei semanttinen yhteenveto. Jos kiinnitetty konteksti ylittää edelleen budjetin, pyyntö palauttaa numeron 413 ennen yhteydenottoa malliin. Kun tiivistys on poistettu käytöstä tai kynnyksen alapuolella, pyyntö kulkee ennallaan.
+
 Työkalun tuloksen jatkuessa OmniRoute lopettaa suorituksen myös, kun kaksi peräkkäistä suoritettua kierrosta toistavat saman työkalukutsun muuttumattomin tuloksin tai kun jokainen erikseen merkitty tulos kahdella peräkkäisellä kierroksella epäonnistui. Muuttuneet tulokset sallivat toistuvat puhelut (esimerkiksi kyselyn). Vartija nollautuu uudesta käyttäjän pyynnöstä, ryhmittelee rinnakkaiset puhelut yhdeksi kierrokseksi ja tukee Anthropic, keskustelun loppuun saattamista, vastauksia ja Gemini historiaa. Suunnittelija saa syyn ja omistaa lopullisen vastauksen, vaikka se pyytäisi uutta työkalukierrosta.
 
 Lisämalleissa toisen kohteen jälkeen tilataan executor-varmuuskopiot. Epäonnistunut HTTP vastaus tai siirtopoikkeus etenee seuraavalle toteuttajalle, joka kuljettaa saman suunnittelijan päätöksen ja alkuperäiset työkalut, mutta toteuttajan oman askelkehotteen ja ratkaistun yhteyden. Ensimmäinen onnistunut vastaus palautetaan muuttumattomana, mukaan lukien SSE -suoratoisto; onnistuneen streamin alkamisen jälkeisiä epäonnistumisia ei voi yrittää uudelleen täällä. Jos kaikki toteuttajat epäonnistuvat, palautetaan viimeinen epäonnistuminen. Asiakas keskeyttää lähetyksen.
@@ -359,7 +374,7 @@ Lisämalleissa toisen kohteen jälkeen tilataan executor-varmuuskopiot. Epäonni
 }
 ```
 
-Toteuttaja voi lähettää useita itsenäisiä kutsuja yhdessä vastauksessa. Riippuvaiset kutsut käsitellään myöhemmissä asiakastyökalun tuloskierroksissa, jolloin suunnittelija tarkistaa jokaisen tuloksen. `maxToolRounds` oletuksena on `8` ja hyväksyy `1`–`32`; Kun se on saavutettu, suunnittelijan tulee tuottaa paras saatavilla oleva lopullinen vastaus. Sisäiset suunnittelijan päätökset puskuroidaan, kun taas valittu asiakaskohtainen vastaus säilyttää alkuperäisen suoratoistoasetuksen.
+Toimeenpanija voi lähettää useita itsenäisiä kutsuja yhdessä vastauksessa. Riippuvaiset kutsut käsitellään myöhemmissä asiakastyökalun tulosvuoroissa, jolloin suunnittelija tarkistaa jokaisen tuloksen. `maxToolRounds` oletuksena on `8` ja hyväksyy `1`–`32`; Kun se on saavutettu, suunnittelijan on tuotettava paras saatavilla oleva lopullinen vastaus. Sisäiset suunnittelijan päätökset puskuroidaan, kun taas valittu asiakaskohtainen vastaus säilyttää alkuperäisen suoratoistoasetuksen.
 
 ### `round-robin` tahmea erä ja tilin laajentaminen
 
@@ -367,7 +382,7 @@ Round-robin on jaettu, ei yksi pyyntö per vaihe:
 
 - `stickyRoundRobinLimit` (combo config, sitten `comboStickyRoundRobinLimit`, sitten `settings.stickyRoundRobinLimit`, oletus** 3** ) säilyttää saman tavoitteen useille peräkkäisille onnistumisille ennen kiertoa. Aseta yhdistelmäohitus arvoon `1` yhden pyynnön kiertoa varten. Yhdistelmäeditori näyttää tehollisen arvon ja mistä tasosta se tuli.
 - `connectionAwareExpansion` (yhdistelmäkokoonpano, sitten asetukset, oletus** väärä** ) laajentaa jokaisen tarjoajatason vaiheen tilikohtaisiksi tavoitteiksi ennen vuorottelua. Ryhmän B strategiat (prioriteetti, painotettu, round-robin, satunnainen, p2c, vähiten käytetty, kustannusoptimoitu, lkgp, täytä ensin, tiukka satunnainen, kontekstioptimoitu, välimuistiin optimoitu, kontekstivälitys, fuusio, liukuhihna) säilyttävät toimittajatason näkymän, kunnes tämä on käytössä. Yhdistelmäeditori paljastaa inherit / on / off; inherit käyttää yleistä oletusarvoa (pois päältä).
-- Välimuistin paikallisreititys (`promptCacheAffinityEnabled`, oletus** totta** ) järjestää kiinnitetyt yhteydet uudelleen, joten vastaavat välimuistiavaimet pysyvät yhdellä tilillä. Se on etusijalla kiertoon ja painotettuun kiertoon nähden kiinnitettyjen tilikohtaisten vaiheiden välillä. Kytke se pois päältä Asetukset → Yhdistelmäoletukset -kohdassa, jos tarvitset tiukkaa kiertoa. Yhdistelmäkohtaista ohitusta ei ole.
+- Välimuistin paikallisreititys (`promptCacheAffinityEnabled`, oletus** totta** ) järjestää kiinnitetyt yhteydet uudelleen, joten vastaavat välimuistiavaimet pysyvät yhdellä tilillä. Se on etusijalla kiertoon ja painotettuun kiertoon nähden kiinnitettyjen tilikohtaisten vaiheiden välillä. Sammuta se kohdasta Asetukset → Combo oletusasetukset, jos tarvitset tiukkaa kiertoa. Yhdistelmäkohtaista ohitusta ei ole.
 
 Valitse mieluummin useamman tilin kierto yhdessä mallissa** yksi dynaamisen tilin vaihe** (tyhjä `connectionId`, koko allas) tarttumisrajalla `1`, ei kolmella kiinnitetyllä `connectionId`:llä. Kiinnitetyt vaiheet ja affiniteetti kutistuvat samalle tilille, vaikka RR -laskuri etenee.
 
@@ -831,39 +846,39 @@ Katso tasojen määritelmät ja palveluntarjoajien luokittelu tiedostosta [`docs
 
 ## Testaus ja kattavuus
 
-### Deterministinen reitityspäätösten matriisi (`npm run test:combo:matrix`)
+### Deterministinen reititys-päätösmatriisi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` todentaa kaikkien 19 julkisen strategian reititys**päätöksen** päästä päähän todellisen yhdistelmäputken kautta käyttämällä jäljiteltyä ylävirran palvelua. Kattavuuteen sisältyvät:
+`tests/integration/combo-matrix/*.test.ts` todistaa reitityksen** päätös** kaikista 21 julkisesta strategiasta päästä päähän todellisen yhdistelmäputken kautta pilkatulla ylävirtaan. Takuu sisältää:
 
-- Kaikki 19 `ROUTING_STRATEGY_VALUES`-strategiaa (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (sisäinen) päästä päähän: DRR-oikeudenmukaisuus ja saturoitumisen prioriteetin alentaminen todellisen `selectQuotaShareTarget`-sauman kautta (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
-- `context-relay`-strategian yleisen luovutuksen kattavuus kaikilla kohdemäärillä.
+- Kaikki 21 `ROUTING_STRATEGY_VALUES` -strategiaa (järjestetty, painotettu, hinta, konteksti, fuusio jne.).
+- `quota-share` (sisäinen) päästä päähän: DRR oikeudenmukaisuus + kyllästymisen priorisointi todellisen `selectQuotaShareTarget` sauman kautta (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universaali yhteysvastuun kattavuus kaikissa kohteissa.
 
-Tämä testikokonaisuus suoritetaan CI:ssä (`test:integration`-työ) asetuksilla `--test-concurrency=1` ja `--test-force-exit`, joten se on deterministinen eikä vaadi toimivia tunnistetietoja.
+Tämä sarja toimii CI ssa (`test:integration` job) `--test-concurrency=1` ja `--test-force-exit` kanssa, joten se on deterministinen eikä vaadi reaaliaikaisia valtuustietoja.
 
-### Ehdolliset live-savukokeet (EIVÄT CI:ssä — todelliset palveluntarjoajat)
+### Aidattu elävä savu (NOT in CI — todelliset tarjoajat)
 
-| Komento                                | Mitä se tekee                                                                                                                 |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Prosessin sisäinen todellinen reititys asetuksella `RUN_COMBO_LIVE=1`; luo tilannevedoksen toimivasta OmniRoute-tietokannasta |
-| `npm run test:combo:live:vps`          | HTTP-kutsut toimivaan OmniRoute-palvelimeen (aseta `COMBO_LIVE_BASE_URL`)                                                     |
-| `npm run test:combo:live:vps:failover` | Sama, mutta tarkoituksellisilla varmistussiirtymäskenaarioilla                                                                |
+| Komento                                | Mitä se tekee                                                                                |
+| :------------------------------------- | :------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Prosessin aikana todellinen reititys `RUN_COMBO_LIVE=1`:lla ; tilannekuvia live OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP -kutsut live- OmniRoute -palvelinta vastaan (aseta `COMBO_LIVE_BASE_URL`)               |
+| `npm run test:combo:live:vps:failover` | Sama, tahallisissa vikasietotilanteissa                                                      |
 
-Nämä savukokeet testaavat todellisen tiedonsiirtopolun (yhdistelmä → palveluntarjoaja → täydennys). Ne on tarkoituksellisesti jätetty pois CI:stä, koska ne vaativat toimivat tunnistetiedot ja VPS-käyttöoikeuden.
+Nämä savutestit harjoittelevat todellista johtopolkua (kombo- → palveluntarjoajan → -valmistus). Ne on tarkoituksella jätetty CI ulkopuolelle, koska ne vaativat reaaliaikaisia valtuustietoja ja VPS käyttöoikeuden.
 
 ---
 
 ## Tiedostot
 
-| Tiedosto                                                  | Tarkoitus                                                                                                   |
-| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 tekijän pisteytysfunktio, `DEFAULT_WEIGHTS`, poolin normalisointi                                        |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Mallin ja tehtävän soveltuvuuden hakutaulukko                                                               |
-| `open-sse/services/autoCombo/engine.ts`                   | Valintalogiikka, bandiittialgoritmi, budjettiraja                                                           |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Poissulkeminen, koepyynnöt, poikkeustilatila                                                                |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 painotusprofiilia (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/`-etuliitteen jäsennin + 6 muunnelmaa                                                                 |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Luo muistissa olevan `AutoComboConfig`-määrityksen aktiivisista yhteyksistä                                 |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testikoukku palveluntarjoajarekisterin jäljittelyä varten                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategiaa)                                                                   |
-| `src/sse/handlers/chat.ts`                                | Integraatio: auto-etuliitteen oikopolku                                                                     |
+| Tiedosto                                                  | Tarkoitus                                                                                                                 |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-tekijän pisteytystoiminto, `DEFAULT_WEIGHTS`, allasnormi                                                               |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Mallin × tehtävä kuntohaku                                                                                                |
+| `open-sse/services/autoCombo/engine.ts`                   | Valintalogiikka, rosvo, budjettikatto                                                                                     |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Poissulkeminen, anturit, tapahtumatila                                                                                    |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 painoprofiilia (nopea toimitus, kustannussäästö, laatu etusijalla, offline-ystävällinen, luotettavuus ensin, kaaostila) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` etuliite parser + 6 varianttia                                                                                    |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Rakentaa muistissa olevaa `AutoComboConfig` reaaliaikaisista yhteyksistä                                                  |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testaa palveluntarjoajan rekisterin pilkkaamista                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategiaa)                                                                                 |
+| `src/sse/handlers/chat.ts`                                | Integrointi: automaattinen etuliitteen oikosulku                                                                          |

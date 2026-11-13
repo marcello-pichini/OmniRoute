@@ -283,13 +283,13 @@ vērtības tiek padotas dzinēja esošajām `config.modePack` / `config.budgetCa
 
 ## Visas maršrutēšanas stratēģijas
 
-OmniRoute kombinēto dzinēju atbalsta** 20 maršrutēšanas stratēģijas** (deklarēts `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats Auto Combo dzinējs ir pakļauts `auto` stratēģijai; pārējie ir pieejami pastāvīgām kombinācijām.
+OmniRoute kombinēto dzinēju atbalsta** 21 maršrutēšanas stratēģija** (deklarēts `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats Auto Combo dzinējs ir pakļauts `auto` stratēģijai; pārējie ir pieejami pastāvīgām kombinācijām.
 
 | stratēģija          | Apraksts                                                                                                                                                                                                                      |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `priority`          | Pirmā mērķa sakārtotais saraksts ar skaidru prioritāti                                                                                                                                                                        |
 | `weighted`          | Svērts nejauši pēc mērķa svara                                                                                                                                                                                                |
-| `round-robin`       | Pārvietojieties cauri mērķiem secībā (grupēti; skatīt zemāk)                                                                                                                                                                  |
+| `round-robin`       | Pārvietojieties cauri mērķiem secībā (paketē; skatīt zemāk)                                                                                                                                                                   |
 | `context-relay`     | Nododiet kontekstu starp mērķiem (garas sarunas)                                                                                                                                                                              |
 | `fill-first`        | Pirms pāriet uz nākamo, aizpildiet katra mērķa kvotu                                                                                                                                                                          |
 | `p2c`               | Power-of-2-choices nejauša slodzes balansēšana                                                                                                                                                                                |
@@ -298,6 +298,7 @@ OmniRoute kombinēto dzinēju atbalsta** 20 maršrutēšanas stratēģijas** (de
 | `cost-optimized`    | Samaziniet USD par katru pieprasījumu, ņemot vērā kataloga cenas                                                                                                                                                              |
 | `reset-aware` ⭐    | Prioritātes noteikšana pēc kvotas atiestatīšanas laika — īsie atiestatīšanas logi ir augstāki                                                                                                                                 |
 | `reset-window`      | Dodiet priekšroku mērķiem, kuru kvotas logs tiek atiestatīts ātrāk                                                                                                                                                            |
+| `expiry-first`      | Iztērējiet kontu, kura kvota citādi beigtos neizmantotā —                                                                                                                                                                     |
 | `headroom`          | Izvēlieties mērķi ar lielāko atlikušo kvotu                                                                                                                                                                                   |
 | `quota-weighted`    | Izlaist izsmeltos kontus, pēc tam izvēlieties starp pārējiem proporcionāli atlikušajai kvotai, kas dalīta ar slodzi lidojuma laikā; esošās sarunas paliek piespraustas                                                        |
 | `strict-random`     | Nejauši bez atkārtojumu dedublikācijas                                                                                                                                                                                        |
@@ -324,6 +325,20 @@ Stingrai rotācijai izmantojiet `round-robin`; vienādi svari uz `weighted` snie
 ### Aģenta konveijera režīms
 
 `pipeline` kombinācija ar vismaz diviem modeļiem var izvēlēties planner/executor maršrutēšanu ar `config.agenticOrchestration.enabled`. Pirmajam mērķim pieder plānošana un galīgās atbildes; otrais mērķis izstaro klienta vietējo rīku zvanus. OmniRoute nosaka rīka rezultāta turpinājumus no pieprasījuma protokola, jautā plānotājam, vai ir nepieciešama vēl viena rīka kārta, un dinamiski padara izpildītāju vai plānotāju par pēdējo soli, kas vērsts uz klientu.
+
+Izvēles `config.agenticOrchestration.contextCompaction` piemēro atsevišķu kravnesības budžetu pirms katra plānotāja vai izpildītāja nosūtīšanas. Iespējojiet to tieši:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Tie ir serializēti JSON rakstzīmju budžeti, ko atlasījis operators, nevis marķiera konteksta logi vai garantēti augšējie ierobežojumi. Precīzs modelis IDs ignorē noklusējuma iestatījumu. Virs sliekšņa, sablīvēšana noņem identiskas rīku definīcijas, apgriež pārāk lielus rīku pierādījumus ar īssavilkumu un noņem vecās pilnīgas vēstures grupas, lai sasniegtu mērķa attiecību. Tajā tiek saglabātas system/developer instrukcijas, jaunākais lietotāja pieprasījums, pēdējā rīka kārta, ieskaitot paralēlo calls/results, un Gemini vadošā maršrutēšanas instrukcija. Tiek saglabātas augstākā līmeņa instrukcijas un rīku iestatījumi. Izlaiduma marķieris ieraksta noņemto vēsturi; šī ir deterministiska apgriešana, nevis semantisks kopsavilkums. Ja piespraustais konteksts joprojām pārsniedz budžetu, pieprasījums atgriež 413 pirms sazināšanās ar modeli. Ja blīvēšana ir atspējota vai zem sliekšņa, pieprasījums tiek nosūtīts nemainīgs.
 
 Rīka rezultāta turpinājumā OmniRoute aptur izpildi arī tad, ja divas secīgas pabeigtas kārtas atkārto vienu un to pašu rīka izsaukumu ar nemainīgiem rezultātiem vai ja katrs skaidri atzīmētais rezultāts divās secīgās kārtās ir neveiksmīgs. Mainīti rezultāti ļauj veikt atkārtotus zvanus (piemēram, aptauju). Aizsargs tiek atiestatīts pēc jauna lietotāja pieprasījuma, grupē paralēlos zvanus vienā kārtā un atbalsta Anthropic, tērzēšanas pabeigšanas, atbildes un Gemini vēstures. Plānotājs saņem iemeslu un viņam pieder galīgā atbilde, pat ja tas pieprasa citu rīku kārtu.
 
@@ -816,45 +831,39 @@ Līmeņu definīcijas un nodrošinātāju klasifikāciju skatiet failā [`docs/g
 
 ## Testēšana un pārklājums
 
-### Deterministisks maršrutēšanas lēmumu matrica (`npm run test:combo:matrix`)
+### Deterministiskā maršrutēšanas-lēmuma matrica (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` pierāda visu 19
-publisko stratēģiju maršrutēšanas **lēmumu** end-to-end caur reālo kombinācijas konveijeru ar
-ģenerētu augšējo līmeni. Pārklājums ietver:
+`tests/integration/combo-matrix/*.test.ts` pierāda maršrutēšanu** lēmumu** no visas 21 publiskās stratēģijas no gala līdz galam, izmantojot īstu kombinēto cauruļvadu ar izsmietu augšteci. Pārklājums ietver:
 
-- Visas 19 `ROUTING_STRATEGY_VALUES` stratēģijas (sakārtotas, svarītas, izmaksas, konteksts, saplūšana, …).
-- `quota-share` (iekšējs) end-to-end: DRR taisnīgums + piesātinājuma degradēšana caur
-  reālo `selectQuotaShareTarget` šuvi (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- `context-relay` universālā pārneses pārklājums visos mērķa skaitļos.
+- Visas 21 `ROUTING_STRATEGY_VALUES` stratēģijas (sakārtota, svērta, izmaksas, konteksts, saplūšana utt.).
+- `quota-share` (iekšējais) no gala līdz galam: DRR godīgums + piesātinājuma deprioritizācija, izmantojot reālo `selectQuotaShareTarget` šuvi (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universāls nodošanas pārklājums katrā mērķa skaitā.
 
-Šī testa komplekta tiek palaists CI (`test:integration` darbs) ar `--test-concurrency=1` un
-`--test-force-exit`, lai tas būtu deterministisks un neprasītu dzīvos akreditīvus.
+Šis komplekts darbojas CI (`test:integration` job) ar `--test-concurrency=1` un `--test-force-exit`, tāpēc tas ir deterministisks un tam nav nepieciešami reāllaika akreditācijas dati.
 
-### Vārtots dzīvais dūmu tests (NAV CI — reāli sniedzēji)
+### Slēgti dzīvu dūmi (NOT in CI — reālie pakalpojumu sniedzēji)
 
-| Komanda                                | Ko tā dara                                                                            |
-| :------------------------------------- | :------------------------------------------------------------------------------------ |
-| `npm run test:combo:live`              | Procesā reāla maršrutēšana ar `RUN_COMBO_LIVE=1`; saglabā dzīvo OmniRoute DB snapšotu |
-| `npm run test:combo:live:vps`          | HTTP pieprasījumi pret dzīvu OmniRoute serveri (iestatiet `COMBO_LIVE_BASE_URL`)      |
-| `npm run test:combo:live:vps:failover` | Tas pats, ar tīšiem failover scenārijiem                                              |
+| Pavēli                                 | Ko tas dara                                                                             |
+| :------------------------------------- | :-------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Procesa reālā maršrutēšana ar `RUN_COMBO_LIVE=1`; momentuzņēmumi tiešraidē OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP zvani pret dzīvu OmniRoute serveri (iestatīt `COMBO_LIVE_BASE_URL`)                |
+| `npm run test:combo:live:vps:failover` | Tas pats, ar apzinātiem kļūmjpārlēces scenārijiem                                       |
 
-Šie dūmu testi izmanto reālo tīkla ceļu (kombinācija → sniedzējs → pabeigšana). Tie ir
-apzināti izslēgti no CI, jo tiem nepieciešami dzīvie akreditīvi un VPS piekļuve.
+Šie dūmu testi izmanto reālo vadu ceļu (kombinētā → nodrošinātāja → pabeigšana). Tie ir apzināti izslēgti no CI jo tiem ir nepieciešami reāllaika akreditācijas dati un VPS piekļuve.
 
 ---
 
 ## Faili
 
-| Fails                                                     | Mērķis                                                                                                                                   |
-| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktoru vērtēšanas funkcija, `DEFAULT_WEIGHTS`, kopas normalizācija                                                                   |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Modeļa × uzdevuma piemērotības uzmeklēšana                                                                                               |
-| `open-sse/services/autoCombo/engine.ts`                   | Atlases loģika, bandīts, budžeta ierobežojums                                                                                            |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Izslēgšana, zondes, incidentu režīms                                                                                                     |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 svaru profili (ātra piegāde, izmaksu taupīšana, kvalitāte pirmajā vietā, piemērots bezsaistei, uzticamība pirmajā vietā, haosa režīms) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksa parsētājs + 6 varianti                                                                                                  |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Izveido atmiņā glabātu `AutoComboConfig` no aktīvajiem savienojumiem                                                                     |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testēšanas āķis pakalpojumu sniedzēju reģistra imitēšanai                                                                                |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratēģijas)                                                                                               |
-| `src/sse/handlers/chat.ts`                                | Integrācija: auto-prefiksa agrīna apstrādes pārtraukšana                                                                                 |
+| Fails                                                     | Mērķis                                                                                                                        |
+| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktoru vērtēšanas funkcija, `DEFAULT_WEIGHTS`, baseina norma                                                              |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Modeļa × uzdevuma fitnesa uzmeklēšana                                                                                         |
+| `open-sse/services/autoCombo/engine.ts`                   | Atlases loģika, bandīts, budžeta griesti                                                                                      |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Izslēgšana, zondes, incidentu režīms                                                                                          |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 svara profili (ātra piegāde, izmaksu taupīšana, kvalitāte vispirms, bezsaistē draudzīga, uzticamība vispirms, haosa režīms) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 varianti                                                                                            |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Veido atmiņā esošo `AutoComboConfig` no tiešajiem savienojumiem                                                               |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Pārbaudes āķis, lai izsmietu pakalpojumu sniedzēju reģistru                                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratēģija)                                                                                     |
+| `src/sse/handlers/chat.ts`                                | Integrācija: automātiskā prefiksa īssavienojums                                                                               |

@@ -302,7 +302,7 @@ giá trị đã phân giải được truyền vào các đầu vào `config.mod
 
 ## Tất cả các chiến lược định tuyến
 
-Hỗ trợ công cụ kết hợp của OmniRoute** 20 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được hiển thị theo chiến lược `auto` ; những cái khác có sẵn cho các combo liên tục.
+Hỗ trợ công cụ kết hợp của OmniRoute** 21 chiến lược định tuyến** (được khai báo trong `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Bản thân công cụ Auto Combo được hiển thị theo chiến lược `auto` ; những cái khác có sẵn cho các combo liên tục.
 
 | Chiến lược          | Sự miêu tả                                                                                                                                                                                                                         |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,8 +317,9 @@ Hỗ trợ công cụ kết hợp của OmniRoute** 20 chiến lược định t
 | `cost-optimized`    | Giảm thiểu $ cho mỗi yêu cầu theo giá danh mục                                                                                                                                                                                     |
 | `reset-aware` ⭐    | Ưu tiên theo thời gian đặt lại hạn ngạch — cửa sổ đặt lại ngắn được xếp hạng cao hơn                                                                                                                                               |
 | `reset-window`      | Ưu tiên các mục tiêu có thời hạn hạn ngạch được đặt lại sớm nhất                                                                                                                                                                   |
+| `expiry-first`      | Chi tiêu tài khoản có hạn ngạch sẽ hết hạn chưa được sử dụng trước — phần còn lại cao nhất với thời hạn đặt lại gần nhất sẽ được ưu tiên                                                                                           |
 | `headroom`          | Chọn mục tiêu có khoảng trống hạn ngạch còn lại nhiều nhất                                                                                                                                                                         |
-| `quota-weighted`    | Bỏ qua các tài khoản đã cạn kiệt, sau đó chọn trong số những tài khoản còn lại theo tỷ lệ hạn ngạch còn lại chia cho tải trong chuyến bay; các cuộc trò chuyện hiện có vẫn được ghim                                               |
+| `quota-weighted`    | Bỏ qua các tài khoản đã hết, sau đó chọn trong số các tài khoản còn lại theo tỷ lệ hạn ngạch còn lại chia cho tải trong chuyến bay; các cuộc trò chuyện hiện có vẫn được ghim                                                      |
 | `strict-random`     | Ngẫu nhiên mà không trùng lặp lặp lại                                                                                                                                                                                              |
 | `auto`              | Sử dụng tính điểm Tự động kết hợp (16 yếu tố) —** khuyến khích**                                                                                                                                                                   |
 | `lkgp`              | Đường dẫn tốt được biết đến lần cuối (ghim vào nhà cung cấp thành công cuối cùng, sau đó quay lại các quy tắc)                                                                                                                     |
@@ -335,7 +336,7 @@ Hỗ trợ công cụ kết hợp của OmniRoute** 20 chiến lược định t
 
 - Mỗi yêu cầu rút ra** một** bước có xác suất `weight / totalWeight`; các bước còn lại được sắp xếp theo trọng số giảm dần làm chuỗi dự phòng cho yêu cầu đó.
 - Một bước có trọng số là `0` (hoặc thiếu) là** không bao giờ vẽ** trong khi bất kỳ bước nào khác có trọng số > 0 — thì nó chỉ có thể đóng vai trò dự phòng sau khi bước rút ra không thành công. Chỉ khi** tất cả** trọng số là 0 thì việc lựa chọn có trở nên thống nhất hay không.
-- Các bước có mục tiêu là tất cả các bước không có sẵn của nhà cung cấp — ngắt mạch `OPEN`, thời gian hồi chiêu kết nối, khóa mô hình — đều bị xóa khỏi lượt rút thăm trước khi nó xảy ra (`open-sse/services/combo/targetResolution.ts`), vì vậy, một bước lành mạnh có thể tạm thời giành được mọi yêu cầu.
+- Các bước có mục tiêu là tất cả các bước không có sẵn của nhà cung cấp — ngắt mạch `OPEN`, thời gian hồi chiêu kết nối, khóa mô hình — sẽ bị xóa khỏi lượt rút thăm trước khi nó xảy ra (`open-sse/services/combo/targetResolution.ts`), vì vậy, một bước lành mạnh có thể tạm thời giành được mọi yêu cầu.
 - `stickyWeightedLimit` (cấu hình kết hợp, tắt `1` = mặc định) ghim bước đã vẽ để đạt được nhiều thành công liên tiếp trước khi vẽ lại.
 
 Để xoay vòng nghiêm ngặt, hãy sử dụng `round-robin`; trọng số bằng nhau trên `weighted` cho — thống kê không cân bằng — nghiêm ngặt.
@@ -344,9 +345,23 @@ Hỗ trợ công cụ kết hợp của OmniRoute** 20 chiến lược định t
 
 Một tổ hợp `pipeline` có ít nhất hai mô hình có thể chọn tham gia định tuyến planner/executor bằng `config.agenticOrchestration.enabled`. Mục tiêu đầu tiên sở hữu kế hoạch và câu trả lời cuối cùng; mục tiêu thứ hai phát ra các lệnh gọi công cụ gốc của máy khách. OmniRoute phát hiện các phần tiếp theo của kết quả công cụ từ giao thức yêu cầu, hỏi người lập kế hoạch xem có cần một vòng công cụ khác hay không và tự động chuyển người thực thi hoặc người lập kế hoạch thành bước cuối cùng đối mặt với khách hàng.
 
-Khi tiếp tục kết quả công cụ, OmniRoute cũng dừng thực thi khi hai vòng hoàn thành liên tiếp lặp lại cùng một lệnh gọi công cụ với kết quả không thay đổi hoặc khi mọi kết quả được đánh dấu rõ ràng trong hai vòng liên tiếp đều không thành công. Kết quả đã thay đổi cho phép các cuộc gọi lặp lại (ví dụ: bỏ phiếu). Trình bảo vệ đặt lại theo yêu cầu mới của người dùng, nhóm các cuộc gọi song song thành một vòng và hỗ trợ lịch sử Anthropic, Hoàn thành trò chuyện, Phản hồi và Gemini. Người lập kế hoạch nhận được lý do và có câu trả lời cuối cùng ngay cả khi yêu cầu một vòng công cụ khác.
+`config.agenticOrchestration.contextCompaction` tùy chọn áp dụng ngân sách tải trọng riêng biệt trước mỗi lần gửi người lập kế hoạch hoặc người thực thi. Kích hoạt nó một cách rõ ràng:
 
-Các mô hình bổ sung sau mục tiêu thứ hai được yêu cầu sao lưu người thực thi. Phản hồi HTTP không thành công hoặc ngoại lệ vận chuyển sẽ chuyển sang người thực thi tiếp theo, mang theo cùng một quyết định của người lập kế hoạch và các công cụ gốc nhưng lời nhắc bước của chính người thực thi đó và giải quyết kết nối. Phản hồi thành công đầu tiên được trả về không thay đổi, bao gồm cả phát trực tuyến SSE ; không thể thử lại lỗi sau khi bắt đầu phát trực tiếp thành công tại đây. Nếu tất cả người thi hành đều thất bại, lỗi cuối cùng sẽ được trả về. Khách hàng hủy bỏ việc dừng gửi đi.
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Đây là ngân sách ký tự JSON được tuần tự hóa do nhà điều hành lựa chọn, không phải cửa sổ ngữ cảnh mã thông báo hoặc giới hạn ngược dòng được đảm bảo. Mô hình chính xác IDs ghi đè mặc định. Trên ngưỡng, quá trình nén sẽ loại bỏ các định nghĩa công cụ giống hệt nhau, cắt bớt bằng chứng công cụ quá khổ bằng một bản tóm tắt và loại bỏ các nhóm lịch sử hoàn chỉnh cũ theo tỷ lệ mục tiêu. Nó giữ lại các hướng dẫn system/developer, yêu cầu mới nhất của người dùng, vòng công cụ cuối cùng bao gồm song song calls/results và hướng dẫn định tuyến hàng đầu của Gemini. Hướng dẫn cấp cao nhất và cài đặt công cụ được giữ nguyên. Một điểm đánh dấu thiếu sót ghi lại lịch sử đã xóa; đây là sự cắt xén mang tính quyết định, không phải là một bản tóm tắt ngữ nghĩa. Nếu bối cảnh được ghim vẫn vượt quá ngân sách, yêu cầu sẽ trả về 413 trước khi liên hệ với mô hình. Khi nén bị vô hiệu hóa hoặc dưới ngưỡng, yêu cầu sẽ không thay đổi.
+
+Khi tiếp tục kết quả công cụ, OmniRoute cũng dừng thực thi khi hai vòng hoàn thành liên tiếp lặp lại cùng một lệnh gọi công cụ với kết quả không thay đổi hoặc khi mọi kết quả được đánh dấu rõ ràng trong hai vòng liên tiếp đều không thành công. Kết quả đã thay đổi cho phép các cuộc gọi lặp lại (ví dụ: bỏ phiếu). Trình bảo vệ đặt lại theo yêu cầu mới của người dùng, nhóm các cuộc gọi song song thành một vòng và hỗ trợ lịch sử Anthropic, Hoàn thành trò chuyện, Phản hồi và Gemini. Người lập kế hoạch nhận được lý do và sở hữu câu trả lời cuối cùng ngay cả khi họ yêu cầu một vòng công cụ khác.
+
+Các mô hình bổ sung sau mục tiêu thứ hai được yêu cầu sao lưu người thực thi. Phản hồi HTTP không thành công hoặc ngoại lệ vận chuyển sẽ chuyển sang người thực thi tiếp theo, mang theo cùng một quyết định của người lập kế hoạch và các công cụ gốc nhưng lời nhắc bước của chính người thực thi đó và giải quyết kết nối. Phản hồi thành công đầu tiên được trả về không thay đổi, bao gồm cả phát trực tuyến SSE ; không thể thử lại lỗi sau khi bắt đầu phát trực tiếp thành công tại đây. Nếu tất cả người thực thi đều thất bại, lỗi cuối cùng sẽ được trả về. Khách hàng hủy bỏ việc dừng gửi đi.
 
 ```json
 {
@@ -834,47 +849,41 @@ chiến lược tổ hợp `priority` và sắp xếp các nhà cung cấp theo 
 
 Xem [`docs/guides/TIERS.md`](../guides/TIERS.md) để biết định nghĩa các bậc và cách phân loại nhà cung cấp.
 
-## Kiểm thử & độ bao phủ
+## Kiểm tra & Bảo hiểm
 
-### Ma trận quyết định định tuyến tất định (`npm run test:combo:matrix`)
+### Ma trận quyết định định tuyến xác định (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` xác minh **quyết định** định tuyến của toàn bộ 19
-chiến lược công khai từ đầu đến cuối thông qua pipeline combo thực với một upstream mô phỏng.
-Phạm vi bao phủ bao gồm:
+`tests/integration/combo-matrix/*.test.ts` chứng minh việc định tuyến** phán quyết** trong số tất cả 21 chiến lược công khai từ đầu đến cuối thông qua quy trình kết hợp thực sự với thượng nguồn được mô phỏng. Bảo hiểm bao gồm:
 
-- Toàn bộ 19 chiến lược `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (nội bộ) từ đầu đến cuối: tính công bằng DRR + hạ mức ưu tiên khi bão hòa thông qua
-  điểm nối `selectQuotaShareTarget` thực (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Độ bao phủ chuyển giao toàn cục của `context-relay` trên mọi số lượng đích.
+- Tất cả 21 chiến lược `ROUTING_STRATEGY_VALUES` (được đặt hàng, có trọng số, chi phí, bối cảnh, sự kết hợp,…).
+- `quota-share` (nội bộ) từ đầu đến cuối: DRR công bằng + khử độ bão hòa thông qua đường nối `selectQuotaShareTarget` thực (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- phạm vi bao phủ chuyển giao phổ quát `context-relay` trên mọi số lượng mục tiêu.
 
-Bộ kiểm thử này chạy trong CI (tác vụ `test:integration`) với `--test-concurrency=1` và
-`--test-force-exit`, do đó có tính tất định và không yêu cầu thông tin xác thực thực tế.
+Bộ phần mềm này chạy trong CI (công việc `test:integration` ) với `--test-concurrency=1` và `--test-force-exit` nên nó mang tính quyết định và không yêu cầu thông tin xác thực trực tiếp.
 
-### Kiểm thử nhanh trực tiếp có điều kiện (KHÔNG chạy trong CI — nhà cung cấp thực)
+### Có cổng khói trực tiếp (NOT trong CI — nhà cung cấp thực sự)
 
-| Lệnh                                   | Chức năng                                                                                                   |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Định tuyến thực trong tiến trình với `RUN_COMBO_LIVE=1`; tạo snapshot của cơ sở dữ liệu OmniRoute trực tiếp |
-| `npm run test:combo:live:vps`          | Các lệnh gọi HTTP đến máy chủ OmniRoute trực tiếp (đặt `COMBO_LIVE_BASE_URL`)                               |
-| `npm run test:combo:live:vps:failover` | Tương tự, với các kịch bản chuyển đổi dự phòng có chủ đích                                                  |
+| Yêu cầu                                | Nó làm gì                                                                                     |
+| :------------------------------------- | :-------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Định tuyến thực trong quá trình với `RUN_COMBO_LIVE=1`; chụp nhanh một OmniRoute DB trực tiếp |
+| `npm run test:combo:live:vps`          | HTTP gọi tới máy chủ OmniRoute trực tiếp (đặt `COMBO_LIVE_BASE_URL`)                          |
+| `npm run test:combo:live:vps:failover` | Tương tự, với các kịch bản chuyển đổi dự phòng có chủ ý                                       |
 
-Các kiểm thử nhanh này thực thi đường truyền thực tế (combo → nhà cung cấp → completion). Chúng được
-chủ ý loại khỏi CI vì yêu cầu thông tin xác thực thực tế và quyền truy cập VPS.
+Các thử nghiệm khói này thực hiện đường dẫn dây thực (hoàn thành kết hợp → nhà cung cấp → ). Chúng bị cố tình loại trừ khỏi CI vì chúng yêu cầu thông tin xác thực trực tiếp và quyền truy cập VPS.
 
 ---
 
-## Tệp
+## Tập tin
 
-| Tệp                                                       | Mục đích                                                                                                                                   |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Hàm chấm điểm 16 yếu tố, `DEFAULT_WEIGHTS`, chuẩn hóa nhóm                                                                                 |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Tra cứu độ phù hợp giữa mô hình × tác vụ                                                                                                   |
-| `open-sse/services/autoCombo/engine.ts`                   | Logic lựa chọn, bandit, giới hạn ngân sách                                                                                                 |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Loại trừ, thăm dò, chế độ sự cố                                                                                                            |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 hồ sơ trọng số (phát hành nhanh, tiết kiệm chi phí, ưu tiên chất lượng, thân thiện với ngoại tuyến, ưu tiên độ tin cậy, chế độ hỗn loạn) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Trình phân tích tiền tố `auto/` + 6 biến thể                                                                                               |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Tạo `AutoComboConfig` trong bộ nhớ từ các kết nối đang hoạt động                                                                           |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook kiểm thử để mô phỏng sổ đăng ký nhà cung cấp                                                                                          |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 chiến lược)                                                                                                  |
-| `src/sse/handlers/chat.ts`                                | Tích hợp: đoản mạch tiền tố tự động                                                                                                        |
+| Tài liệu                                                  | Mục đích                                                                                                                                                 |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Hàm chấm điểm 16 yếu tố, `DEFAULT_WEIGHTS`, chỉ tiêu nhóm                                                                                                |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Tra cứu thể chất nhiệm vụ mô hình ×                                                                                                                      |
+| `open-sse/services/autoCombo/engine.ts`                   | Logic lựa chọn, kẻ cướp, giới hạn ngân sách                                                                                                              |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Loại trừ, thăm dò, chế độ sự cố                                                                                                                          |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 cấu hình trọng lượng (giao hàng nhanh, tiết kiệm chi phí, chất lượng là trên hết, thân thiện với ngoại tuyến, độ tin cậy là trên hết, chế độ hỗn loạn) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | trình phân tích cú pháp tiền tố `auto/` + 6 biến thể                                                                                                     |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Xây dựng `AutoComboConfig` trong bộ nhớ từ các kết nối trực tiếp                                                                                         |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Móc thử nghiệm để đăng ký nhà cung cấp mô phỏng                                                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 chiến lược)                                                                                                                |
+| `src/sse/handlers/chat.ts`                                | Tích hợp: ngắn mạch tiền tố tự động                                                                                                                      |

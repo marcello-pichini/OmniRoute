@@ -303,7 +303,7 @@ na-resolve na value ay ipinapasa sa mga umiiral na input na `config.modePack` / 
 
 ## Lahat ng Istratehiya sa Pagruruta
 
-Sinusuportahan ng combo engine ng OmniRoute** 20 mga diskarte sa pagruruta** (ipinahayag sa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ang Auto Combo engine mismo ay nakalantad sa ilalim ng `auto` strategy; ang iba ay magagamit para sa persisted combos.
+Sinusuportahan ng combo engine ng OmniRoute** 21 mga diskarte sa pagruruta** (ipinahayag sa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Ang Auto Combo engine mismo ay nakalantad sa ilalim ng `auto` strategy; ang iba ay magagamit para sa persisted combos.
 
 | Diskarte            | Paglalarawan                                                                                                                                                                                                                                   |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -318,6 +318,7 @@ Sinusuportahan ng combo engine ng OmniRoute** 20 mga diskarte sa pagruruta** (ip
 | `cost-optimized`    | I-minimize ang $ bawat kahilingan na ibinigay sa pagpepresyo ng catalog                                                                                                                                                                        |
 | `reset-aware` ⭐    | Unahin ayon sa quota reset time — short reset windows mas mataas ang ranggo                                                                                                                                                                    |
 | `reset-window`      | Mas gusto ang mga target na ang window ng quota ay magre-reset sa lalong madaling panahon                                                                                                                                                      |
+| `expiry-first`      | Gastusin ang account na ang quota ay mag-e-expire muna nang hindi nagamit — ang pinakamataas na natitira sa pinakamalapit na deadline ng pag-reset ay mauna                                                                                    |
 | `headroom`          | Piliin ang target na may pinakamaraming natitirang quota headroom                                                                                                                                                                              |
 | `quota-weighted`    | Laktawan ang mga naubos na account, pagkatapos ay pumili sa iba pa ayon sa natirang quota na hinati sa in-flight load; mananatiling naka-pin ang mga kasalukuyang pag-uusap                                                                    |
 | `strict-random`     | Random na walang deduplication ng mga pag-uulit                                                                                                                                                                                                |
@@ -335,8 +336,8 @@ Sinusuportahan ng combo engine ng OmniRoute** 20 mga diskarte sa pagruruta** (ip
 `weighted` ay a** proporsyonal na random na draw bawat kahilingan** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), hindi isang equalizer:
 
 - Ang bawat kahilingan ay gumuhit** isa** hakbang na may probabilidad `weight / totalWeight`; ang natitirang mga hakbang ay iniutos sa pamamagitan ng pababang timbang bilang fallback chain para sa kahilingang iyon.
-- Ang isang hakbang na ang timbang ay `0` (o nawawala) ay** hindi kailanman iginuhit** habang ang anumang ibang hakbang ay may timbang na > 0 — maaari lamang itong magsilbi bilang isang fallback pagkatapos mabigo ang iginuhit na hakbang. Kapag lang** lahat** ang mga timbang ay 0 nagiging pare-pareho ba ang pagpili.
-- Ang mga hakbang na ang mga target ay lahat ay hindi available — provider circuit breaker `OPEN`, connection cooldown, model lockout — ay inalis mula sa draw bago ito mangyari (`open-sse/services/combo/targetResolution.ts`), kaya isang solong malusog na hakbang ang maaaring pansamantalang mapanalunan ang bawat kahilingan.
+- Ang isang hakbang na ang bigat ay `0` (o nawawala) ay** hindi kailanman iginuhit** habang ang anumang ibang hakbang ay may timbang na > 0 — maaari lamang itong magsilbi bilang isang fallback pagkatapos mabigo ang iginuhit na hakbang. Kapag lang** lahat** ang mga timbang ay 0 nagiging pare-pareho ba ang pagpili.
+- Ang mga hakbang na ang mga target ay lahat ay hindi available — provider circuit breaker `OPEN`, connection cooldown, model lockout — ay inalis sa draw bago ito mangyari (`open-sse/services/combo/targetResolution.ts`), kaya ang isang solong malusog na hakbang ay maaaring pansamantalang mapanalunan ang bawat kahilingan.
 - `stickyWeightedLimit` (combo config, default `1` = off) pin ang iginuhit na hakbang para sa maraming magkakasunod na tagumpay bago muling gumuhit.
 
 Para sa mahigpit na pag-ikot gumamit `round-robin`; pantay na timbang sa `weighted` ay nagbibigay ng istatistikal — hindi mahigpit na balanse —.
@@ -344,6 +345,20 @@ Para sa mahigpit na pag-ikot gumamit `round-robin`; pantay na timbang sa `weight
 ### Mode ng ahente ng pipeline
 
 Ang isang `pipeline` combo na may hindi bababa sa dalawang modelo ay maaaring mag-opt in sa pagruruta planner/executor gamit ang `config.agenticOrchestration.enabled`. Ang unang target ay nagmamay-ari ng pagpaplano at mga huling sagot; ang pangalawang target ay naglalabas ng mga tawag sa tool na native ng kliyente. Nakikita OmniRoute ang mga pagpapatuloy ng resulta ng tool mula sa protocol ng kahilingan, tinatanong ang tagaplano kung kailangan ng isa pang pag-ikot ng tool, at dynamic na ginagawa ang alinman sa tagapagpatupad o tagaplano bilang huling hakbang na nakaharap sa kliyente.
+
+Ang opsyonal `config.agenticOrchestration.contextCompaction` ay naglalapat ng hiwalay na badyet sa payload bago ang bawat pagpapadala ng tagaplano o tagapagpatupad. Paganahin ito nang tahasan:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Ito ay mga serialized JSON character na badyet na pinili ng operator, hindi token context window o mga garantisadong upstream na limitasyon. In-override ng eksaktong modelong IDs ang default. Sa itaas ng threshold, ang compaction ay nag-aalis ng magkaparehong mga kahulugan ng tool, nag-trim ng napakalaking tool na ebidensya gamit ang isang digest, at nag-aalis ng mga lumang kumpletong pangkat ng kasaysayan patungo sa target na ratio. Pinapanatili nito ang mga tagubilin system/developer, ang pinakabagong kahilingan ng user, ang huling round ng tool kasama ang parallel calls/results, at ang nangungunang pagtuturo sa pagruruta Gemini. Ang mga tagubilin sa pinakamataas na antas at mga setting ng tool ay pinapanatili. Ang isang omission marker ay nagtatala ng inalis na kasaysayan; ito ay deterministic trimming, hindi isang semantic summary. Kung lumampas pa rin sa badyet ang naka-pin na konteksto, ibabalik ng kahilingan ang 413 bago makipag-ugnayan sa modelo. Kapag hindi pinagana ang compaction o mas mababa sa threshold ang kahilingan ay dumadaan sa hindi nagbabago.
 
 Sa mga pagpapatuloy ng resulta ng tool, humihinto din OmniRoute sa pagpapatupad kapag ang dalawang magkasunod na nakumpletong round ay inuulit ang parehong mga tool call na may hindi nagbabagong mga resulta, o kapag ang bawat tahasang minarkahan ay nagresulta sa dalawang magkasunod na round na nabigo. Pinahihintulutan ng mga binagong resulta ang mga paulit-ulit na tawag (halimbawa, pagboto). Nagre-reset ang guard sa isang bagong kahilingan ng user, pinapangkat ang magkakatulad na tawag sa isang round, at sinusuportahan ang Anthropic, Mga Pagkumpleto ng Chat, Mga Tugon at Gemini na kasaysayan. Natatanggap ng tagaplano ang dahilan at nagmamay-ari ng huling sagot kahit na humiling ito ng isa pang tool round.
 
@@ -367,7 +382,7 @@ Round-robin ay batched, hindi one-request-per-step:
 
 - `stickyRoundRobinLimit` (combo config, pagkatapos ay `comboStickyRoundRobinLimit`, pagkatapos ay `settings.stickyRoundRobinLimit`, default** 3** ) pinapanatili ang parehong target para sa maraming magkakasunod na tagumpay bago iikot. Itakda ang combo override sa `1` para sa pag-ikot ng isang kahilingan. Ipinapakita ng combo editor ang epektibong halaga at kung saang layer ito nanggaling.
 - `connectionAwareExpansion` (combo config, pagkatapos ay mga setting, default** mali** ) pinapalawak ang bawat hakbang sa antas ng provider sa mga target ng bawat account bago ang pag-ikot. Ang mga diskarte sa Group-B (priority, weighted, round-robin, random, p2c, hindi gaanong ginagamit, cost-optimized, lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion, pipeline) ay nagpapanatili ng view sa antas ng provider hanggang sa ito ay naka-on. Inilalantad ng combo editor ang inherit / on / off; ginagamit ng inherit ang global default (off).
-- Prompt-cache locality routing (`promptCacheAffinityEnabled`, default** totoo** ) ay muling nag-aayos ng mga naka-pin na koneksyon upang ang mga katugmang cache key ay manatili sa isang account. Mas inuuna ito kaysa sa round-robin at may timbang na pag-ikot sa mga naka-pin na hakbang sa bawat account. I-off ito sa ilalim ng Mga Setting → Combo default kung kailangan mo ng mahigpit na pag-ikot. Walang per-combo override.
+- Prompt-cache locality routing (`promptCacheAffinityEnabled`, default** totoo** ) ay muling nag-aayos ng mga naka-pin na koneksyon upang ang mga tugmang cache key ay manatili sa isang account. Mas inuuna ito kaysa sa round-robin at may timbang na pag-ikot sa mga naka-pin na hakbang sa bawat account. I-off ito sa ilalim ng Mga Setting → Combo default kung kailangan mo ng mahigpit na pag-ikot. Walang per-combo override.
 
 Para sa multi-account rotation sa isang modelo, mas gusto** isang dynamic-account na hakbang** (walang laman `connectionId`, buong pool) na may malagkit na limitasyon `1`, hindi tatlong naka-pin `connectionId` s. Ang mga naka-pin na hakbang at affinity ay bumagsak sa parehong account kahit na umuusad ang RR counter.
 
@@ -835,41 +850,39 @@ Tingnan ang [`docs/guides/TIERS.md`](../guides/TIERS.md) para sa mga depinisyon 
 
 ## Pagsubok at Saklaw
 
-### Deterministikong matrix ng desisyon sa pagruruta (`npm run test:combo:matrix`)
+### Deterministic routing-decision matrix (`npm run test:combo:matrix`)
 
-Pinatutunayan ng `tests/integration/combo-matrix/*.test.ts` ang **desisyon** sa pagruruta ng lahat ng 19 na pampublikong strategy mula simula hanggang dulo sa pamamagitan ng tunay na combo pipeline na may mock na upstream.
-Kabilang sa saklaw ang:
+pinatunayan `tests/integration/combo-matrix/*.test.ts` ang pagruruta** desisyon** sa lahat ng 21 pampublikong estratehiya na end-to-end sa pamamagitan ng tunay na combo pipeline na may isang mocked upstream. Kasama sa saklaw ang:
 
-- Lahat ng 19 na strategy ng `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (internal) mula simula hanggang dulo: pagiging patas ng DRR + pagbaba ng priyoridad dahil sa saturation sa pamamagitan ng tunay na seam na `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Saklaw ng universal handoff ng `context-relay` sa bawat bilang ng target.
+- Lahat ng 21 diskarte `ROUTING_STRATEGY_VALUES` (nakaayos, may timbang, gastos, konteksto, pagsasanib, …).
+- `quota-share` (internal) end-to-end: DRR fairness + saturation deprioritization sa pamamagitan ng real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universal-handoff coverage sa bawat target na bilang.
 
-Tumatakbo ang suite na ito sa CI (`test:integration` job) gamit ang `--test-concurrency=1` at `--test-force-exit` upang maging deterministiko ito at hindi mangailangan ng mga aktuwal na credential.
+Gumagana ang suite na ito sa CI (`test:integration` job) na may `--test-concurrency=1` at `--test-force-exit` kaya deterministic ito at hindi nangangailangan ng mga live na kredensyal.
 
-### Gated live smoke (HINDI nasa CI — mga tunay na provider)
+### Gated live na usok (NOT sa CI — real provider)
 
-| Command                                | Ano ang ginagawa nito                                                                                       |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Tunay na in-process na pagruruta gamit ang `RUN_COMBO_LIVE=1`; kumukuha ng snapshot ng live na OmniRoute DB |
-| `npm run test:combo:live:vps`          | Mga HTTP call laban sa live na OmniRoute server (itakda ang `COMBO_LIVE_BASE_URL`)                          |
-| `npm run test:combo:live:vps:failover` | Pareho, ngunit may mga sinasadyang senaryo ng failover                                                      |
+| Utos                                   | Ano ang ginagawa nito                                                                           |
+| :------------------------------------- | :---------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | In-process na totoong pagruruta gamit ang `RUN_COMBO_LIVE=1`; mga snapshot ng live OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP calls laban sa isang live OmniRoute server (set `COMBO_LIVE_BASE_URL`)                     |
+| `npm run test:combo:live:vps:failover` | Pareho, na may sinadyang failover na mga sitwasyon                                              |
 
-Sinusubukan ng mga smoke test na ito ang tunay na wire path (combo → provider → completion). Sadyang hindi isinasama ang mga ito sa CI dahil nangangailangan ang mga ito ng mga aktuwal na credential at access sa VPS.
+Ginagamit ng mga smoke test na ito ang totoong wire path (combo → provider → completion). Sinadya silang hindi kasama sa CI dahil nangangailangan sila ng mga live na kredensyal at VPS access.
 
 ---
 
-## Mga File
+## Mga file
 
-| File                                                      | Layunin                                                                                                         |
-| :-------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16-factor na scoring function, `DEFAULT_WEIGHTS`, pool norm                                                     |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Lookup ng fitness ng model × gawain                                                                             |
-| `open-sse/services/autoCombo/engine.ts`                   | Lohika ng pagpili, bandit, limitasyon sa badyet                                                                 |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Pagbubukod, mga probe, incident mode                                                                            |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 na profile ng timbang (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser ng prefix na `auto/` + 6 na variant                                                                      |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Bumubuo ng in-memory na `AutoComboConfig` mula sa mga aktibong koneksyon                                        |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook para sa pag-mock ng provider registry                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 diskarte)                                                                         |
-| `src/sse/handlers/chat.ts`                                | Integrasyon: short-circuit ng auto-prefix                                                                       |
+| file                                                      | Layunin                                                                                                                 |
+| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-factor scoring function, `DEFAULT_WEIGHTS`, pool norm                                                                |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Model × task fitness lookup                                                                                             |
+| `open-sse/services/autoCombo/engine.ts`                   | Lohika ng pagpili, bandido, limitasyon ng badyet                                                                        |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Pagbubukod, pagsisiyasat, mode ng insidente                                                                             |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 na profile ng timbang (mabilis ang barko, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 na variant                                                                                    |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Bumubuo ng in-memory `AutoComboConfig` mula sa mga live na koneksyon                                                    |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook para sa mapanuksong provider registry                                                                         |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 diskarte)                                                                                 |
+| `src/sse/handlers/chat.ts`                                | Pagsasama: auto-prefix short-circuit                                                                                    |

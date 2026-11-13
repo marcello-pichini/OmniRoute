@@ -302,7 +302,7 @@ vyhodnotené hodnoty vstupujú do existujúcich vstupov mechanizmu `config.modeP
 
 ## Všetky stratégie smerovania
 
-OmniRoute's combo engine podporuje** 20 stratégií smerovania** (deklarované v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný motor Auto Combo je vystavený v rámci stratégie `auto` ; ostatné sú dostupné pre trvalé kombá.
+OmniRoute's combo engine podporuje** 21 smerovacích stratégií** (deklarované v `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Samotný motor Auto Combo je vystavený v rámci stratégie `auto` ; ostatné sú dostupné pre trvalé kombá.
 
 | Stratégia           | Popis                                                                                                                                                                                                                                      |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -315,8 +315,9 @@ OmniRoute's combo engine podporuje** 20 stratégií smerovania** (deklarované v
 | `random`            | Jednotný náhodný výber                                                                                                                                                                                                                     |
 | `least-used`        | Vyberte cieľ s najnižším prúdovým zaťažením                                                                                                                                                                                                |
 | `cost-optimized`    | Minimalizujte $ za požiadavku podľa katalógových cien                                                                                                                                                                                      |
-| `reset-aware` ⭐    | Uprednostnite podľa času resetovania kvóty — krátke resetovacie okná sú umiestnené vyššie                                                                                                                                                  |
+| `reset-aware` ⭐    | Uprednostnite podľa času resetovania kvóty — krátke resetovacie okná sú hodnotené vyššie                                                                                                                                                   |
 | `reset-window`      | Uprednostniť ciele, ktorých okno kvóty sa resetuje čo najskôr                                                                                                                                                                              |
+| `expiry-first`      | Utraťte účet, ktorého kvóta by inak vypršala, nevyužitá ako prvá — najvyššia zvyšná suma s najbližším termínom resetovania ide ako prvá                                                                                                    |
 | `headroom`          | Vyberte cieľ s najväčšou zostávajúcou rezervou kvóty                                                                                                                                                                                       |
 | `quota-weighted`    | Preskočte vyčerpané účty a potom vyberte spomedzi ostatných v pomere k zostávajúcej kvóte vydelenej nákladom počas letu; existujúce konverzácie zostanú pripnuté                                                                           |
 | `strict-random`     | Náhodné bez deduplikácie opakovaní                                                                                                                                                                                                         |
@@ -334,7 +335,7 @@ OmniRoute's combo engine podporuje** 20 stratégií smerovania** (deklarované v
 `weighted` je a** proporcionálne náhodné žrebovanie na žiadosť** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), nie ekvalizér:
 
 - Každá žiadosť sa žrebuje** jeden** krok s pravdepodobnosťou `weight / totalWeight`; zostávajúce kroky sú zoradené podľa zostupnej váhy ako záložný reťazec pre danú požiadavku.
-- Krok, ktorého hmotnosť je `0` (alebo chýba), je** nikdy nekreslené** zatiaľ čo ktorýkoľvek iný krok má váhu > 0 — môže slúžiť len ako záložný krok, keď nakreslený krok zlyhá. Len keď** všetky** váhy sú 0, výber bude jednotný.
+- Krok, ktorého hmotnosť je `0` (alebo chýba), je** nikdy nekreslené** zatiaľ čo akýkoľvek iný krok má váhu > 0 — môže slúžiť len ako záložný krok, keď nakreslený krok zlyhá. Len keď** všetky** váhy sú 0, výber bude jednotný.
 - Kroky, ktorých ciele sú nedostupné — poskytovateľ obvodu `OPEN`, ochladzovanie pripojenia, blokovanie modelu — sú odstránené zo žrebovania skôr, ako sa tak stane (`open-sse/services/combo/targetResolution.ts`), takže každú požiadavku môže dočasne vyhrať jeden zdravý krok.
 - `stickyWeightedLimit` (kombinovaná konfigurácia, predvolené `1` = vypnuté) pripne nakreslený krok pre toľko po sebe nasledujúcich úspechov pred opätovným vykreslením.
 
@@ -343,6 +344,20 @@ Na presné striedanie použite `round-robin`; rovnaké váhy na `weighted` posky
 ### Agentický režim potrubia
 
 Kombinácia `pipeline` s najmenej dvoma modelmi sa môže rozhodnúť pre smerovanie planner/executor pomocou `config.agenticOrchestration.enabled`. Prvý cieľ vlastní plánovanie a konečné odpovede; druhý cieľ vydáva volania nástroja natívneho klienta. OmniRoute deteguje pokračovanie výsledkov nástroja z protokolu požiadaviek, pýta sa plánovača, či je potrebné ďalšie kolo nástroja, a dynamicky robí z vykonávateľa alebo plánovača posledný krok, ktorý je pred klientom.
+
+Voliteľné `config.agenticOrchestration.contextCompaction` aplikuje samostatný rozpočet užitočného zaťaženia pred každým odoslaním plánovača alebo vykonávateľa. Povoliť explicitne:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Ide o serializované rozpočty znakov JSON vybrané operátorom, nie kontextové okná tokenov alebo garantované upstream limity. Presný model IDs prepíše predvolené nastavenie. Nad prahovou hodnotou zhutnenie odstraňuje identické definície nástrojov, orezáva evidenciu nadmerných nástrojov pomocou súhrnu a odstraňuje staré kompletné skupiny histórie smerom k cieľovému pomeru. Zachováva inštrukcie system/developer, najnovšiu požiadavku používateľa, posledné kolo nástroja vrátane paralelného calls/results a vedúcu smerovaciu inštrukciu Gemini. Zachovajú sa pokyny na najvyššej úrovni a nastavenia nástrojov. Značka vynechania zaznamenáva odstránenú históriu; ide o deterministické orezávanie, nie o sémantické zhrnutie. Ak pripnutý kontext stále prekračuje rozpočet, žiadosť pred kontaktovaním modelu vráti 413. Keď je zhutňovanie vypnuté alebo je pod prahovou hodnotou, požiadavka prechádza nezmenená.
 
 Pri pokračovaní výsledkov nástroja OmniRoute tiež zastaví vykonávanie, keď dve po sebe idúce dokončené kolá opakujú rovnaké volania nástroja s nezmenenými výsledkami, alebo keď zlyhal každý explicitne označený výsledok v dvoch po sebe nasledujúcich kolách. Zmenené výsledky umožňujú opakované volania (napríklad hlasovanie). Strážca sa resetuje na novú požiadavku používateľa, zoskupí paralelné hovory do jedného kola a podporuje históriu Anthropic, dokončenia chatu, odpovedí a Gemini. Plánovač dostane dôvod a vlastní konečnú odpoveď, aj keď požaduje ďalšie kolo nástroja.
 
@@ -838,45 +853,39 @@ Definície úrovní a klasifikáciu poskytovateľov nájdete v dokumente [`docs/
 
 ## Testovanie a pokrytie
 
-### Deterministická matica rozhodnutí smerovania (`npm run test:combo:matrix`)
+### Deterministická matica smerovania a rozhodovania (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` overuje **rozhodnutie** smerovania všetkých 19
-verejných stratégií od začiatku do konca prostredníctvom skutočného kombinovaného procesu so simulovanou upstream službou.
-Pokrytie zahŕňa:
+`tests/integration/combo-matrix/*.test.ts` dokazuje smerovanie** rozhodnutie** všetkých 21 verejných stratégií end-to-end prostredníctvom skutočného kombinovaného potrubia s falošným upstreamom. Pokrytie zahŕňa:
 
-- Všetkých 19 stratégií `ROUTING_STRATEGY_VALUES` (usporiadané, vážené, nákladové, kontextové, fúzne, …).
-- `quota-share` (interná) od začiatku do konca: spravodlivosť DRR + zníženie priority pri saturácii prostredníctvom
-  skutočného integračného bodu `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Pokrytie univerzálneho odovzdania `context-relay` naprieč každým počtom cieľov.
+- Všetkých 21 stratégií `ROUTING_STRATEGY_VALUES` (usporiadané, vážené, náklady, kontext, fúzia, ...).
+- `quota-share` (interné) end-to-end: DRR spravodlivosť + saturácia deprioritizácia cez skutočný šev `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` univerzálne pokrytie všetkých cieľov.
 
-Tento balík testov sa spúšťa v CI (úloha `test:integration`) s `--test-concurrency=1` a
-`--test-force-exit`, takže je deterministický a nevyžaduje živé prihlasovacie údaje.
+Tento balík beží v CI (`test:integration` job) s `--test-concurrency=1` a `--test-force-exit`, takže je deterministický a nevyžaduje živé poverenia.
 
-### Podmienený živý smoke test (NIE JE v CI — skutoční poskytovatelia)
+### Gated live smoke (NOT v CI — skutoční poskytovatelia)
 
-| Príkaz                                 | Čo robí                                                                                           |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| `npm run test:combo:live`              | Skutočné smerovanie v rámci procesu s `RUN_COMBO_LIVE=1`; vytvorí snímku živej databázy OmniRoute |
-| `npm run test:combo:live:vps`          | Volania HTTP na živý server OmniRoute (nastavte `COMBO_LIVE_BASE_URL`)                            |
-| `npm run test:combo:live:vps:failover` | To isté so zámernými scenármi prepnutia pri zlyhaní                                               |
+| Príkaz                                 | Čo to robí                                                                     |
+| :------------------------------------- | :----------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Priebežné skutočné smerovanie s `RUN_COMBO_LIVE=1`; snímky živého OmniRoute DB |
+| `npm run test:combo:live:vps`          | volania HTTP proti živému serveru OmniRoute (nastavte `COMBO_LIVE_BASE_URL`)   |
+| `npm run test:combo:live:vps:failover` | To isté so zámernými scenármi zlyhania                                         |
 
-Tieto smoke testy preverujú skutočnú komunikačnú cestu (kombinácia → poskytovateľ → dokončenie). Sú
-zámerne vylúčené z CI, pretože vyžadujú živé prihlasovacie údaje a prístup k VPS.
+Tieto dymové testy vykonávajú skutočnú dráhu drôtu (kombo → provider → dokončenie). Sú zámerne vylúčené zo CI pretože vyžadujú živé poverenia a prístup VPS.
 
 ---
 
 ## Súbory
 
-| Súbor                                                     | Účel                                                                                                                                                 |
-| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Bodovacia funkcia so 16 faktormi, `DEFAULT_WEIGHTS`, normalizácia fondu                                                                              |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Vyhľadávanie vhodnosti modelu pre úlohu                                                                                                              |
-| `open-sse/services/autoCombo/engine.ts`                   | Logika výberu, bandita, rozpočtový limit                                                                                                             |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Vylúčenie, sondy, režim incidentu                                                                                                                    |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 váhových profilov (rýchle dodanie, úspora nákladov, kvalita na prvom mieste, vhodné pre režim offline, spoľahlivosť na prvom mieste, režim chaosu) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser predpony `auto/` + 6 variantov                                                                                                                |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Vytvára objekt `AutoComboConfig` v pamäti zo živých pripojení                                                                                        |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací bod na simulovanie registra poskytovateľov                                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratégií)                                                                                                             |
-| `src/sse/handlers/chat.ts`                                | Integrácia: prednostné spracovanie predpony `auto/`                                                                                                  |
+| Súbor                                                     | Účel                                                                                                       |
+| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-faktorová bodovacia funkcia, `DEFAULT_WEIGHTS`, bazénová norma                                          |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Vyhľadávanie fitness úloh modelu ×                                                                         |
+| `open-sse/services/autoCombo/engine.ts`                   | Selekčná logika, bandita, rozpočtový strop                                                                 |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Vylúčenie, sondy, režim incidentu                                                                          |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 hmotnostných profilov (rýchla preprava, úspora nákladov, prvoradá kvalita, offline, spoľahlivosť, chaos) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variantov                                                                        |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Vytvára `AutoComboConfig` v pamäti zo živých spojení                                                       |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testovací hák na zosmiešňovanie registra poskytovateľov                                                    |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratégií)                                                                   |
+| `src/sse/handlers/chat.ts`                                | Integrácia: auto-prefix skrat                                                                              |

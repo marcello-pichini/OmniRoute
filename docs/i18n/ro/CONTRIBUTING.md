@@ -300,67 +300,67 @@ Consultați `open-sse/utils/stream.ts` și `open-sse/utils/streamHandler.ts` pen
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Pagini ale tabloului de bord (23 de secțiuni)
-│   ├── api/                # Rute API (51 de directoare)
-│   └── login/              # Pagini de autentificare (.tsx)
-├── domain/                 # Motor de politici (policyEngine, comboResolver, costRules etc.)
-├── lib/                    # Logica principală de business (.ts)
-│   ├── a2a/                # Server pentru protocolul Agent-to-Agent v0.3
-│   ├── acp/                # Registru pentru Agent Communication Protocol
-│   ├── compliance/         # Motor de politici de conformitate
-│   ├── db/                 # Module de domeniu SQLite + 130 de migrări
-│   ├── memory/             # Memorie conversațională persistentă
-│   ├── oauth/              # Furnizori, servicii și utilitare OAuth
-│   ├── skills/             # Cadru extensibil pentru abilități
-│   ├── usage/              # Urmărirea utilizării și calcularea costurilor
-│   └── localDb.ts          # Doar strat de reexportare — nu adăugați niciodată logică aici
-├── middleware/              # Middleware pentru cereri (promptInjectionGuard)
-├── mitm/                   # Proxy MITM (certificate, DNS, rutarea destinației)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # Componente React (.tsx)
-│   ├── constants/          # Definiții ale furnizorilor (329), domenii MCP, 20 de strategii de rutare
-│   ├── utils/              # Întrerupător de circuit, instrument de igienizare, funcții auxiliare pentru autentificare
-│   └── validation/         # Scheme Zod v4
-└── sse/                    # Flux de procesare proxy SSE
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 21 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # Spațiu de lucru @omniroute/open-sse
-├── executors/              # 150 de module de execuție (clase de execuție + funcții auxiliare pentru fiecare furnizor)
-├── handlers/               # 11 gestionare de cereri (chat, răspunsuri, încorporări, imagini etc.)
-├── mcp-server/             # Server MCP (110 instrumente unice, 3 transporturi, 33 de domenii)
-├── services/               # 178 de servicii de nivel superior (combo, autoCombo, rateLimitManager etc.)
-├── translator/             # Traductoare de formate (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Transformator pentru Responses API
-└── utils/                  # 22 de module utilitare (flux, TLS, proxy, jurnalizare)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 150 executor modules (executor classes + per-provider helpers)
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Aplicație desktop Electron (multiplatformă)
+electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Executor de teste Node.js (1.574 de fișiere de testare)
-├── integration/            # Teste de integrare
-├── e2e/                    # Teste Playwright
-├── security/               # Teste de securitate
-├── translator/             # Teste specifice traductorului
-└── load/                   # Teste de încărcare
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Înregistrări ale deciziilor de arhitectură
-├── architecture/            # Arhitectura și reziliența sistemului
-├── comparison/              # OmniRoute comparativ cu alternativele
-├── compression/             # Ghiduri și reguli de compresie
-├── dev/                     # Ghiduri de dezvoltare
-├── diagrams/                # Diagrame de arhitectură
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Ghid de utilizare, Docker, configurare, depanare
-├── i18n/                    # Traduceri internaționalizate ale README
-├── marketing/               # Materiale de marketing
-├── ops/                     # Implementare, proxy, acoperire, versiuni
-├── providers/               # Documentație specifică furnizorilor
-├── reference/               # Referință API, variabile de mediu, instrumente CLI, niveluri gratuite
-├── releases/                # Note de versiune
-├── routing/                 # Motor auto-combo, redarea raționamentului
-├── screenshots/             # Capturi de ecran ale tabloului de bord
-├── security/                # Măsuri de protecție, conformitate, mod invizibil, tokenuri
-└── specs/                   # Specificații de proiectare
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---

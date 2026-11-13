@@ -14,7 +14,7 @@ OmniRoute este un gateway local de rutare AI și un tablou de bord construit pe 
 
 Capacitățile de bază:
 
-- Suprafață API compatibilă cu OpenAI pentru CLI/tools (381 de furnizori, 159 de module de executare)
+- Suprafață API compatibilă cu OpenAI pentru CLI/tools (393 de furnizori, 159 de module de executare)
 - traducerea Request/response în diferite formate de furnizor
 - Combo de rezervă de model (secvență cu mai multe modele)
 - Pași combinați structurați (`provider + model + connection`) cu ordonarea timpului de execuție după `compositeTiers`
@@ -73,7 +73,7 @@ Capacitățile de bază:
 - Însămânare automată a aliasului de model (30 de normalizări de dialecte inter-proxy + la pornire)
 - Preluare de ieșire sigură cu SSRF guard, blocare URL privată și reîncercare configurabilă
 - Reîncercări de chat care țin cont de cooldown cu `requestRetry` și `maxRetryIntervalSec` configurabile
-- Runtime environment validation with Zod at startup
+- Validarea mediului de rulare cu Zod la pornire
 - Audit de conformitate v2 cu paginare, evenimente CRUD ale furnizorului și înregistrare în jurnal de validare blocată de SSRF
 
 Model de rulare principal:
@@ -360,7 +360,7 @@ Analiză detaliată: `docs/frameworks/EMBEDDED-SERVICES.md`
 
 ### A. Motor Combo Auto
 
-Auto Combo punctează și alege în mod dinamic ținte de rutare la momentul solicitării, în loc să se bazeze pe o definiție combo statică. Acesta alimentează familia de prefixe de model `auto/*`.
+Auto Combo punctează și alege dinamic ținte de rutare la momentul solicitării, în loc să se bazeze pe o definiție combo statică. Acesta alimentează familia de prefixe de model `auto/*`.
 
 - Introducere motor: `open-sse/services/autoCombo/` (`autoComboEngine.ts`, `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
 - Soluție: `src/domain/comboResolver.ts` (detecția automată a prefixului `auto/` )
@@ -369,7 +369,7 @@ Auto Combo punctează și alege în mod dinamic ținte de rutare la momentul sol
 
 Capabilitati cheie:
 
-- **20 de strategii de rutare** (prioritate, ponderat, umplere mai întâi, round-robin, P2C, aleatoriu, cel mai puțin utilizat, optimizat din punct de vedere al costurilor, conștient de resetare, fereastră de resetare, spațiu liber, ponderat în cotă, strict aleatoriu,** auto** , lkgp, optimizat în context, optimizat în cache, releu context,** fuziune** , pipeline) — auto este adăugarea titlului în v3.8.0; `fusion` (panel fan-out + judge synthesis, `open-sse/services/fusion.ts`) este nou în v3.8.36.
+- **21 de strategii de rutare** (prioritate, ponderat, umplere mai întâi, round-robin, P2C, aleatoriu, cel mai puțin utilizat, optimizat din punct de vedere al costurilor, resetare conștient, fereastră de resetare, expirare-în primul rând, spațiu liber, ponderat în funcție de cotă, strict aleatoriu,** auto** , lkgp, optimizat în context, optimizat în cache, releu context,** fuziune** , pipeline) — auto este adăugarea titlului în v3.8.0; `fusion` (panel fan-out + judge synthesis, `open-sse/services/fusion.ts`) este nou în v3.8.36.
 - **Scor în 16 factori** : cotă, sănătate, cost invers, latență inversă, potrivire sarcini și încă zece. Tabelul canonic al factorilor și ponderile lor implicite se află în [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) — reformularea lui aici i-ar da un al doilea loc pentru a rămâne învechit.
 - **Fabrica virtuală** materializează combo-uri efemere atunci când nu există nicio combinație numită care se potrivește, aprovizionând candidați din conexiuni sănătoase cu furnizorii activi.
 - **Prefixe automate** : `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`, `auto/smart`, `auto/lkgp` — fiecare susținut de un profil de greutate reglat.
@@ -395,7 +395,7 @@ Pentru aprovizionarea per agent și specificul OAuth, consultați [`docs/framewo
 Modulul balustrade este un strat de middleware reîncărcat la cald care inspectează solicitările și răspunsurile pentru PII, injectare promptă și conținut vizual nesigur. Încălcările scurtcircuitează cererea cu HTTP** 503** plus un cod de eroare structurat, permițând apelanților din aval să reîncerce sau să se ramifică.
 
 - Rădăcină de modul: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`, `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
-- Reîncărcare la cald: registrul urmărește modificările de configurare și reconstruiește lanțul în loc
+- Reîncărcare la cald: registry urmărește modificările de configurare și reconstruiește lanțul pe loc
 - Puncte de conectare: intrarea de gestionare a chatului, gestionarea de generare a imaginilor, dezinfectant de răspuns
 - contract HTTP : încălcările apar ca `503` cu `error.code = "GUARDRAIL_VIOLATION"`
 
@@ -403,9 +403,9 @@ Pentru crearea setului de reguli și reglarea pragului, consultați [`docs/secur
 
 ### D. Nivelul de domeniu
 
-Spațiul de nume `src/domain/` centralizează deciziile de politică, astfel încât gestionanții de rută nu trebuie să asambleze ei înșiși logica lockout/budget/fallback.
+Spațiul de nume `src/domain/` centralizează deciziile de politică, astfel încât gestionanții de rute să nu fie nevoiți să asambleze ei înșiși logica lockout/budget/fallback.
 
-- Motor de politici: `src/domain/policyEngine.ts` — punct de intrare unic pentru evaluarea pre-execuție (blocare → buget → comenzi de rezervă)
+- Motor de politici: punct de intrare unic `src/domain/policyEngine.ts` — pentru evaluarea pre-execuție (blocare → buget → comenzi de rezervă)
 - Reguli de cost: `src/domain/costRules.ts`
 - Politica de rezervă: `src/domain/fallbackPolicy.ts`
 - Politica de blocare: `src/domain/lockoutPolicy.ts`
@@ -414,7 +414,7 @@ Spațiul de nume `src/domain/` centralizează deciziile de politică, astfel în
 - Connection/model rule joiner: `src/domain/connectionModelRules.ts`
 - Instantanee despre disponibilitatea modelului: `src/domain/modelAvailability.ts`
 - Urmărirea expirării furnizorului: `src/domain/providerExpiration.ts`
-- Cota cache: `src/domain/quotaCache.ts`. Furnizorii adaugă și elimină ferestre de cotă (OpenAI a renunțat la fereastra Codex de 5 ore pentru unele planuri), astfel încât o citire de utilizare a adaptorului furnizorului atestă ca fiind completă (`quotasComplete`, vezi `src/lib/usage/usageReading.ts`) este setul complet de ferestre ale contului: o fereastră cunoscută mai devreme, dar absentă din ea este retrasă, în cache, în `quota_snapshots` rehidratate, înregistrările anexate (o restul rehidratate). starea cotei Codex și în gălețile de saturație ale lui Claude. Dovezile parțiale (anteturi de răspuns, copii învechite) actualizează doar ferestrele pe care le poartă.
+- Cota cache: `src/domain/quotaCache.ts`. Furnizorii adaugă și elimină ferestre de cotă (OpenAI a renunțat la fereastra Codex de 5 ore pentru unele planuri), deci o citire de utilizare a adaptorului furnizorului atestă ca fiind completă (`quotasComplete`, vezi `src/lib/usage/usageReading.ts`) este setul complet de ferestre ale contului: o fereastră cunoscută mai devreme, dar absentă din ea este retrasă, în `quota_snapshots`, în continuarea înregistrării rehidratate (o restă reținută). starea cotei Codex și în gălețile de saturație ale lui Claude. Dovezile parțiale (anteturi de răspuns, copii învechite) actualizează doar ferestrele pe care le poartă.
 - Stare de degradare: `src/domain/degradation.ts`
 - Audit configurare: `src/domain/configAudit.ts`
 - Generator de metadate de răspuns OmniRoute : `src/domain/omnirouteResponseMeta.ts`
@@ -858,41 +858,47 @@ flowchart LR
 - `src/lib/db/*`: importați direct modulele specifice — fără modul-baril (vechiul strat de reexportare `localDb.ts` a fost eliminat)
 - `src/lib/usageDb.ts`: fațadă pentru istoricul utilizării/jurnalele apelurilor, construită peste tabelele SQLite
 
-## Acoperirea executorilor furnizorilor (șablonul Strategy)
+## Acoperire Executor furnizor (model de strategie)
 
-Fiecare furnizor are un executor specializat care extinde `BaseExecutor` (în `open-sse/executors/base.ts`), care asigură construirea URL-urilor, configurarea anteturilor, reîncercarea cu backoff exponențial, hook-uri pentru reîmprospătarea credențialelor și metoda de orchestrare `execute()`.
+Fiecare furnizor are un executor specializat care extinde `BaseExecutor` (în `open-sse/executors/base.ts`), care oferă construirea URL, construcția antetului, reîncercarea cu backoff exponențial, cârlige de reîmprospătare a acreditărilor și metoda de orchestrare `execute()`.
 
-| Executor                  | Furnizor(i)                                                                                                                                                | Gestionare specială                                                                       |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA etc. | Configurare dinamică a URL-ului/antetului pentru fiecare furnizor                         |
-| `AntigravityExecutor`     | Google Antigravity                                                                                                                                         | ID-uri personalizate de proiect/sesiune, analizarea Retry-After, disimularea erorilor 429 |
-| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                               | Rutare bazată pe implementare, impunerea parametrului de interogare api-version           |
-| `BlackboxWebExecutor`     | Blackbox AI (mod web)                                                                                                                                      | Inginerie inversă a sesiunii web cu emularea amprentei TLS                                |
-| `ClaudeIdentityExecutor`  | Claude.ai (calea CCH)                                                                                                                                      | Fluxuri de constrângeri și remapare a instrumentelor, modelarea amprentei                 |
-| `CliProxyApiExecutor`     | Furnizori compatibili cu CLIProxyAPI                                                                                                                       | Autentificare personalizată și gestionarea protocolului                                   |
-| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                      | Injectarea ID-ului contului, urmărirea utilizării bazată pe Neurons                       |
-| `CodexExecutor`           | OpenAI Codex                                                                                                                                               | Injectează instrucțiuni de sistem, impune nivelul de efort de raționament                 |
-| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                        | Punte către Responses API bazată pe sesiunea browserului, cu fixarea firului/conversației |
-| `CommandCodeExecutor`     | Command Code                                                                                                                                               | OAuth și rotația antetelor pentru fiecare sesiune                                         |
-| `CursorExecutor`          | Cursor IDE                                                                                                                                                 | Protocol ConnectRPC, codificare Protobuf, semnarea cererilor prin sumă de control         |
-| `DevinCliExecutor`        | Devin CLI                                                                                                                                                  | Interconectarea ciclului de viață al sarcinilor Devin prin modulul de agent cloud         |
-| `GithubExecutor`          | GitHub Copilot                                                                                                                                             | Reîmprospătarea tokenului Copilot, antete care imită VSCode                               |
-| `GitlabExecutor`          | GitLab Duo                                                                                                                                                 | OAuth GitLab și rutare la nivel de proiect                                                |
-| `GlmExecutor`             | Z.AI GLM (inclusiv presetarea `glmt`)                                                                                                                      | Adaptat la bugetul de raționament, constante pentru presetarea GLMT                       |
-| `GrokWebExecutor`         | xAI Grok web                                                                                                                                               | Inginerie inversă a sesiunii web, selectarea modului (raționament/standard)               |
-| `KieExecutor`             | KIE                                                                                                                                                        | Emitere personalizată de tokenuri cu ancore de sesiune rotative                           |
-| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                     | Conversia formatului binar AWS EventStream → SSE                                          |
-| `MuseSparkWebExecutor`    | Muse Spark (web)                                                                                                                                           | Inginerie inversă a sesiunii web cu interconectarea mesajelor cu imagini                  |
-| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                  | Structură a corpului cererii specifică furnizorului                                       |
-| `OpenCodeExecutor`        | OpenCode                                                                                                                                                   | Configurare a furnizorului compatibilă cu AI SDK                                          |
-| `PerplexityWebExecutor`   | Perplexity web                                                                                                                                             | Inginerie inversă a sesiunii web pentru continuarea conversației                          |
-| `PetalsExecutor`          | Inferență distribuită Petals                                                                                                                               | Rutare descentralizată în roi                                                             |
-| `PollinationsExecutor`    | Pollinations AI                                                                                                                                            | Nu necesită cheie API, cereri cu limitare de frecvență                                    |
-| `QoderExecutor`           | Qoder AI                                                                                                                                                   | Suport pentru PAT și OAuth, nivel gratuit cu mai multe modele                             |
-| `VertexExecutor`          | Google Vertex AI                                                                                                                                           | Autentificare prin cont de serviciu, endpointuri bazate pe regiune                        |
-| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                              | Cheie API importată și streaming de chat prin Connect-protobuf                            |
+| Executor testamentar      | Furnizor(i)                                                                                                                                            | Manipulare specială                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity , Together, Fireworks, Cerebras, Cohere, NVIDIA | Configurare URL/header dinamică pentru fiecare furnizor                         |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                     | Personalizat project/session IDs, Reîncercați-După analizare, 429 ofuscare      |
+| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                           | Rutare bazată pe implementare, aplicarea interogărilor în versiunea API         |
+| `BlackboxWebExecutor`     | Blackbox AI (mod web)                                                                                                                                  | Sesiune web inversă cu emulare de amprentă TLS                                  |
+| `ClaudeIdentityExecutor`  | Claude.ai ( calea CCH )                                                                                                                                | Constrângerea + instrument-remapare conducte, modelarea amprentei               |
+| `CliProxyApiExecutor`     | Furnizori compatibili cu CLIProxyAPI                                                                                                                   | Gestionare personalizată de autentificare și protocol                           |
+| `CloudflareAiExecutor`    | Cloudflare Muncitori AI                                                                                                                                | Injecția de cont ID, urmărirea utilizării pe bază de neuroni                    |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                           | Injectează instrucțiuni de sistem, forțează efortul de raționament              |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                    | Răspunsuri la sesiunea de browser API bridge cu fixare thread/turn              |
+| `CommandCodeExecutor`     | Cod de comandă                                                                                                                                         | OAuth + rotație antet pe sesiune                                                |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                             | protocol ConnectRPC, codificare Protobuf, semnarea cererii prin suma de control |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                              | Conectarea ciclului de viață a sarcinii Devin prin modulul agent cloud          |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                         | Reîmprospătare token Copilot, anteturi care imită VSCode                        |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                             | GitLab OAuth + rutare proiectată                                                |
+| `GlmExecutor`             | Z.AI GLM (inclusiv presetarea `glmt` )                                                                                                                 | Gândire-conștient de buget, constantele prestabilite GLMT                       |
+| `GrokWebExecutor`         | xAI Grok web                                                                                                                                           | Sesiunea web inversă, selectarea modului (think/standard)                       |
+| `KieExecutor`             | KIE                                                                                                                                                    | Emiterea de token personalizat cu ancore de sesiune rotativă                    |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                 | AWS EventStream format binar conversie → SSE                                    |
+| `MuseSparkWebExecutor`    | Muse Spark (web)                                                                                                                                       | Sesiune web inversă cu legătură imagine-mesaj                                   |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                              | Forma corpului cererii specifice furnizorului                                   |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                               | Configurarea furnizorului compatibil AI SDK                                     |
+| `PerplexityWebExecutor`   | Web de perplexitate                                                                                                                                    | Sesiunea web inversă pentru continuarea chatului                                |
+| `PetalsExecutor`          | Inferență distribuită petalelor                                                                                                                        | Dirijarea roiului descentralizată                                               |
+| `PollinationsExecutor`    | Polenizări AI                                                                                                                                          | Nu este necesară cheia API, solicitări cu tarif limitat                         |
+| `QoderExecutor`           | Qoder AI                                                                                                                                               | Suport PAT și OAuth, nivel gratuit pentru mai multe modele                      |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                       | Autentificare cont de serviciu, puncte finale bazate pe regiune                 |
+| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                          | Cheia API importată + Connect-protobuf chat streaming                           |
 
-Toți ceilalți furnizori (inclusiv nodurile compatibile personalizate) utilizează `DefaultExecutor`.
+Toți ceilalți furnizori (inclusiv noduri compatibile personalizate) folosesc `DefaultExecutor`.
+
+### Sonde automate și conturi de sesiune web
+
+Testele de model, Testarea tuturor, testele combinate și evaluările trimit cereri reale de chat. Un furnizor de sesiuni web acționează ca utilizator conectat, astfel încât fiecare dintre aceste solicitări va fi salvată ca conversație în acel cont; probele automate care au lăsat astfel de conversații au primit un cont suspendat (#14780). Prin urmare, canalul de chat refuză fiecare țintă pe care o atinge o sondă automatizată al cărei furnizor ia o acreditare de sesiune web, odată ce furnizorul țintei este rezolvat și înainte de alegerea unei acreditări (`src/lib/providers/chatProbePolicy.ts`). Refuzul este `422` cu `error.code` `chat_probe_not_isolated`, iar cei care rulează sondei îl raportează ca o omisiune, nu un eșec.
+
+Un executor care rulează fiecare chat în modul fără istoric al furnizorului îl declară cu `ChatProbeIsolatingExecutor` (`open-sse/executors/chatProbeIsolation.ts`); apoi sunt permise probe către acel furnizor. ChatGPT Web declară `temporary-chat`. Fixați o declarație la mecanismul său cu un test, astfel încât afirmația să nu depășească codul care o face adevărată.
 
 ## Matrice de compatibilitate a furnizorilor
 

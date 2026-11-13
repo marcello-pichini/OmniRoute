@@ -57,29 +57,19 @@ Le connessioni OpenRouter possono memorizzare un `preset` specifico per connessi
 
 ---
 
-## 🎨 Combinazioni
+## 🎨 Combo
 
-Crea combinazioni per l'instradamento dei modelli con 19 strategie pubbliche: priority, weighted, round-robin, context-relay, fill-first, p2c (scelta tra due opzioni), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (ultimo provider noto come funzionante), context-optimized, cache-optimized, **fusion** (inoltra la richiesta in parallelo a un gruppo di modelli, quindi sintetizza un'unica risposta tramite un modello valutatore) e **pipeline**. Ogni combinazione concatena più modelli con fallback automatico e include modelli predefiniti rapidi e controlli di disponibilità.
+Crea combinazioni di modelli di routing con 21 strategie pubbliche: priorità, ponderato, round-robin, context-relay, fill-first, p2c (scelte potenza di due), casuale, meno utilizzato, ottimizzato in termini di costi, reset-aware, reset-window, expiry-first, headroom, quota-weighted, strict-random, automatico, lkgp (ultimo fornitore valido noto), ottimizzato per il contesto, ottimizzato per la cache,** fusione** (distribuirsi a un gruppo di modelli in parallelo, quindi sintetizzare una risposta tramite un giudice) e** conduttura** . Ciascuna combinazione concatena più modelli con fallback automatico e include modelli rapidi e controlli di disponibilità.
 
-Miglioramenti recenti alle combinazioni:
+Miglioramenti combo recenti:
 
-- **Generatore strutturato di combinazioni** — crea ogni passaggio selezionando provider, modello e account/connessione esatti
-- **Supporto per provider ripetuti** — riutilizza più volte lo stesso provider in una combinazione, purché la tupla `(provider, model, connection)` sia univoca
-- **Stato delle destinazioni delle combinazioni** — le viste di analisi e dello stato ora distinguono le singole destinazioni/i singoli passaggi delle combinazioni, invece di raggruppare tutto in stringhe di modelli
-- **Ordinamento composito dei livelli** — `defaultTier -> fallbackTier` ora influisce sull'ordine di esecuzione/fallback in fase di runtime per i passaggi di primo livello delle combinazioni
-- **Modelli di prompt di sistema** — il `system_message` delle combinazioni supporta lato server i segnaposto
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}`,
-  sostituiti usando la destinazione effettivamente selezionata subito prima dell'invio.
-  Sono consentiti solo i segnaposto inclusi nell'elenco autorizzato e la sostituzione non è ricorsiva; i segnaposto sconosciuti rimangono letterali, mentre i valori vuoti
-  vengono sostituiti con stringhe vuote; i prompt di sistema del client non vengono mai riscritti. `{{FINGERPRINT}}`
-  viene risolto solo per i provider gratuiti basati su fingerprint con un fingerprint fissato o
-  ruotato automaticamente; negli altri casi viene sostituito con una stringa vuota (ad esempio
-  connessioni con un singolo fingerprint, provider non basati su fingerprint). La sostituzione è applicata al
-  ciclo di invio standard, al round-robin e alle sessioni fissate della cache di contesto;
-  le strategie fusion, chaos, pipeline e nested-execute non supportano ancora la sostituzione dei
-  segnaposto.
+- **Costruttore di combo strutturato** — crea ogni passaggio selezionando fornitore, modello e account/connection esatto
+- **Supporto ripetuto del fornitore** — riutilizza lo stesso provider più volte in una combinazione purché la tupla `(provider, model, connection)` sia unica
+- **Salute del bersaglio combinato** L'analisi — e le superfici sanitarie ora distinguono le singole combo targets/steps invece di comprimere tutto in stringhe di modelli
+- **Ordinamento per livelli composito** — `defaultTier -> fallbackTier` ora influenza l'ordine execution/fallback di runtime per i passaggi combinati di livello superiore
+- **Modelli di prompt di sistema** — combo `system_message` supporta i segnaposto `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` e `{{FINGERPRINT}}` lato server, espansi dalla destinazione effettivamente instradata subito prima dell'invio. Consentito e non ricorsivo; i segnaposto sconosciuti rimangono letterali; i valori vuoti si espandono fino a diventare vuoti; i prompt del sistema client non vengono mai riscritti. `{{FINGERPRINT}}` si risolve solo per i provider gratuiti basati su impronte digitali con un'impronta digitale fissata o ruotata automaticamente. — si espande per svuotarsi altrove (ad esempio connessioni con impronta singola, provider non Fp). L'espansione copre il ciclo di invio standard, il round robin e le sessioni di cache di contesto bloccate; la fusione, il caos, la pipeline e le strategie di esecuzione annidata non espandono ancora i segnaposto.
 
-![Dashboard delle combinazioni](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

@@ -304,7 +304,7 @@ feloldott értékek a motor meglévő `config.modePack` / `config.budgetCap` /
 
 ## Minden útválasztási stratégia
 
-OmniRoute kombinált motorja támogatja** 20 útválasztási stratégia** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-ben deklarálva). Maga az Auto Combo motor is a `auto` stratégia alatt látható; a többi elérhető tartós kombókhoz.
+OmniRoute kombinált motorja támogatja** 21 útválasztási stratégia** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-ben deklarálva). Maga az Auto Combo motor is a `auto` stratégia alatt látható; a többi elérhető tartós kombókhoz.
 
 | Stratégia           | Leírás                                                                                                                                                                                                                  |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -319,6 +319,7 @@ OmniRoute kombinált motorja támogatja** 20 útválasztási stratégia** ( `src
 | `cost-optimized`    | Minimalizálja $ kérésenként adott katalógus árak                                                                                                                                                                        |
 | `reset-aware` ⭐    | Prioritás a kvóta-visszaállítási idő szerint — rövid alaphelyzetbe állítási ablakok magasabban rangsoroltak                                                                                                             |
 | `reset-window`      | Olyan célokat részesítsen előnyben, amelyeknek a kvótaablak a leghamarabb visszaáll                                                                                                                                     |
+| `expiry-first`      | Költse el azt a számlát, amelynek a kvótája egyébként lejárna a fel nem használt elsőként — a legmagasabb maradék a legközelebbi visszaállítási határidővel előbb                                                       |
 | `headroom`          | Válassza ki azt a célpontot, amelynél a kvóta legnagyobb szabad mozgástere van                                                                                                                                          |
 | `quota-weighted`    | Hagyja ki a kimerült fiókokat, majd válasszon a többi közül a fennmaradó kvóta arányában, osztva a repülés közbeni töltettel; a meglévő beszélgetések rögzítve maradnak                                                 |
 | `strict-random`     | Véletlenszerű az ismétlések deduplikációja nélkül                                                                                                                                                                       |
@@ -337,7 +338,7 @@ OmniRoute kombinált motorja támogatja** 20 útválasztási stratégia** ( `src
 
 - Minden kérés húz** egy** lépés valószínűséggel `weight / totalWeight`; a fennmaradó lépések csökkenő súly szerint vannak rendezve, mint a kérés tartaléklánca.
 - Az a lépcső, amelynek súlya `0` (vagy hiányzik).** soha nem rajzolt** míg bármely más lépés súlya > 0 — csak tartalékként szolgálhat, miután a megrajzolt lépés meghiúsul. Csak amikor** minden** a súlyok 0, egységessé válik-e a kijelölés.
-- Azok a lépések, amelyeknek a célpontjai mind elérhetetlenek: — szolgáltató áramköri megszakító `OPEN`, kapcsolat lehűtése, modellzárás — a sorsolásból még azelőtt eltávolításra kerülnek (`open-sse/services/combo/targetResolution.ts`), így egyetlen egészséges lépéssel ideiglenesen minden kérést megnyerhet.
+- Azok a lépések, amelyeknek a célpontjai mind elérhetetlenek: — szolgáltató áramköri megszakító `OPEN`, kapcsolat lehűtése, modellzárás — még mielőtt megtörténne (`open-sse/services/combo/targetResolution.ts`), kikerülnek a sorsolásból, így egyetlen egészséges lépéssel ideiglenesen minden kérést megnyerhet.
 - `stickyWeightedLimit` (kombinált konfiguráció, alapértelmezett `1` = kikapcsolva) rögzíti a rajzolt lépést annyi egymást követő sikerhez, mielőtt újrarajzolná.
 
 A szigorú forgatáshoz használja `round-robin`; `weighted` egyenlő súlyai statisztikai — adnak, nem szigorú — egyensúlyt.
@@ -346,9 +347,23 @@ A szigorú forgatáshoz használja `round-robin`; `weighted` egyenlő súlyai st
 
 A legalább két modellel rendelkező `pipeline` kombó választhatja planner/executor irányítást `config.agenticOrchestration.enabled` vel. Az első célpont rendelkezik a tervezéssel és a végső válaszokkal; a második cél ügyfél-natív eszközhívásokat bocsát ki. OmniRoute észleli az eszköz-eredmény folytatásokat a kérésprotokollból, megkérdezi a tervezőt, hogy szükség van-e még egy szerszámkörre, és dinamikusan a végrehajtót vagy a tervezőt az ügyfél felé forduló utolsó lépéssé teszi.
 
+Az opcionális `config.agenticOrchestration.contextCompaction` külön hasznos teherköltségvetést alkalmaz minden tervezői vagy végrehajtói feladás előtt. Engedélyezze kifejezetten:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Ezek az operátor által kiválasztott soros JSON karakter-költségkeretek, nem jogkivonat-kontextusablakok vagy garantált upstream korlátok. A pontos modell IDs felülírja az alapértelmezettet. A küszöbérték felett a tömörítés eltávolítja az azonos szerszámdefiníciókat, kivonattal levágja a túlméretezett szerszámleírásokat, és eltávolítja a régi teljes előzménycsoportokat a célarány felé. Megőrzi system/developer utasításokat, a legújabb felhasználói kérést, az utolsó szerszámkört, beleértve a párhuzamos calls/results, és Gemini vezető útválasztási utasítását. A legfelső szintű utasítások és a szerszámbeállítások megmaradnak. Egy kihagyásjelző rögzíti az eltávolított előzményeket; ez determinisztikus vágás, nem szemantikai összefoglalás. Ha a rögzített kontextus továbbra is meghaladja a költségvetést, a kérés 413-at ad vissza, mielőtt kapcsolatba lépne a modellel. Ha a tömörítés le van tiltva vagy a küszöb alatt van, a kérés változatlan formában halad át.
+
 Az eszköz-eredmény folytatásoknál OmniRoute akkor is leállítja a végrehajtást, ha két egymást követő befejezett kör változatlan eredménnyel ismétli meg ugyanazt az eszközhívást, vagy ha két egymást követő körben minden kifejezetten megjelölt eredmény sikertelen volt. A megváltozott eredmények lehetővé teszik az ismételt hívást (például lekérdezést). Az őr új felhasználói kérésre alaphelyzetbe áll, egy körbe csoportosítja a párhuzamos hívásokat, és támogatja Anthropic, a chat-befejezéseket, a válaszokat és Gemini előzményeket. A tervező megkapja az indoklást, és övé a végső válasz akkor is, ha újabb eszközkört kér.
 
-A második cél utáni további modellek végrehajtói biztonsági mentések. A sikertelen HTTP válasz vagy szállítási kivétel továbblép a következő végrehajtóhoz, ugyanazt a tervezői döntést és natív eszközöket hordozva, de a végrehajtó saját lépést és megoldott kapcsolatot tartalmaz. Az első sikeres válasz változatlan formában kerül visszaadásra, beleértve SSE adatfolyamot is; a sikeres adatfolyam-indítás utáni hibákat itt nem lehet újra megpróbálni. Ha az összes végrehajtó meghibásodik, az utolsó hiba kerül visszaadásra. Az ügyfél megszakítja a küldés leállítását.
+A második cél utáni további modellek végrehajtói biztonsági mentések. A sikertelen HTTP válasz vagy szállítási kivétel továbblép a következő végrehajtóhoz, ugyanazt a tervezői döntést és natív eszközöket hordozva, de a végrehajtó saját lépést és megoldott kapcsolatot tartalmaz. Az első sikeres válasz változatlan formában jelenik meg, beleértve SSE adatfolyamot is; a sikeres adatfolyam-indítás utáni hibákat itt nem lehet újra megpróbálni. Ha az összes végrehajtó meghibásodik, az utolsó hiba kerül visszaadásra. Az ügyfél megszakítja a küldés leállítását.
 
 ```json
 {
@@ -368,7 +383,7 @@ A körmérkőzés kötegelt, nem lépésenként egy kérelem:
 
 - `stickyRoundRobinLimit` (kombinált konfiguráció, majd `comboStickyRoundRobinLimit`, majd `settings.stickyRoundRobinLimit`, alapértelmezett** 3** ). Állítsa a kombinált felülírást `1` értékre az egykéréses elforgatáshoz. A kombinált szerkesztő megmutatja az effektív értéket és azt, hogy melyik rétegből származik.
 - `connectionAwareExpansion` (kombinált konfiguráció, majd beállítások, alapértelmezett** hamis** ) a rotáció előtt minden szolgáltatói szintű lépést fiókonkénti célokra bővít. A B-csoport stratégiái (prioritásos, súlyozott, körforgásos, véletlenszerű, p2c, legkevésbé használt, költségoptimalizált, lkgp, kitöltés-első, szigorú véletlenszerű, kontextusra optimalizált, gyorsítótár-optimalizált, kontextus-közvetítés, fúzió, folyamat) mindaddig szolgáltatói szintű nézetet biztosítanak, amíg ez be nem kapcsol. A kombinált szerkesztő megjeleníti az inherit / on / off; Az inherit a globális alapértelmezést használja (ki).
-- Prompt-cache helyi útválasztás (`promptCacheAffinityEnabled`, alapértelmezett** igaz** ) átrendezi a rögzített kapcsolatokat, így a megfelelő gyorsítótár-kulcsok egy fiókban maradnak. Elsőbbséget élvez a körbeforgatással és a súlyozott forgatással szemben a rögzített fiókonkénti lépések között. Kapcsolja ki a Beállítások → Kombinált alapbeállítások alatt, ha szigorú elforgatásra van szüksége. Nincs kombinációnkénti felülírás.
+- Prompt-cache helyi útválasztás (`promptCacheAffinityEnabled`, alapértelmezett** igaz** ) átrendezi a rögzített kapcsolatokat, így a megfelelő gyorsítótár-kulcsok egy fiókban maradnak. Ez elsőbbséget élvez a kör-robin és a súlyozott elforgatással szemben a rögzített fiókonkénti lépések között. Kapcsolja ki a Beállítások → Kombinált alapbeállítások alatt, ha szigorú elforgatásra van szüksége. Nincs kombinációnkénti felülírás.
 
 Ha több fiókot szeretne váltani egy modellen, részesítse előnyben** egy dinamikus fiók lépés** (üres `connectionId`, egész medence) ragadós határértékkel `1`, nem három rögzített `connectionId` s. A rögzített lépések és az affinitás összeomlik ugyanarra a fiókra, még akkor is, ha a RR számláló előrehalad.
 
@@ -843,40 +858,37 @@ A szintek definícióit és a szolgáltatók besorolását lásd a [`docs/guides
 
 ### Determinisztikus útválasztási döntési mátrix (`npm run test:combo:matrix`)
 
-A `tests/integration/combo-matrix/*.test.ts` a valós kombinációs folyamaton és egy szimulált felsőbb szintű szolgáltatón keresztül, végponttól végpontig igazolja mind a 19 nyilvános stratégia útválasztási **döntését**.
-A lefedettség a következőket tartalmazza:
+`tests/integration/combo-matrix/*.test.ts` bizonyítja az útválasztást** döntés** mind a 21 nyilvános stratégiából végpontokig a valódi kombinált csővezetéken keresztül egy gúnyolt upstream-el. A fedezet a következőket tartalmazza:
 
-- Mind a 19 `ROUTING_STRATEGY_VALUES` stratégia (ordered, weighted, cost, context, fusion, …).
-- A `quota-share` (belső) végponttól végpontig: DRR-méltányosság + a telítettség miatti hátrasorolás a valós `selectQuotaShareTarget` kapcsolódási ponton keresztül (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- A `context-relay` univerzális átadási lefedettsége minden célszám esetén.
+- Mind a 21 `ROUTING_STRATEGY_VALUES` stratégia (rendezett, súlyozott, költség, kontextus, fúzió stb.).
+- `quota-share` (belső) végpontokig: DRR fairness + telítettség prioritásának megszüntetése a valódi `selectQuotaShareTarget` varraton keresztül (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` univerzális átadás-lefedettség minden célszámra.
 
-Ez a tesztcsomag a CI-ben fut (`test:integration` feladat) a `--test-concurrency=1` és
-`--test-force-exit` kapcsolókkal, így determinisztikus, és nem igényel valós hitelesítő adatokat.
+Ez a programcsomag CI ban (`test:integration` job) fut `--test-concurrency=1` vel és `--test-force-exit`, tehát determinisztikus, és nem igényel élő hitelesítő adatokat.
 
-### Feltételes élő próbatesztek (NEM részei a CI-nek — valós szolgáltatók)
+### Zárt élő füst (NOT in CI — valódi szolgáltatók)
 
-| Parancs                                | Mit csinál                                                                                                               |
-| :------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Folyamaton belüli valós útválasztás `RUN_COMBO_LIVE=1` beállítással; pillanatképet készít egy élő OmniRoute-adatbázisról |
-| `npm run test:combo:live:vps`          | HTTP-hívások egy élő OmniRoute-kiszolgálóhoz (állítsd be a `COMBO_LIVE_BASE_URL` értékét)                                |
-| `npm run test:combo:live:vps:failover` | Ugyanez, szándékosan előidézett feladatátvételi forgatókönyvekkel                                                        |
+| Parancs                                | Mit csinál                                                                            |
+| :------------------------------------- | :------------------------------------------------------------------------------------ |
+| `npm run test:combo:live`              | Folyamat közbeni valós útválasztás `RUN_COMBO_LIVE=1`; pillanatképek élő OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP hívások élő OmniRoute szerver ellen ( `COMBO_LIVE_BASE_URL` beállítása)          |
+| `npm run test:combo:live:vps:failover` | Ugyanez, szándékos feladatátvételi forgatókönyvekkel                                  |
 
-Ezek a próbatesztek a valós adatátviteli útvonalat használják (kombináció → szolgáltató → befejezés). Szándékosan ki vannak zárva a CI-ből, mert valós hitelesítő adatokat és VPS-hozzáférést igényelnek.
+Ezek a füsttesztek a valódi vezeték útvonalat gyakorolják (kombinált → szolgáltató → befejezése). Szándékosan ki vannak zárva CI ből, mert élő hitelesítési adatokat és VPS hozzáférést igényelnek.
 
 ---
 
 ## Fájlok
 
-| Fájl                                                      | Rendeltetés                                                                                                        |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 tényezős pontozási függvény, `DEFAULT_WEIGHTS`, készletnormalizálás                                             |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Modell × feladat alkalmassági keresőtábla                                                                          |
-| `open-sse/services/autoCombo/engine.ts`                   | Kiválasztási logika, banditaalgoritmus, költségkeret-korlát                                                        |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Kizárás, próbák, incidensmód                                                                                       |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 súlyprofil (gyors szállítás, költségtakarékos, minőségközpontú, offline-barát, megbízhatóság-központú, káoszmód) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` előtag-értelmező + 6 változat                                                                              |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Memóriabeli `AutoComboConfig` konfigurációt hoz létre az aktív kapcsolatokból                                      |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Tesztkapcsolódási pont a szolgáltatói nyilvántartás utánzásához                                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 stratégia)                                                                           |
-| `src/sse/handlers/chat.ts`                                | Integráció: automatikus előtag esetén rövidre zárás                                                                |
+| Fájl                                                      | Cél                                                                                                      |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktoros pontozási funkció, `DEFAULT_WEIGHTS`, medence norma                                          |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Modell × feladat fitnesz keresés                                                                         |
+| `open-sse/services/autoCombo/engine.ts`                   | Kiválasztási logika, bandita, költségvetési sapka                                                        |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Kizárás, szondák, incidens mód                                                                           |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 súlyprofil (hajógyors, költségkímélő, minőség az első, offline-barát, első a megbízhatóság, káosz mód) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` előtag értelmező + 6 változat                                                                    |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Memórián belüli `AutoComboConfig` épít az élő kapcsolatokból                                             |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Tesztkampó a szolgáltatói nyilvántartás gúnyolásához                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 stratégia)                                                                 |
+| `src/sse/handlers/chat.ts`                                | Integráció: automatikus előtag rövidzárlat                                                               |

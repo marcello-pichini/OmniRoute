@@ -57,29 +57,19 @@ Njikọ OpenRouter nwere ike idobe `preset` nke njikọ ọ bụla na Advanced S
 
 ---
 
-## 🎨 Combo
+## 🎨 Combos
 
-Mepụta combo njikwa ụzọ model site na atụmatụ ọha 19: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (na-eziga arịrịọ n’otu oge gaa na panel model, wee jiri onye ọkaikpe chịkọta otu azịza), na **pipeline**. Combo ọ bụla na-ejikọta ọtụtụ model nwere fallback akpaghị aka ma tinyekwa template ngwa ngwa na nyocha ịdị njikere.
+Mepụta combos ntugharị ihe nlegharị anya nwere atụmatụ ọha 21: mkpa, arọ, gburugburu-robin, okirikiri nhọrọ ukwuu, fill-fir mbụ, p2c (nhọrọ ike nke abụọ), random, obere-eji, ọnụ ahịa- kacha, nrụpụta-mara, tọgharịa-window, expiry-mbụ, headroom, quota-arọ, siri ike-random, auto-prost-amaara. emeziwanye onodu-ọkọlọtọ, nke kachasi n'ime oghere,** ngwakọta** (Fon si a panel nke ụdị na yiri, mgbe ahụ synthesize otu azịza site a ọkàikpe), na** ọkpọkọ** . Ngwakọta ngwakọta nke ọ bụla nwere ọtụtụ ụdị nwere azụ azụ na-akpaghị aka ma gụnye ndebiri ngwa ngwa yana nlele njikere.
 
-Mmezi combo ndị e mere n’oge na-adịbeghị anya:
+Nkwalite mkpokọta nso nso a:
 
-- **Onye nrụpụta combo ahaziri ahazi** — mepụta nzọụkwụ ọ bụla site n’ịhọrọ provider, model, na akaụntụ/njikọ kpọmkwem
-- **Nkwado maka provider ugboro ugboro** — jiri otu provider ahụ ọzọ ọtụtụ ugboro n’ime otu combo ma ọ bụrụhaala na tuple `(provider, model, connection)` pụrụ iche
-- **Ahụike ebumnuche combo** — nyocha na ngosipụta ahụike na-amatazi ebumnuche/nzọụkwụ combo n’otu n’otu kama ijikọta ihe niile n’ime eriri model
-- **Nhazi usoro tier jikọtara ọnụ** — `defaultTier -> fallbackTier` na-emetụtazi usoro mmezu/fallback n’oge runtime maka nzọụkwụ combo nke ọkwa kachasị elu
-- **Template system prompt** — combo `system_message` na-akwado
-  placeholder `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` na `{{FINGERPRINT}}`
-  n’akụkụ server, nke a na-agbasawanye site na ebumnuche e zigara arịrịọ n’ezie tupu dispatch.
-  A na-anabata naanị ndị nọ na allowlist ma anaghị eme ya ugboro ọzọ; placeholder ndị a na-amaghị na-anọ dịka ederede nkịtị; uru efu
-  na-agbasawanye ka ọ bụrụ efu; anaghị edegharị system prompt nke onye ahịa ma ọlị. `{{FINGERPRINT}}`
-  na-enweta uru naanị maka ndị na-eweta ọrụ n’efu dabere na fingerprint nwere fingerprint etinyere
-  ma ọ bụ nke a na-agbanwe akpaghị aka — ọ na-agbasawanye ka ọ bụrụ efu n’ebe ndị ọzọ (dịka ọmụmaatụ
-  njikọ nwere otu fingerprint, provider ndị na-abụghị fp). Mgbasawanye a na-emetụta
-  usoro dispatch ọkọlọtọ, round-robin, na session context-cache etinyere;
-  fusion, chaos, pipeline na atụmatụ nested-execute anaghị agbasawanye
-  placeholder ugbu a.
+- **Onye nrụpụta ngwakọta ahaziri ahazi** — mepụta nzọụkwụ ọ bụla site na ịhọrọ onye na-eweta, ihe nlereanya na account/connection ziri ezi
+- **Nkwado ndị na-eweta ya ugboro ugboro** — jigharịa otu onye na-eweta ya ọtụtụ oge n'otu ngwakọta ma ọ bụrụhaala na `(provider, model, connection)` tuple pụrụ iche
+- **Combo lekwasịrị anya ahụike** nyocha — na elu ahụike ugbu a na-amata ọdịiche dị n'otu n'otu n'otu n'otu targets/steps kama ịdaba ihe niile n'ime eriri ihe nlereanya.
+- **Ịtụ ọkwa n'ọkwa mejupụtara** — `defaultTier -> fallbackTier` ugbu a na-emetụta usoro ojiri gaa execution/fallback maka usoro nchikota nke ọkwa dị elu
+- **Ndebiri ngwa ngwa sistemụ** — combo `system_message` na-akwado ihe nkesa-n'akụkụ `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` na `{{FINGERPRINT}}` ebe agbasawanye site na ebumnobi na-ebugharị ozugbo tupu izipu ya. Enyere aha na nke na-abụghị nke a na-emegharị; ebe amaghi ama na-anọ nkịtị; ụkpụrụ efu gbasaa ruo efu; Agaghị edegharị usoro mkpali ndị ahịa. `{{FINGERPRINT}}` na-ekpebi naanị maka ndị na-eweta n'efu dabere na mkpisiaka nwere akara mkpkpkpkp mkpkpkp mkpkpkp nkpkp nke akpaghachịrị — ọ na-agbasa ka ọ tọgbọ chakoo ebe ọzọ (dịka njikọ otu mkpịsị aka, ndị na-enyeghị fp). Mgbasawanye na-ekpuchi loop izipu ọkọlọtọ, okirikiri-robin, na oge ihe ndebe ihe nkedo etinyere; njikọ, ọgba aghara, pipeline na atumatu akwụ ụgwọ anaghị agbasawanye ndị na-edebe ebe.
 
-![Dashboard Combo](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

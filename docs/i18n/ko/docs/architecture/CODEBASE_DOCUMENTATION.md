@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159개의 최상위 실행기 모듈(`*.ts` 빼기 `base.ts`, `index.ts` 및 테스트 — `npm run check:docs-counts` 측정 개수)입니다. 모든 실행기 클래스는 직접적으로 또는 `DefaultExecutor` 나 다른 실행기를 통해 `BaseExecutor` (`base.ts`)를 확장합니다. 나머지 모듈은 공급자별 도우미(도구 스키마, fetch/TTS 어댑터, 쿼크 처리기)입니다. 실행자에는 다음이 포함됩니다.
+170개의 최상위 실행기 모듈(`*.ts` 빼기 `base.ts`, `index.ts` 및 테스트 — `npm run check:docs-counts` 측정 개수)입니다. 모든 실행기 클래스는 직접적으로 또는 `DefaultExecutor` 나 다른 실행기를 통해 `BaseExecutor` (`base.ts`)를 확장합니다. 나머지 모듈은 공급자별 도우미(도구 스키마, fetch/TTS 어댑터, 쿼크 처리기)입니다. 실행자에는 다음이 포함됩니다.
 
-`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, 플러스 `claudeIdentity.ts` ( 공유 신원 도우미 ) 및 `index.ts` (레지스트리).
+`antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, `claudeIdentity.ts` ( 공유 신원 도우미 ) 및 `index.ts` (레지스트리).
 
-> 참고: 여기에 나열되지 않은 공급자는 일반 OpenAI 호환 실행기를 사용하여 `default.ts` 에서 제공됩니다. 전체 공급자 카탈로그(381개 공급자)는 `src/shared/constants/providers.ts` 에 있습니다.
+> 참고: 여기에 나열되지 않은 공급자는 일반 OpenAI 호환 실행기를 사용하여 `default.ts` 에서 제공됩니다. 전체 공급자 카탈로그(393개 공급자)는 `src/shared/constants/providers.ts` 에 있습니다.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ open-sse/
 
 | 우려              | 파일                                                                                                                                                                                                                                                     |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 콤보 라우팅       | `combo.ts` (20개 전략), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
+| 콤보 라우팅       | `combo.ts` (21개 전략), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                        |
 | 자동 콤보 엔진    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | 회복력            | `accountFallback.ts` (쿨다운 + 잠금), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                              |
 | 할당량            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

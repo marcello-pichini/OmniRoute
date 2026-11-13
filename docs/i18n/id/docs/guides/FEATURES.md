@@ -59,27 +59,17 @@ Koneksi OpenRouter dapat menyimpan `preset` per koneksi di Pengaturan Lanjutan. 
 
 ## 🎨 Kombo
 
-Buat kombo perutean model dengan 19 strategi publik: prioritas, berbobot, round-robin, context-relay, fill-first, p2c (pilihan dua pangkat), acak, paling jarang digunakan, dioptimalkan untuk biaya, reset-aware, reset-window, headroom, strict-random, otomatis, lkgp (penyedia terakhir yang diketahui berfungsi), dioptimalkan untuk konteks, dioptimalkan untuk cache, **fusion** (menyebarkan permintaan ke panel model secara paralel, lalu menyintesis satu jawaban melalui penilai), dan **pipeline**. Setiap kombo merangkai beberapa model dengan fallback otomatis serta mencakup templat cepat dan pemeriksaan kesiapan.
+Buat kombo perutean model dengan 21 strategi publik: prioritas, berbobot, round-robin, relai konteks, isi dulu, p2c (pilihan kekuatan dua), acak, jarang digunakan, dioptimalkan biaya, sadar-reset, jendela-reset, kadaluwarsa-pertama, ruang kepala, berbobot kuota, acak-ketat, otomatis, lkgp (penyedia barang-baik yang terakhir diketahui), dioptimalkan konteks, dioptimalkan cache,** fusi** (menyebar ke panel model secara paralel, lalu mensintesis satu jawaban melalui juri), dan** saluran pipa** . Setiap kombo merangkai beberapa model dengan fallback otomatis dan mencakup templat cepat serta pemeriksaan kesiapan.
 
 Peningkatan kombo terbaru:
 
-- **Pembuat kombo terstruktur** — buat setiap langkah dengan memilih penyedia, model, dan akun/koneksi yang tepat
-- **Dukungan penyedia berulang** — gunakan kembali penyedia yang sama berkali-kali dalam satu kombo selama tuple `(provider, model, connection)` unik
-- **Kesehatan target kombo** — tampilan analitik dan kesehatan kini membedakan setiap target/langkah kombo alih-alih menggabungkan semuanya menjadi string model
-- **Urutan tingkat komposit** — `defaultTier -> fallbackTier` kini memengaruhi urutan eksekusi/fallback saat runtime untuk langkah kombo tingkat teratas
-- **Templat prompt sistem** — `system_message` kombo mendukung placeholder sisi server
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}`, dan `{{FINGERPRINT}}`
-  yang diperluas berdasarkan target yang benar-benar dirutekan tepat sebelum pengiriman.
-  Menggunakan daftar yang diizinkan dan tidak rekursif; placeholder yang tidak dikenal tetap literal; nilai kosong
-  diperluas menjadi kosong; prompt sistem klien tidak pernah ditulis ulang. `{{FINGERPRINT}}`
-  hanya di-resolve untuk penyedia gratis berbasis fingerprint dengan fingerprint yang disematkan atau
-  dirotasi otomatis — nilainya diperluas menjadi kosong di tempat lain (misalnya
-  koneksi dengan satu fingerprint, penyedia non-fp). Perluasan mencakup
-  loop pengiriman standar, round-robin, dan sesi cache konteks yang disematkan;
-  strategi fusion, chaos, pipeline, dan nested-execute belum memperluas
-  placeholder.
+- **Pembuat kombo terstruktur** — buat setiap langkah dengan memilih penyedia, model, dan account/connection yang tepat
+- **Dukungan penyedia berulang** — menggunakan kembali penyedia yang sama berkali-kali dalam satu kombo selama tupel `(provider, model, connection)` unik
+- **Kesehatan target kombo** analitik — dan permukaan kesehatan sekarang membedakan masing-masing kombo targets/steps alih-alih mengelompokkan semuanya menjadi string model
+- **Pemesanan tingkat komposit** — `defaultTier -> fallbackTier` sekarang memengaruhi urutan execution/fallback runtime untuk langkah kombo tingkat atas
+- **Templat perintah sistem** — combo `system_message` mendukung placeholder `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` dan `{{FINGERPRINT}}` di sisi server, diperluas dari target yang dirutekan sebenarnya tepat sebelum pengiriman. Diizinkan dan non-rekursif; placeholder yang tidak diketahui tetap literal; nilai kosong diperluas menjadi kosong; perintah sistem klien tidak pernah ditulis ulang. `{{FINGERPRINT}}` hanya menyelesaikan untuk penyedia gratis berbasis sidik jari dengan sidik jari yang disematkan atau diputar otomatis — diperluas untuk mengosongkan di tempat lain (misalnya koneksi sidik jari tunggal, penyedia non-fp). Ekspansi mencakup sesi loop pengiriman standar, round-robin, dan cache konteks yang disematkan; Strategi fusion, chaos, pipeline, dan nested-execute belum memperluas placeholder.
 
-![Dasbor Kombo](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

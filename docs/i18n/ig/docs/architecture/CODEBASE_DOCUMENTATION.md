@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -481,16 +481,16 @@ open-sse/
 | `search.ts`             | Ọchụchọ webụ                                                                     |
 | `sseParser.ts`          | SSE ihe omume                                                                    |
 | `usageExtractor.ts`     | Wepụ ọnụ ọgụgụ token na iyi dị n'elu                                             |
-| `responseSanitizer.ts`  | Mkpọtụ nke ndị na-eweta mgbawa                                                   |
+| `responseSanitizer.ts`  | Mkpọtụ ndị na-eweta mgbawa                                                       |
 | `responseTranslator.ts` | Gluu n'etiti nzaghachi onye na-eweta na oyi akwa ntụgharị                        |
 
 ### 4.2 `open-sse/executors/`
 
-159 modul mmezu nke elu-elu (`*.ts` mwepu `base.ts`, `index.ts` na nwalee — ọnụ ọgụgụ `npm run check:docs-counts` jikoro). Klas onye mmebe ọ bụla na-agbatị `BaseExecutor` (`base.ts`), ozugbo ma ọ bụ site na `DefaultExecutor` ma ọ bụ onye mmebe ọzọ; modul fọdụrụnụ bụ ndị na-enyere onye ọ bụla aka (nhazi ngwaọrụ, ihe nkwụnye fetch/TTS, quirk handlers). Ndị mmebe gụnyere:
+170 modul mmezu nke elu-elu (`*.ts` mwepu `base.ts`, `index.ts` na nwale — ọnụ ọgụgụ `npm run check:docs-counts` jikoro). Klas onye mmebe ọ bụla na-agbatị `BaseExecutor` (`base.ts`), ozugbo ma ọ bụ site na `DefaultExecutor` ma ọ bụ onye mmebe ọzọ; modul fọdụrụnụ bụ ndị na-enyere onye ọ bụla aka (nhazi ngwaọrụ, ihe nkwụnye fetch/TTS, quirk handlers). Ndị mmebe gụnyere:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (shared identity helper) and `index.ts` (registry).
 
-> Mara: Ndị na-enye ndị na-edepụtaghị ebe a bụ ndị `default.ts` na-eje ozi site na iji onye mmebe OpenAI dakọtara. Katalọgụ ndị na-eweta ọrụ (ndị na-enye 381) bi na `src/shared/constants/providers.ts`.
+> Mara: Ndị na-enye ndị na-edepụtaghị ebe a bụ ndị `default.ts` na-eje ozi site na iji onye mmebe OpenAI dakọtara. Katalọgụ ndị na-eweta ọrụ (ndị na-enye 393) bi na `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Isi ihe (ndepụta zuru ezu n'okpuru `open-sse/services/`):
 
 | Nchegbu              | Faịlụ                                                                                                                                                                                                                                                    |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ntugharị ngwakọta    | `combo.ts` (atụmatụ 20), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                       |
+| Ntugharị ngwakọta    | `combo.ts` (atụmatụ 21), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                       |
 | Igwe combo akpaaka   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Nkwenye              | `accountFallback.ts` (cooldown + mkpọchi), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                         |
 | Oke                  | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
@@ -541,7 +541,7 @@ Provider registries (`providerRegistry.ts`, `providerModels.ts`, `providerHeader
 
 ### 4.8 `open-sse/utils/`
 
-`usageTracking.ts` `thinkTagParser.ts` `cursorVersionDetector.ts` `cacheControlPolicy.ts` maka mgbasa ozi na ndị na- `kieTask.ts` aka: `stream.ts`, `streamHandler.ts` `awsSigV4.ts` `streamHelpers.ts`, `streamPayloadCollector.ts` `sleep.ts` `streamReadiness.ts` `error.ts` `sseHeartbeat.ts` `proxyFetch.ts` `tlsClient.ts` `networkProxy.ts` `proxyDispatcher.ts` `cursorChecksum.ts` `requestLogger.ts` `cursorAgentProtobuf.ts`, `comfyuiClient.ts` `progressTracker.ts` `bypassHandler.ts` `cors.ts` `aiSdkCompat.ts` `logger.ts` `urlSanitize.ts` `ollamaTransform.ts`
+`usageTracking.ts` `cacheControlPolicy.ts` `cursorVersionDetector.ts` `networkProxy.ts` maka mgbasa `thinkTagParser.ts` na ndị na- `kieTask.ts` aka: `stream.ts`, `streamHandler.ts` `awsSigV4.ts` `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts` `sleep.ts` `sseHeartbeat.ts` `proxyFetch.ts` `proxyDispatcher.ts` `tlsClient.ts` `requestLogger.ts` `cursorChecksum.ts` `progressTracker.ts` `cursorAgentProtobuf.ts` `comfyuiClient.ts` `cors.ts` `bypassHandler.ts` `error.ts` `aiSdkCompat.ts` `ollamaTransform.ts` `urlSanitize.ts` `logger.ts`
 
 ---
 

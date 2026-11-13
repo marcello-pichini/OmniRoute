@@ -315,7 +315,7 @@ müəyyən edilmiş dəyərlər mühərrikin mövcud `config.modePack` / `config
 
 ## Bütün marşrutlaşdırma strategiyaları
 
-OmniRoute-nın kombo mühərriki dəstəkləyir** 20 marşrutlaşdırma strategiyası** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-da elan edilmişdir). Auto Combo mühərrikinin özü `auto` strategiyası altında ifşa olunur; digərləri davamlı kombinasiyalar üçün mövcuddur.
+OmniRoute-nın kombo mühərriki dəstəkləyir** 21 marşrutlaşdırma strategiyası** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`-da elan edilmişdir). Auto Combo mühərrikinin özü `auto` strategiyası altında ifşa olunur; digərləri davamlı kombinasiyalar üçün mövcuddur.
 
 | Strategiya          | Təsvir                                                                                                                                                                                                             |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -330,6 +330,7 @@ OmniRoute-nın kombo mühərriki dəstəkləyir** 20 marşrutlaşdırma strategi
 | `cost-optimized`    | Kataloq qiymətinə görə hər sorğu üçün $ minimuma endirin                                                                                                                                                           |
 | `reset-aware` ⭐    | Kvota sıfırlama vaxtı ilə prioritetləşdirin — qısa sıfırlama pəncərələri daha yüksək yer tutur                                                                                                                     |
 | `reset-window`      | Kvota pəncərəsi ən tez sıfırlanan hədəflərə üstünlük verin                                                                                                                                                         |
+| `expiry-first`      | İstifadə olunmamış ilk — kvotası bitəcək hesabı xərcləyin, ən yaxın sıfırlama tarixi birinci keçir.                                                                                                                |
 | `headroom`          | Ən çox qalan kvota başlığı olan hədəfi seçin                                                                                                                                                                       |
 | `quota-weighted`    | Tükənmiş hesabları keçin, sonra qalanlar arasında uçuş zamanı yükə bölünmüş qalan kvotaya mütənasib olaraq seçin; mövcud söhbətlər bağlanır                                                                        |
 | `strict-random`     | Təkrarların təkrarlanması olmadan təsadüfi                                                                                                                                                                         |
@@ -357,9 +358,23 @@ Ciddi fırlanma üçün `round-robin` istifadə edin; `weighted` üzrə bərabə
 
 Ən azı iki modeli olan `pipeline` kombinatı `config.agenticOrchestration.enabled` ilə planner/executor marşrutlaşdırmasına qoşula bilər. Birinci hədəf planlaşdırma və yekun cavablara sahibdir; ikinci hədəf müştəri-doğma alət zənglərini yayır. OmniRoute sorğu protokolundan alət nəticələrinin davamını aşkarlayır, planlaşdırıcıdan başqa bir alət dövrəsinə ehtiyac olub-olmadığını soruşur və dinamik olaraq ya icraçı, ya da planlaşdırıcını müştərinin üzləşdiyi son addım edir.
 
+Könüllü `config.agenticOrchestration.contextCompaction` hər planlaşdırıcı və ya icraçı göndərişindən əvvəl ayrıca faydalı yük büdcəsi tətbiq edir. Bunu açıq şəkildə aktivləşdirin:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Bunlar operator tərəfindən seçilən seriallaşdırılmış JSON simvol büdcələridir, token kontekst pəncərələri və ya zəmanətli yuxarı axın limitləri deyil. Dəqiq model IDs standartı ləğv edir. Həddən yuxarı olan sıxlaşdırma eyni alət təriflərini silir, həzmlə böyük ölçülü alət sübutlarını kəsir və hədəf nisbətinə doğru köhnə tam tarix qruplarını silir. O system/developer təlimatlarını, ən son istifadəçi sorğusunu, paralel calls/results daxil olmaqla sonuncu alət dövrəsini və Gemini-nin aparıcı marşrutlaşdırma təlimatını saxlayır. Ən yüksək səviyyəli təlimatlar və alət parametrləri qorunur. Boşluq işarəsi silinmiş tarixçəni qeyd edir; bu semantik xülasə deyil, deterministik kəsmədir. Sabitlənmiş kontekst hələ də büdcəni aşırsa, modellə əlaqə saxlamazdan əvvəl sorğu 413 qaytarır. Sıxlaşdırma qeyri-aktiv olduqda və ya həddən aşağı olduqda sorğu dəyişməz olaraq keçir.
+
 Alət-nəticə davamlarında, iki ardıcıl tamamlanmış tur eyni alət çağırışlarını dəyişməz nəticələrlə təkrar etdikdə və ya ardıcıl iki raundda hər bir açıq şəkildə qeyd olunan nəticə uğursuz olduqda OmniRoute icranı dayandırır. Dəyişən nəticələr təkrar zənglərə icazə verir (məsələn, sorğu). Mühafizəçi yeni istifadəçi tələbi ilə sıfırlanır, paralel zəngləri bir raundda qruplaşdırır və Anthropic, Söhbət Tamamlamaları, Cavablar və Gemini tarixçələrini dəstəkləyir. Planlaşdırıcı səbəbi alır və başqa bir alət turu tələb etsə belə, yekun cavabın sahibidir.
 
-İkinci hədəfdən sonra əlavə modellərə icraçı ehtiyat nüsxələri sifariş edilir. Uğursuz HTTP cavabı və ya nəqliyyat istisnası eyni planlaşdırıcı qərarını və yerli alətləri daşıyaraq növbəti icraçıya doğru irəliləyir, lakin həmin icraçının öz addımı tez və həll edilmiş əlaqədir. İlk uğurlu cavab SSE axını da daxil olmaqla dəyişməz olaraq qaytarılır; uğurlu yayımdan sonra uğursuzluqlar burada təkrar sınana bilməz. Bütün icraçılar uğursuz olarsa, sonuncu uğursuzluq qaytarılır. Müştəri göndərməni dayandırır.
+İkinci hədəfdən sonra əlavə modellərə icraçı ehtiyat nüsxələri sifariş edilir. Uğursuz HTTP cavabı və ya nəqliyyat istisnası eyni planlaşdırıcı qərarını və yerli alətləri daşıyaraq növbəti icraçıya doğru irəliləyir, lakin həmin icraçının öz addımı tez və həll edilmiş əlaqədir. İlk uğurlu cavab SSE axını da daxil olmaqla dəyişməz olaraq qaytarılır; uğurlu yayımdan sonra uğursuzluqlar burada təkrar sınaqdan keçirilə bilməz. Bütün icraçılar uğursuz olarsa, sonuncu uğursuzluq qaytarılır. Müştəri göndərməni dayandırır.
 
 ```json
 {
@@ -846,46 +861,41 @@ xərc-keyfiyyət nisbəti optimal deyilsə, **Tier 2** üstün gəlir. Səviyyə
 
 Səviyyə tərifləri və provayder təsnifatı üçün [`docs/guides/TIERS.md`](../guides/TIERS.md) sənədinə baxın.
 
-## Test və əhatə dairəsi
+## Test və Əhatə
 
-### Deterministik marşrutlaşdırma qərarı matrisi (`npm run test:combo:matrix`)
+### Deterministik marşrutlaşdırma-qərar matrisi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` real kombinasiya konveyeri və imitasiya edilmiş yuxarı axın vasitəsilə bütün 19
-ictimai strategiyanın marşrutlaşdırma **qərarını** başdan sona yoxlayır.
-Əhatə dairəsinə daxildir:
+`tests/integration/combo-matrix/*.test.ts` marşrutlaşdırmanı sübut edir** qərar** bütün 21 ictimai strategiyanın lağa qoyulmuş yuxarı axını ilə real kombo boru kəməri vasitəsilə sona qədər. Əhatəyə daxildir:
 
-- Bütün 19 `ROUTING_STRATEGY_VALUES` strategiyası (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (daxili) başdan sona: real `selectQuotaShareTarget` əlaqə nöqtəsi (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`) vasitəsilə DRR ədalətliliyi + doyma zamanı prioritetin azaldılması.
-- Hər bir hədəf sayı üzrə `context-relay` universal ötürmə əhatəsi.
+- Bütün 21 `ROUTING_STRATEGY_VALUES` strategiyası (sifarişli, ölçülmüş, qiymət, kontekst, birləşmə, …).
+- `quota-share` (daxili) end-to-end: DRR ədalətlilik + saturation deprioritization real `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` hər bir hədəf sayı üzrə universal ötürülmə əhatəsi.
 
-Bu test dəsti CI-da (`test:integration` işi) `--test-concurrency=1` və
-`--test-force-exit` ilə işləyir, buna görə deterministikdir və real giriş məlumatları tələb etmir.
+Bu paket `--test-concurrency=1` və `--test-force-exit` ilə CI (`test:integration` işi) ilə işləyir, ona görə də deterministikdir və canlı etimadnaməsini tələb etmir.
 
-### Şərtli canlı tüstü testi (CI-da DEYİL — real provayderlər)
+### Qapalı canlı tüstü (NOT in CI — real provayderlər)
 
-| Əmr                                    | Nə edir                                                                                               |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` ilə prosesdaxili real marşrutlaşdırma; canlı OmniRoute DB-nin ani surətini yaradır |
-| `npm run test:combo:live:vps`          | Canlı OmniRoute serverinə HTTP çağırışları (`COMBO_LIVE_BASE_URL` təyin edin)                         |
-| `npm run test:combo:live:vps:failover` | Eyni əməliyyat, qəsdən yaradılmış avtomatik keçid ssenariləri ilə                                     |
+| Əmr                                    | Nə edir                                                                            |
+| :------------------------------------- | :--------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` ilə prosesdə real marşrutlaşdırma; canlı OmniRoute DB snapshots |
+| `npm run test:combo:live:vps`          | HTTP canlı OmniRoute serverinə qarşı zənglər ( `COMBO_LIVE_BASE_URL` təyin edin)   |
+| `npm run test:combo:live:vps:failover` | Eynilə, qəsdən uğursuzluq ssenariləri ilə                                          |
 
-Bu tüstü testləri real ötürmə yolunu (kombinasiya → provayder → tamamlama) yoxlayır. Onlar
-real giriş məlumatları və VPS-ə giriş tələb etdiyinə görə qəsdən CI-dan çıxarılıb.
+Bu tüstü testləri real tel yolunu həyata keçirir (kombo → provayderi → tamamlaması). Onlar bilərəkdən CI dən xaric edilirlər, çünki onlar canlı etimadnamələr və VPS girişi tələb edir.
 
 ---
 
 ## Fayllar
 
-| Fayl                                                      | Məqsəd                                                                                                                           |
-| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 amilli qiymətləndirmə funksiyası, `DEFAULT_WEIGHTS`, hovuz norması                                                            |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Model × tapşırıq uyğunluğu üzrə axtarış                                                                                          |
-| `open-sse/services/autoCombo/engine.ts`                   | Seçim məntiqi, bandit, büdcə limiti                                                                                              |
-| `open-sse/services/autoCombo/selfHealing.ts`              | İstisna etmə, yoxlamalar, insident rejimi                                                                                        |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 çəki profili (sürətli buraxılış, xərcə qənaət, keyfiyyət prioritetli, oflayn üçün uyğun, etibarlılıq prioritetli, xaos rejimi) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiks analizatoru + 6 variant                                                                                          |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Aktiv bağlantılardan yaddaşdaxili `AutoComboConfig` yaradır                                                                      |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder reyestrini imitasiya etmək üçün test qoşulma nöqtəsi                                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategiya)                                                                                        |
-| `src/sse/handlers/chat.ts`                                | İnteqrasiya: auto-prefiks üçün qısa dövrə                                                                                        |
+| Fayl                                                      | Məqsəd                                                                                                                     |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktorlu qol funksiyası, `DEFAULT_WEIGHTS`, hovuz norması                                                               |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Model × tapşırığı fitness axtarışı                                                                                         |
+| `open-sse/services/autoCombo/engine.ts`                   | Seçim məntiqi, quldur, büdcə qapağı                                                                                        |
+| `open-sse/services/autoCombo/selfHealing.ts`              | İstisna, zondlar, insident rejimi                                                                                          |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 çəki profili (göndərmə sürəti, xərclərə qənaət, keyfiyyət birinci, oflayn dostluq, ilk növbədə etibarlılıq, xaos rejimi) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksi parser + 6 variantları                                                                                    |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Canlı bağlantılardan yaddaşda `AutoComboConfig` qurur                                                                      |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder reyestrini lağa qoymaq üçün test çəngəl                                                                          |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategiya)                                                                                  |
+| `src/sse/handlers/chat.ts`                                | İnteqrasiya: avtomatik prefiks qısaqapanma                                                                                 |

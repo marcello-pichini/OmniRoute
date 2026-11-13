@@ -57,28 +57,19 @@ OpenRouter ulanishlari Kengaytirilgan sozlamalarda har bir ulanish uchun alohida
 
 ---
 
-## 🎨 Kombinatsiyalar
+## 🎨 Combos
 
-19 ta ommaviy strategiya bilan model yoʻnaltirish kombinatsiyalarini yarating: priority, weighted, round-robin, context-relay, fill-first, p2c (ikkita variant quvvati), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (oxirgi maʼlum yaxshi provayder), context-optimized, cache-optimized, **fusion** (modellar paneliga parallel ravishda soʻrov yuborib, soʻng hakam modeli orqali yagona javobni sintez qilish) va **pipeline**. Har bir kombinatsiya avtomatik zaxira mexanizmi yordamida bir nechta modelni zanjirlaydi hamda tezkor andozalar va tayyorlik tekshiruvlarini oʻz ichiga oladi.
+21 ta ommaviy strategiyadan iborat model marshrutlash kombinatsiyalarini yarating: ustuvorlik, vaznli, aylanma robin, kontekst-rele, birinchi to‘ldirish, p2c (ikkita variantning quvvati), tasodifiy, eng kam ishlatiladigan, xarajat optimallashtirilgan, qayta o‘rnatish, qayta o‘rnatish, oynani qayta o‘rnatish, amal qilish muddati, birinchi bo‘sh joy, kvota-og‘irligi, avtonom vaznlilik (oxirgi-malum-yaxshi-provayder), kontekst optimallashtirilgan, kesh-optimallashtirilgan,** sintez** (modellar paneliga parallel ravishda havola qiling, so'ngra bitta javobni sudya orqali sintez qiling) va** quvur liniyasi** . Har bir kombinatsiya bir nechta modellarni avtomatik qaytarish bilan birlashtiradi va tezkor shablonlarni va tayyorlikni tekshirishni o'z ichiga oladi.
 
-Kombinatsiyalardagi soʻnggi yaxshilanishlar:
+So'nggi kombinatsiya yaxshilanishlari:
 
-- **Tuzilmaviy kombinatsiya konstruktori** — provayder, model va aniq hisob/ulanishni tanlash orqali har bir qadamni yarating
-- **Provayderni takroran ishlatishni qoʻllab-quvvatlash** — `(provider, model, connection)` korteji noyob boʻlsa, ayni provayderdan bitta kombinatsiyada bir necha marta foydalaning
-- **Kombinatsiya maqsadlari holati** — tahlil va holat interfeyslari endi barcha maʼlumotlarni model satrlariga birlashtirish oʻrniga, alohida kombinatsiya maqsadlari/qadamlarini farqlaydi
-- **Kompozit darajalarni tartiblash** — `defaultTier -> fallbackTier` endi yuqori darajadagi kombinatsiya qadamlari uchun bajarilish va zaxiraga oʻtish tartibiga taʼsir qiladi
-- **Tizim prompti andozalari** — kombinatsiyaning `system_message` maydoni server tomonidagi
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` va `{{FINGERPRINT}}`
-  oʻrinbosarlarini qoʻllab-quvvatlaydi; ular joʻnatishdan bevosita oldin amalda yoʻnaltirilgan maqsad asosida kengaytiriladi.
-  Faqat ruxsat etilgan roʻyxatdagilar qoʻllanadi va rekursiv kengaytirish bajarilmaydi; nomaʼlum oʻrinbosarlar oʻz holicha qoladi; boʻsh qiymatlar
-  boʻsh qiymatga kengaytiriladi; mijozning tizim promptlari hech qachon qayta yozilmaydi. `{{FINGERPRINT}}`
-  faqat biriktirilgan yoki avtomatik almashtiriladigan fingerprint’ga ega, fingerprint asosidagi bepul provayderlar uchun qiymatga ega boʻladi — boshqa holatlarda (masalan,
-  bitta fingerprint’li ulanishlar, fp asosida ishlamaydigan provayderlar) u boʻsh qiymatga kengaytiriladi. Kengaytirish
-  standart joʻnatish sikli, round-robin va biriktirilgan kontekst keshi sessiyalarini qamrab oladi;
-  fusion, chaos, pipeline va ichki execute strategiyalari hozircha
-  oʻrinbosarlarni kengaytirmaydi.
+- **Strukturaviy kombo quruvchi** — provayder, model va aniq account/connection tanlash orqali har bir qadamni yarating
+- **Takroriy provayder yordami** — `(provider, model, connection)` korteji yagona bo'lsa, bir xil provayderni bir kombinatsiyada ko'p marta qayta ishlating
+- **Kombo maqsadli sog'liq** — analytics va sog'liq sirtlari endi hamma narsani model qatorlariga yig'ish o'rniga individual kombinatsiyalangan targets/steps ajratib turadi
+- **Kompozit darajali buyurtma** — `defaultTier -> fallbackTier` endi yuqori darajadagi kombinatsiyalangan qadamlar uchun ish vaqti execution/fallback tartibiga ta'sir qiladi
+- **Tizim so'rovi shablonlar** — combo `system_message` server tomonidagi `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` va `{{FINGERPRINT}}` to'ldiruvchilarni qo'llab-quvvatlaydi, jo'natishdan oldin haqiqatda yo'naltirilgan maqsaddan kengaytirilgan. Ruxsat etilgan va rekursiv bo'lmagan; noma'lum to'ldiruvchilar tom ma'noda qoladi; bo'sh qiymatlar bo'shgacha kengayadi; mijoz tizimi takliflari hech qachon qayta yozilmaydi. `{{FINGERPRINT}}` faqat barmoq iziga asoslangan bepul provayderlar uchun hal qilinadi, barmoq izi mahkamlangan yoki avtomatik aylantiriladi — u boshqa joyda boʻsh holga qadar kengayadi (masalan, bitta barmoq izi ulanishlari, fp boʻlmagan provayderlar). Kengaytirish standart jo'natish siklini, aylanma robin va mahkamlangan kontekst-kesh seanslarini qamrab oladi; termoyadroviy, betartiblik, quvur liniyasi va ichki o'rnatish strategiyalari hali to'ldiruvchilarni kengaytirmaydi.
 
-![Kombinatsiyalar boshqaruv paneli](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

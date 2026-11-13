@@ -266,7 +266,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## 所有路由策略
 
-OmniRoute的组合引擎支持**20种路由策略**（在`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`中声明）。 Auto Combo引擎本身暴露在`auto`策略下；其他可用于持久组合。
+OmniRoute的组合引擎支持**21种路由策略**（在`src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`中声明）。 Auto Combo引擎本身暴露在`auto`策略下；其他可用于持久组合。
 
 | 战略                | 描述                                                                                                                                    |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
@@ -281,6 +281,7 @@ OmniRoute的组合引擎支持**20种路由策略**（在`src/shared/constants/r
 | `cost-optimized`    | 给定目录定价，最大限度地减少每个请求的美元                                                                                              |
 | `reset-aware` ⭐    | 按配额重置时间优先—短重置窗口排名较高                                                                                                   |
 | `reset-window`      | 优先选择配额窗口重置最快的目标                                                                                                          |
+| `expiry-first`      | 首先使用其配额将过期的账户，未使用的—最接近重置截止日期的最高剩余金额先行                                                               |
 | `headroom`          | 选择剩余配额空间最多的目标                                                                                                              |
 | `quota-weighted`    | 跳过用完的帐户，然后按照剩余配额除以飞行负载的比例在其余帐户中进行选择；现有对话保持固定                                                |
 | `strict-random`     | 随机，无重复数据删除                                                                                                                    |
@@ -308,9 +309,23 @@ OmniRoute的组合引擎支持**20种路由策略**（在`src/shared/constants/r
 
 具有至少两个模型的`pipeline`组合可以选择使用`config.agenticOrchestration.enabled`进行planner/executor路由。第一个目标有规划和最终答案；第二个目标发出客户端本机工具调用。 OmniRoute从请求协议中检测工具结果延续，询问规划器是否需要另一轮工具，并动态地使执行器或规划器成为面向客户端的最后一步。
 
+可选的`config.agenticOrchestration.contextCompaction`在每个计划者或执行者调度之前应用单独的有效负载预算。显式启用它：
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+这些是操作员选择的序列化JSON字符预算，而不是令牌上下文窗口或保证的上游限制。精确模型IDs覆盖默认值。高于阈值时，压缩会删除相同的工具定义，通过摘要修剪过大的工具证据，并根据目标比率删除旧的完整历史记录组。它保留了system/developer指令、最新的用户请求、最后一轮工具（包括并行calls/results）和Gemini的领先路由指令。保留顶级指令和工具设置。遗漏标记记录删除的历史记录；这是确定性的修剪，而不是语义总结。如果固定上下文仍然超出预算，则请求在联系模型之前返回 413。当禁用压缩或压缩低于阈值时，请求将保持不变地通过。
+
 在工具结果延续上，当两个连续完成的轮次重复相同的工具调用但结果不变时，或者当两个连续轮次中每个显式标记的结果失败时， OmniRoute也会停止执行。更改的结果允许重复调用（例如轮询）。该防护根据新的用户请求进行重置，将并行调用分组为一轮，并支持Anthropic、聊天完成、响应和Gemini历史记录。规划者收到原因并拥有最终答案，即使它请求另一轮工具也是如此。
 
-第二个目标之后的其他模型是有序执行程序备份。失败的HTTP响应或传输异常将前进到下一个执行器，携带相同的规划器决策和本机工具，但该执行器自己的步骤提示和已解决的连接。第一个成功响应原样返回，包括SSE流；成功启动流后出现的失败无法在此处重试。如果所有执行器都失败，则返回最后一个失败的执行器。客户端中止停止调度。
+第二个目标之后的其他模型是有序执行程序备份。失败的HTTP响应或传输异常将前进到下一个执行器，携带相同的规划器决策和本机工具，但该执行器自己的步骤提示和已解决的连接。第一个成功的响应原样返回，包括SSE流；成功的流启动后的失败无法在此处重试。如果所有执行器都失败，则返回最后一个失败的执行器。客户端中止停止调度。
 
 ```json
 {
@@ -329,7 +344,7 @@ OmniRoute的组合引擎支持**20种路由策略**（在`src/shared/constants/r
 循环是批量的，而不是每一步一个请求：
 
 - `stickyRoundRobinLimit` （组合配置，然后`comboStickyRoundRobinLimit`，然后`settings.stickyRoundRobinLimit`，默认**3** ）在轮换之前连续多次成功保持相同的目标。将组合覆盖设置为`1`以进行单请求轮换。组合编辑器显示有效值及其来自哪一层。
-- `connectionAwareExpansion` （组合配置，然后设置，默认**错误的**）在轮换之前将每个提供者级别的步骤扩展为每个帐户的目标。 B 组策略（优先级、加权、循环、随机、p2c、最少使用、成本优化、lkgp、填充优先、严格随机、上下文优化、缓存优化、上下文中继、融合、管道）保持提供者级别的视图，直到启用为止。组合编辑器公开了继承/开/关；继承使用全局默认值（关闭）。
+- `connectionAwareExpansion` （组合配置，然后设置，默认**错误的**) 在轮换之前将每个提供者级别的步骤扩展为每个帐户的目标。 B 组策略（优先级、加权、循环、随机、p2c、最少使用、成本优化、lkgp、填充优先、严格随机、上下文优化、缓存优化、上下文中继、融合、管道）保持提供者级别的视图，直到启用。组合编辑器公开了继承/开/关；继承使用全局默认值（关闭）。
 - 提示缓存局部路由（`promptCacheAffinityEnabled`，默认**真的**) 对固定连接重新排序，以便匹配的缓存密钥保留在一个帐户上。它优先于固定的每个帐户步骤的循环法和加权轮换。如果您需要严格旋转，请在“设置→组合默认值”下将其关闭。没有每个组合的覆盖。
 
 对于一种模型上的多账户轮换，首选**一个动态帐户步骤**（空`connectionId`，整个池）具有粘性限制`1`，而不是三个固定的`connectionId`。即使RR计数器前进，固定步骤加上亲和力也会折叠到同一帐户上。
@@ -789,46 +804,41 @@ SLA 感知字段：
 
 有关层级定义和提供者分类，请参阅 [`docs/guides/TIERS.md`](../guides/TIERS.md)。
 
-## 测试与覆盖范围
+## 测试和覆盖范围
 
-### 确定性路由决策矩阵（`npm run test:combo:matrix`）
+### 确定性路由决策矩阵 (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` 通过模拟的上游，在真实组合管线中对全部 19 种
-公开策略的路由**决策**进行端到端验证。
-覆盖范围包括：
+`tests/integration/combo-matrix/*.test.ts`证明路由**决定**通过带有模拟上游的真实组合管道端到端地执行所有 21 个公共策略。承保范围包括：
 
-- 全部 19 种 `ROUTING_STRATEGY_VALUES` 策略（ordered、weighted、cost、context、fusion 等）。
-- `quota-share`（内部）端到端测试：通过真实的 `selectQuotaShareTarget` 接缝（`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`），验证 DRR 公平性与饱和时降权。
-- 覆盖各种目标数量下的 `context-relay` 通用交接行为。
+- 所有 21 种`ROUTING_STRATEGY_VALUES`策略（有序、加权、成本、上下文、融合……）。
+- `quota-share` （内部）端到端：通过真正的`selectQuotaShareTarget`接缝（`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`）进行DRR公平性+饱和度去优先级化。
+- `context-relay`通用切换覆盖每个目标计数。
 
-此测试套件在 CI（`test:integration` 作业）中使用 `--test-concurrency=1` 和
-`--test-force-exit` 运行，因此具有确定性，且不需要实时凭据。
+该套件在CI （`test:integration`作业）中与`--test-concurrency=1`和`--test-force-exit`一起运行，因此它是确定性的，不需要实时凭据。
 
-### 受控的实时冒烟测试（不在 CI 中——使用真实提供者）
+### 门控现场烟雾（NOT中的CI —真实提供者）
 
-| 命令                                   | 功能                                                                        |
-| :------------------------------------- | :-------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | 使用 `RUN_COMBO_LIVE=1` 进行进程内真实路由；创建实时 OmniRoute 数据库的快照 |
-| `npm run test:combo:live:vps`          | 对实时 OmniRoute 服务器发起 HTTP 调用（设置 `COMBO_LIVE_BASE_URL`）         |
-| `npm run test:combo:live:vps:failover` | 同上，但包含刻意设计的故障转移场景                                          |
+| 命令                                   | 它的作用                                                       |
+| :------------------------------------- | :------------------------------------------------------------- |
+| `npm run test:combo:live`              | 使用`RUN_COMBO_LIVE=1`进行进程内真实路由；快照实时OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP调用实时OmniRoute服务器（设置`COMBO_LIVE_BASE_URL`）       |
+| `npm run test:combo:live:vps:failover` | 同样，有故意的故障转移场景                                     |
 
-这些冒烟测试会验证真实的线缆路径（组合 → 提供者 → 补全）。它们被有意
-排除在 CI 之外，因为需要实时凭据和 VPS 访问权限。
+这些冒烟测试练习真实的线路路径（组合→提供者→完成）。他们被有意排除在CI之外，因为他们需要实时凭证和VPS访问权限。
 
 ---
 
 ## 文件
 
-| 文件                                                      | 用途                                                                         |
-| :-------------------------------------------------------- | :--------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 因子评分函数、`DEFAULT_WEIGHTS`、池归一化                                 |
-| `open-sse/services/autoCombo/taskFitness.ts`              | 模型 × 任务适配度查找                                                        |
-| `open-sse/services/autoCombo/engine.ts`                   | 选择逻辑、多臂老虎机、预算上限                                               |
-| `open-sse/services/autoCombo/selfHealing.ts`              | 排除、探测、事件模式                                                         |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 种权重配置（快速交付、成本节省、质量优先、离线友好、可靠性优先、混沌模式） |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` 前缀解析器 + 6 种变体                                                |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | 根据实时连接在内存中构建 `AutoComboConfig`                                   |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 用于模拟提供者注册表的测试钩子                                               |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES`（20 种策略）                                       |
-| `src/sse/handlers/chat.ts`                                | 集成：auto-prefix 短路逻辑                                                   |
+| 文件                                                      | 目的                                                                             |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 因素评分函数、 `DEFAULT_WEIGHTS`、池范数                                      |
+| `open-sse/services/autoCombo/taskFitness.ts`              | 模型×任务适应度查找                                                              |
+| `open-sse/services/autoCombo/engine.ts`                   | 选择逻辑、强盗、预算上限                                                         |
+| `open-sse/services/autoCombo/selfHealing.ts`              | 排除、探测、事件模式                                                             |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 种重量配置文件（快速运输、节省成本、质量第一、离线友好、可靠性第一、混沌模式） |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/`前缀解析器+ 6 个变体                                                      |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | 从实时连接构建内存中的`AutoComboConfig`                                          |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | 用于模拟提供者注册表的测试钩子                                                   |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` （21个策略）                                           |
+| `src/sse/handlers/chat.ts`                                | 集成：自动前缀短路                                                               |

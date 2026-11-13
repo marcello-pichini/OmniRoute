@@ -303,7 +303,7 @@ ditentukan disalurkan kepada input `config.modePack` / `config.budgetCap` /
 
 ## Semua Strategi Laluan
 
-enjin kombo OmniRoute menyokong** 20 strategi laluan** (diisytiharkan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Enjin Auto Combo itu sendiri terdedah di bawah strategi `auto` ; yang lain tersedia untuk kombo berterusan.
+enjin kombo OmniRoute menyokong** 21 strategi penghalaan** (diisytiharkan dalam `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Enjin Auto Combo sendiri terdedah di bawah strategi `auto` ; yang lain tersedia untuk kombo berterusan.
 
 | Strategi            | Penerangan                                                                                                                                                                                             |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -318,6 +318,7 @@ enjin kombo OmniRoute menyokong** 20 strategi laluan** (diisytiharkan dalam `src
 | `cost-optimized`    | Minimumkan $ setiap permintaan yang diberikan harga katalog                                                                                                                                            |
 | `reset-aware` ⭐    | Utamakan mengikut masa tetapan semula kuota — tetingkap tetapan semula pendek mendapat kedudukan lebih tinggi                                                                                          |
 | `reset-window`      | Pilih sasaran yang tetingkap kuotanya ditetapkan semula secepat mungkin                                                                                                                                |
+| `expiry-first`      | Belanjakan akaun yang kuotanya akan tamat tempoh tidak digunakan dahulu — baki tertinggi dengan tarikh akhir tetapan semula yang terdekat pergi dahulu                                                 |
 | `headroom`          | Pilih sasaran dengan ruang kepala kuota yang paling banyak                                                                                                                                             |
 | `quota-weighted`    | Langkau akaun yang habis, kemudian pilih antara yang lain mengikut perkadaran kuota sisa dibahagikan dengan muatan dalam penerbangan; perbualan sedia ada kekal disematkan                             |
 | `strict-random`     | Rawak tanpa deduplikasi ulangan                                                                                                                                                                        |
@@ -344,6 +345,20 @@ Untuk putaran ketat gunakan `round-robin`; pemberat yang sama pada `weighted` me
 ### Mod saluran paip agen
 
 Kombo `pipeline` dengan sekurang-kurangnya dua model boleh mengikut serta dalam penghalaan planner/executor dengan `config.agenticOrchestration.enabled`. Sasaran pertama memiliki perancangan dan jawapan akhir; sasaran kedua mengeluarkan panggilan alat asli klien. OmniRoute mengesan kesinambungan hasil alat daripada protokol permintaan, bertanya kepada perancang sama ada pusingan alat lain diperlukan, dan secara dinamik menjadikan sama ada pelaksana atau perancang langkah terakhir yang dihadapi pelanggan.
+
+`config.agenticOrchestration.contextCompaction` pilihan menggunakan belanjawan muatan berasingan sebelum setiap penghantaran perancang atau pelaksana. Dayakannya secara eksplisit:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Ini ialah belanjawan aksara JSON bersiri yang dipilih oleh pengendali, bukan tetingkap konteks token atau had huluan yang dijamin. Model tepat IDs mengatasi lalai. Di atas ambang, pemadatan mengalih keluar definisi alat yang sama, memangkas bukti alat bersaiz besar dengan ringkasan dan mengalih keluar kumpulan sejarah lengkap lama ke arah nisbah sasaran. Ia mengekalkan arahan system/developer, permintaan pengguna terkini, pusingan alat terakhir termasuk calls/results selari, dan arahan penghalaan utama Gemini. Arahan peringkat atas dan tetapan alat dikekalkan. Penanda peninggalan merekodkan sejarah yang dialih keluar; ini adalah pemangkasan deterministik, bukan ringkasan semantik. Jika konteks yang disematkan masih melebihi belanjawan, permintaan mengembalikan 413 sebelum menghubungi model. Dengan pemadatan dilumpuhkan atau di bawah ambang permintaan melalui tidak berubah.
 
 Pada penerusan hasil alat, OmniRoute juga menghentikan pelaksanaan apabila dua pusingan selesai berturut-turut mengulangi panggilan alat yang sama dengan keputusan yang tidak berubah, atau apabila setiap yang ditanda secara eksplisit menghasilkan dua pusingan berturut-turut gagal. Keputusan yang diubah membenarkan panggilan berulang (contohnya, pengundian). Pengawal menetapkan semula pada permintaan pengguna baharu, mengumpulkan panggilan selari ke dalam satu pusingan, dan menyokong Anthropic, Penyelesaian Sembang, Respons dan sejarah Gemini. Perancang menerima sebab dan memiliki jawapan akhir walaupun ia meminta pusingan alat lain.
 
@@ -821,47 +836,41 @@ Untuk mengutamakan Peringkat 1 (langganan) dengan ketara, tingkatkan berat `tier
 
 Lihat [`docs/guides/TIERS.md`](../guides/TIERS.md) untuk takrif peringkat dan pengelasan penyedia.
 
-## Pengujian & Liputan
+## Ujian & Liputan
 
-### Matriks keputusan penghalaan deterministik (`npm run test:combo:matrix`)
+### Matriks penghalaan-keputusan deterministik (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` membuktikan **keputusan** penghalaan bagi kesemua 19
-strategi awam secara hujung ke hujung melalui saluran kombo sebenar dengan huluan olok-olok.
-Liputan merangkumi:
+`tests/integration/combo-matrix/*.test.ts` membuktikan penghalaan** keputusan** daripada kesemua 21 strategi awam hujung ke hujung melalui saluran paip kombo sebenar dengan huluan yang dipermainkan. Liputan termasuk:
 
-- Kesemua 19 strategi `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (dalaman) secara hujung ke hujung: keadilan DRR + penurunan keutamaan akibat ketepuan melalui
-  titik sambungan `selectQuotaShareTarget` sebenar (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Liputan penyerahan universal `context-relay` merentas setiap bilangan sasaran.
+- Kesemua 21 strategi `ROUTING_STRATEGY_VALUES` (tertib, wajaran, kos, konteks, gabungan, …).
+- `quota-share` (dalaman) hujung ke hujung: DRR keadilan + penyahutamaan ketepuan melalui jahitan `selectQuotaShareTarget` sebenar (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- liputan penyerahan universal `context-relay` merentas setiap kiraan sasaran.
 
-Suit ini dijalankan dalam CI (tugas `test:integration`) dengan `--test-concurrency=1` dan
-`--test-force-exit` supaya ia bersifat deterministik dan tidak memerlukan kelayakan langsung.
+Suite ini berjalan dalam CI ( kerja `test:integration` ) dengan `--test-concurrency=1` dan `--test-force-exit` jadi ia bersifat deterministik dan tidak memerlukan kelayakan langsung.
 
-### Ujian asap langsung berpagar (BUKAN dalam CI — penyedia sebenar)
+### Asap langsung berpagar (NOT dalam pembekal sebenar CI — )
 
-| Perintah                               | Fungsinya                                                                                                      |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Penghalaan sebenar dalam proses dengan `RUN_COMBO_LIVE=1`; mengambil petikan pangkalan data OmniRoute langsung |
-| `npm run test:combo:live:vps`          | Panggilan HTTP terhadap pelayan OmniRoute langsung (tetapkan `COMBO_LIVE_BASE_URL`)                            |
-| `npm run test:combo:live:vps:failover` | Sama, dengan senario failover yang disengajakan                                                                |
+| Perintah                               | Apa yang dilakukannya                                                                              |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Penghalaan sebenar dalam proses dengan `RUN_COMBO_LIVE=1`; syot kilat OmniRoute DB secara langsung |
+| `npm run test:combo:live:vps`          | HTTP memanggil pelayan OmniRoute langsung (set `COMBO_LIVE_BASE_URL`)                              |
+| `npm run test:combo:live:vps:failover` | Sama, dengan senario failover yang disengajakan                                                    |
 
-Ujian asap ini menguji laluan komunikasi sebenar (kombo → penyedia → pelengkapan). Ujian ini
-sengaja dikecualikan daripada CI kerana memerlukan kelayakan langsung dan akses VPS.
+Ujian asap ini menggunakan laluan wayar sebenar (penyedia → kombo → ). Mereka sengaja dikecualikan daripada CI kerana mereka memerlukan kelayakan langsung dan akses VPS.
 
 ---
 
 ## Fail
 
-| Fail                                                      | Tujuan                                                                                                                         |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Fungsi pemarkahan 16 faktor, `DEFAULT_WEIGHTS`, norma kumpulan                                                                 |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Carian kesesuaian model × tugas                                                                                                |
-| `open-sse/services/autoCombo/engine.ts`                   | Logik pemilihan, bandit, had bajet                                                                                             |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Pengecualian, prob, mod insiden                                                                                                |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 profil pemberat (hantar pantas, penjimat kos, utamakan kualiti, mesra luar talian, utamakan kebolehpercayaan, mod huru-hara) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Penghurai awalan `auto/` + 6 varian                                                                                            |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Membina `AutoComboConfig` dalam memori daripada sambungan aktif                                                                |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Cangkuk ujian untuk mengolah pendaftaran penyedia                                                                              |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategi)                                                                                        |
-| `src/sse/handlers/chat.ts`                                | Penyepaduan: pintasan awalan automatik                                                                                         |
+| Fail                                                      | Tujuan                                                                                                                           |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Fungsi pemarkahan 16 faktor, `DEFAULT_WEIGHTS`, norma kolam                                                                      |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Carian kecergasan tugasan model ×                                                                                                |
+| `open-sse/services/autoCombo/engine.ts`                   | Logik pemilihan, penyamun, had belanjawan                                                                                        |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Pengecualian, siasatan, mod kejadian                                                                                             |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 profil berat (cepat dihantar, penjimat kos, kualiti diutamakan, mesra luar talian, kebolehpercayaan diutamakan, mod huru-hara) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                                                                               |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Membina `AutoComboConfig` dalam memori daripada sambungan langsung                                                               |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Uji cangkuk untuk mengejek pendaftaran pembekal                                                                                  |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategi)                                                                                          |
+| `src/sse/handlers/chat.ts`                                | Penyepaduan: litar pintas awalan automatik                                                                                       |

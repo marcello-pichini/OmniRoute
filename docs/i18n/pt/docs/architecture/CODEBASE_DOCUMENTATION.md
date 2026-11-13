@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 módulos executores de nível superior (`*.ts` menos `base.ts`, `index.ts` e testes — as medidas de contagem `npm run check:docs-counts` ). Cada classe de executor estende `BaseExecutor` (`base.ts`), directamente ou através de `DefaultExecutor` ou outro executor; os restantes módulos são auxiliares por fornecedor (esquemas de ferramentas, adaptadores fetch/TTS, manipuladores de peculiaridades). Os executores incluem:
+170 módulos executores de nível superior (`*.ts` menos `base.ts`, `index.ts` e testes — as medidas de contagem `npm run check:docs-counts` ). Cada classe de executor estende `BaseExecutor` (`base.ts`), directamente ou através de `DefaultExecutor` ou outro executor; os restantes módulos são auxiliares por fornecedor (esquemas de ferramentas, adaptadores fetch/TTS, manipuladores de peculiaridades). Os executores incluem:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, mais `claudeIdentity.ts` (ajudante de identidade partilhada) e `index.ts` (registo).
 
-> Nota: os fornecedores não listados aqui são servidos pelo `default.ts` utilizando o executor genérico compatível com OpenAI. O catálogo completo de fornecedores (381 fornecedores) está em `src/shared/constants/providers.ts`.
+> Nota: os fornecedores não listados aqui são servidos pelo `default.ts` utilizando o executor genérico compatível com OpenAI. O catálogo completo de fornecedores (393 fornecedores) está em `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Destaques (lista completa em `open-sse/services/`):
 
 | Preocupação                    | Arquivos                                                                                                                                                                                                                                                 |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Roteamento combinado           | `combo.ts` (20 estratégias), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
+| Roteamento combinado           | `combo.ts` (21 estratégias), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                   |
 | Motor combinado automático     | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Resiliência                    | `accountFallback.ts` (bloqueio de arrefecimento + ), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                               |
 | Cotas                          | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

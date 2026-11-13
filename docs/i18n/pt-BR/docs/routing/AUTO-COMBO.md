@@ -309,7 +309,7 @@ valores resolvidos alimentam as entradas existentes `config.modePack` / `config.
 
 ## Todas as estratégias de roteamento
 
-O mecanismo de combinação do OmniRoute suporta** 20 estratégias de roteamento** (declarado em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio mecanismo Auto Combo está exposto na estratégia `auto` ; os demais estão disponíveis para combos persistentes.
+O mecanismo de combinação do OmniRoute suporta** 21 estratégias de roteamento** (declarado em `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). O próprio mecanismo Auto Combo está exposto na estratégia `auto` ; os demais estão disponíveis para combos persistentes.
 
 | Estratégia          | Descrição                                                                                                                                                                                                                |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -324,6 +324,7 @@ O mecanismo de combinação do OmniRoute suporta** 20 estratégias de roteamento
 | `cost-optimized`    | Minimize $ por solicitação de acordo com o preço do catálogo                                                                                                                                                             |
 | `reset-aware` ⭐    | Priorizar por tempo de redefinição de cota — janelas de redefinição curta com classificação superior                                                                                                                     |
 | `reset-window`      | Prefira destinos cuja janela de cota seja redefinida mais cedo                                                                                                                                                           |
+| `expiry-first`      | Gaste primeiro a conta cuja cota expiraria sem ser utilizada — o valor restante mais alto com o prazo de redefinição mais próximo vai primeiro                                                                           |
 | `headroom`          | Escolha o alvo com o maior espaço de cota restante                                                                                                                                                                       |
 | `quota-weighted`    | Ignore as contas esgotadas e escolha entre as demais proporcionalmente à cota restante dividida pela carga de voo; as conversas existentes permanecem fixadas                                                            |
 | `strict-random`     | Aleatório sem desduplicação de repetições                                                                                                                                                                                |
@@ -341,8 +342,8 @@ O mecanismo de combinação do OmniRoute suporta** 20 estratégias de roteamento
 `weighted` é um** sorteio aleatório proporcional por solicitação** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), não um equalizador:
 
 - Cada solicitação atrai** um** passo com probabilidade `weight / totalWeight`; as etapas restantes são ordenadas por peso decrescente como a cadeia de fallback para essa solicitação.
-- Um passo cujo peso é `0` (ou faltante) é** nunca desenhado** embora qualquer outra etapa tenha peso > 0 — ela só pode servir como substituto após a etapa desenhada falhar. Somente quando** todos** os pesos são 0, a seleção se torna uniforme.
-- Etapas cujos alvos são indisponíveis — Provider Circuit breaker `OPEN`, Connection Cooldown, Model Lockout — são removidas do sorteio antes que aconteça (`open-sse/services/combo/targetResolution.ts`), portanto, uma única etapa íntegra pode vencer temporariamente todas as solicitações.
+- Um passo cujo peso é `0` (ou faltante) é** nunca desenhado** embora qualquer outra etapa tenha peso > 0 — ela só pode servir como substituto após a falha da etapa desenhada. Somente quando** todos** os pesos são 0, a seleção se torna uniforme.
+- Etapas cujos alvos são indisponíveis — Provider Circuit breaker `OPEN`, connection cooldown, model lockout — são removidas do sorteio antes que aconteça (`open-sse/services/combo/targetResolution.ts`), portanto, uma única etapa íntegra pode vencer temporariamente todas as solicitações.
 - `stickyWeightedLimit` (configuração de combinação, padrão `1` = desativado) fixa a etapa desenhada para tantos sucessos consecutivos antes de redesenhar.
 
 Para rotação estrita use `round-robin`; pesos iguais em `weighted` fornecem — estatístico e não equilíbrio estrito —.
@@ -351,9 +352,23 @@ Para rotação estrita use `round-robin`; pesos iguais em `weighted` fornecem �
 
 Um combo `pipeline` com pelo menos dois modelos pode optar pelo roteamento planner/executor com `config.agenticOrchestration.enabled`. O primeiro alvo possui planejamento e respostas finais; o segundo alvo emite chamadas de ferramentas nativas do cliente. OmniRoute detecta continuações de resultados de ferramentas do protocolo de solicitação, pergunta ao planejador se outra rodada de ferramentas é necessária e torna dinamicamente o executor ou o planejador a etapa final voltada para o cliente.
 
+`config.agenticOrchestration.contextCompaction` opcional aplica um orçamento de carga útil separado antes de cada planejador ou envio de executor. Habilite-o explicitamente:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Estes são orçamentos de caracteres JSON serializados selecionados pelo operador, e não janelas de contexto de token ou limites de upstream garantidos. O modelo exato IDs substitui o padrão. Acima do limite, a compactação remove definições de ferramentas idênticas, corta evidências de ferramentas superdimensionadas com um resumo e remove grupos históricos completos antigos em direção à proporção desejada. Ele retém instruções system/developer, a solicitação mais recente do usuário, a última rodada de ferramentas, incluindo calls/results paralelo e as principais instruções de roteamento do Gemini. As instruções de nível superior e as configurações de ferramentas são preservadas. Um marcador de omissão registra o histórico removido; este é um recorte determinístico, não um resumo semântico. Se o contexto fixado ainda exceder o orçamento, a solicitação retornará 413 antes de entrar em contato com o modelo. Com a compactação desativada ou abaixo do limite, a solicitação passa inalterada.
+
 Nas continuações dos resultados da ferramenta, OmniRoute também interrompe a execução quando duas rodadas consecutivas concluídas repetem as mesmas chamadas de ferramenta com resultados inalterados, ou quando todos os resultados marcados explicitamente em duas rodadas consecutivas falham. Os resultados alterados permitem chamadas repetidas (por exemplo, sondagens). O guarda é redefinido em uma nova solicitação do usuário, agrupa chamadas paralelas em uma rodada e suporta Anthropic, conclusões de bate-papo, respostas e históricos Gemini. O planejador recebe o motivo e possui a resposta final, mesmo que solicite outra rodada de ferramentas.
 
-Modelos adicionais após o segundo destino são backups de executores ordenados. Uma resposta HTTP ou exceção de transporte com falha avança para o próximo executor, carregando a mesma decisão do planejador e ferramentas nativas, mas a etapa do próprio executor solicita e resolve a conexão. A primeira resposta bem-sucedida é retornada inalterada, incluindo streaming SSE ; falhas após o início de um fluxo bem-sucedido não podem ser repetidas aqui. Se todos os executores falharem, a última falha será retornada. O cliente cancela o envio interrompido.
+Modelos adicionais após o segundo destino são backups de executores ordenados. Uma resposta HTTP ou exceção de transporte com falha avança para o próximo executor, carregando a mesma decisão do planejador e ferramentas nativas, mas o prompt de etapa do próprio executor e a conexão resolvida. A primeira resposta bem-sucedida é retornada inalterada, incluindo streaming SSE ; falhas após o início de um fluxo bem-sucedido não podem ser repetidas aqui. Se todos os executores falharem, a última falha será retornada. O cliente cancela o envio interrompido.
 
 ```json
 {
@@ -840,47 +855,41 @@ Para favorecer fortemente o Nível 1 (assinatura), aumente o peso de `tierPriori
 
 Consulte [`docs/guides/TIERS.md`](../guides/TIERS.md) para ver as definições dos níveis e a classificação dos provedores.
 
-## Testes e cobertura
+## Teste e cobertura
 
-### Matriz determinística de decisões de roteamento (`npm run test:combo:matrix`)
+### Matriz determinística de decisão de roteamento (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` comprova a **decisão** de roteamento de todas as 19
-estratégias públicas de ponta a ponta, passando pelo pipeline real de combinação com um upstream simulado.
-A cobertura inclui:
+`tests/integration/combo-matrix/*.test.ts` prova o roteamento** decisão** de todas as 21 estratégias públicas de ponta a ponta por meio do pipeline de combinação real com um upstream simulado. A cobertura inclui:
 
-- Todas as 19 estratégias de `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (interna) de ponta a ponta: equidade DRR + redução de prioridade por saturação por meio do
-  ponto de integração real `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Cobertura de transferência universal de `context-relay` para todas as quantidades de destinos.
+- Todas as 21 estratégias `ROUTING_STRATEGY_VALUES` (ordenadas, ponderadas, custo, contexto, fusão,…).
+- `quota-share` (interno) ponta a ponta: DRR imparcialidade + despriorização da saturação por meio da costura `selectQuotaShareTarget` real (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- cobertura de transferência universal `context-relay` em todas as contagens de destino.
 
-Esse conjunto é executado na CI (job `test:integration`) com `--test-concurrency=1` e
-`--test-force-exit`, portanto é determinístico e não exige credenciais reais.
+Este conjunto é executado em CI (`test:integration` job) com `--test-concurrency=1` e `--test-force-exit`, portanto é determinístico e não requer credenciais ativas.
 
-### Smoke test real controlado (NÃO executado na CI — provedores reais)
+### Fumaça ao vivo fechada (NOT em CI — provedores reais)
 
-| Comando                                | O que faz                                                                                                       |
-| :------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Roteamento real no processo com `RUN_COMBO_LIVE=1`; captura um snapshot de um banco de dados ativo do OmniRoute |
-| `npm run test:combo:live:vps`          | Chamadas HTTP para um servidor OmniRoute ativo (defina `COMBO_LIVE_BASE_URL`)                                   |
-| `npm run test:combo:live:vps:failover` | O mesmo, com cenários deliberados de failover                                                                   |
+| Comando                                | O que isso faz                                                                                    |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| `npm run test:combo:live`              | Roteamento real em processo com `RUN_COMBO_LIVE=1`; captura instantâneo de um DBOmniRoute ao vivo |
+| `npm run test:combo:live:vps`          | chamadas HTTP em um servidor OmniRoute ativo (set `COMBO_LIVE_BASE_URL`)                          |
+| `npm run test:combo:live:vps:failover` | O mesmo, com cenários de failover deliberados                                                     |
 
-Esses smoke tests exercitam o caminho real da comunicação (combinação → provedor → conclusão). Eles são
-intencionalmente excluídos da CI porque exigem credenciais reais e acesso a VPS.
+Esses testes de fumaça exercitam o caminho real do fio (conclusão → do provedor → combinado). Eles são excluídos intencionalmente do CI porque exigem credenciais ativas e acesso VPS.
 
 ---
 
 ## Arquivos
 
-| Arquivo                                                   | Finalidade                                                                                                                                                    |
-| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `open-sse/services/autoCombo/scoring.ts`                  | Função de pontuação com 16 fatores, `DEFAULT_WEIGHTS`, normalização do pool                                                                                   |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Tabela de adequação modelo × tarefa                                                                                                                           |
-| `open-sse/services/autoCombo/engine.ts`                   | Lógica de seleção, bandit, limite de orçamento                                                                                                                |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Exclusão, sondagens, modo de incidente                                                                                                                        |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 perfis de pesos (entrega rápida, economia de custos, qualidade em primeiro lugar, compatível com modo offline, confiabilidade em primeiro lugar, modo caos) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Analisador do prefixo `auto/` + 6 variantes                                                                                                                   |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Cria `AutoComboConfig` em memória a partir de conexões ativas                                                                                                 |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Gancho de teste para simular o registro de provedores                                                                                                         |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 estratégias)                                                                                                                    |
-| `src/sse/handlers/chat.ts`                                | Integração: desvio antecipado para o prefixo auto                                                                                                             |
+| Arquivo                                                   | Propósito                                                                                                                                     |
+| :-------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Função de pontuação de 16 fatores, `DEFAULT_WEIGHTS`, norma do pool                                                                           |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Pesquisa de aptidão da tarefa do modelo ×                                                                                                     |
+| `open-sse/services/autoCombo/engine.ts`                   | Lógica de seleção, bandido, limite orçamentário                                                                                               |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Exclusão, investigações, modo de incidente                                                                                                    |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 perfis de peso (envio rápido, econômico, qualidade em primeiro lugar, compatível com off-line, confiabilidade em primeiro lugar, modo caos) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | analisador de prefixo `auto/` + 6 variantes                                                                                                   |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Constrói `AutoComboConfig` na memória a partir de conexões ao vivo                                                                            |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Gancho de teste para zombar do registro do provedor                                                                                           |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 estratégias)                                                                                                    |
+| `src/sse/handlers/chat.ts`                                | Integração: curto-circuito de prefixo automático                                                                                              |

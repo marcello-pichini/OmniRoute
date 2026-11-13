@@ -302,7 +302,7 @@ e kpebiri na-abanye na ntinye `config.modePack` / `config.budgetCap` /
 
 ## Atụmatụ ụzọ ụzọ niile
 
-OmniRoute's combo engine na-akwado** 20 ụzọ aghụghọ** (kwuru na `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine n'onwe ya na-ekpughe n'okpuru `auto` atụmatụ; ndị ọzọ dị maka combos na-adịgide adịgide.
+OmniRoute's combo engine na-akwado** 21 ụzọ ụzọ aghụghọ** (kwuru na `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine n'onwe ya na-ekpughe n'okpuru `auto` atụmatụ; ndị ọzọ dị maka combos na-adịgide adịgide.
 
 | Atụmatụ             | Nkọwa                                                                                                                                                                              |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,6 +317,7 @@ OmniRoute's combo engine na-akwado** 20 ụzọ aghụghọ** (kwuru na `src/sha
 | `cost-optimized`    | Wedata $ kwa arịrịọ enyere ọnụahịa katalọgụ                                                                                                                                        |
 | `reset-aware` ⭐    | Wepụta ụzọ site na oke nrụpụta oge — mkpirisi nrụpụta windo dị elu                                                                                                                 |
 | `reset-window`      | Họrọ ebumnuche ndị mpio oke ha ga-atọgharị ngwa ngwa                                                                                                                               |
+| `expiry-first`      | Wepụta akaụntụ ahụ nke oke ya ga-agwụ na-ejighi ya — nke mbụ fọdụrụnụ na oge nrụgharị kacha nso na-ebu ụzọ.                                                                        |
 | `headroom`          | Họrọ ihe mgbaru ọsọ nke nwere isi ụlọ oke kacha fọdụrụ                                                                                                                             |
 | `quota-weighted`    | Mafere akaụntụ ndị ike gwụrụ, wee họrọ n'etiti ndị ọzọ dịka oke oke nke furu efu nke ibu ụgbọ elu kewara; Mkparịta ụka ndị dị adị na-akọrọ                                         |
 | `strict-random`     | Random na-enweghị deduplication nke ikwugharị                                                                                                                                      |
@@ -334,7 +335,7 @@ OmniRoute's combo engine na-akwado** 20 ụzọ aghụghọ** (kwuru na `src/sha
 `weighted` bu a** nhata random eserese kwa arịrịọ** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), ọ bụghị ihe nhata:
 
 - Arịrịọ ọ bụla na-adọta** otu** nzọụkwụ na puru omume `weight / totalWeight`; A na-enye iwu usoro ndị fọdụrụ site n'ịgbadata ibu dị ka agbụ azụ azụ maka arịrịọ ahụ.
-- Nzọụkwụ nke ibu ya bụ `0` (ma ọ bụ efu) bụ** mgbe e sere** ebe nzọụkwụ ọ bụla ọzọ nwere arọ > 0 — ọ nwere ike na-eje ozi dị ka ọdịda mgbe nzọụkwụ a dọtara daa. Naanị mgbe** niile** arọ bụ 0 ka nhọrọ na-aghọ otu.
+- Nzọụkwụ nke ibu ya bụ `0` (ma ọ bụ efu) bụ** mgbe e sere** ebe nzọụkwụ ọ bụla ọzọ nwere oke > 0 — ọ nwere ike bụrụ naanị ọdịda mgbe nzọụkwụ a dọtara ada ada. Naanị mgbe** niile** arọ bụ 0 ka nhọrọ na-aghọ otu.
 - A na-ewepụ nzọụkwụ ndị ebumnuche ha niile adịghịzi — na-eweta sekit breaker `OPEN`, njikọ cooldown, model lockout — na-ewepụ na eserese tupu ya emee (`open-sse/services/combo/targetResolution.ts`), ya mere otu nzọụkwụ ahụike nwere ike imeri arịrịọ ọ bụla nwa oge.
 - `stickyWeightedLimit` (nhazi combo, ndabara `1` = gbanyụọ) na-atụnye nzọụkwụ adọtara maka ọtụtụ ihe ịga nke ọma n'usoro tupu ịdegharịa.
 
@@ -342,11 +343,25 @@ Maka ntụgharị siri ike jiri `round-robin`; nha nha nha na `weighted` na-enye
 
 ### Ụdị pipeline
 
-Ngwakọta `pipeline` nwere opekata mpe ụdị abụọ nwere ike ịbanye na planner/executor iji `config.agenticOrchestration.enabled` banye. Ebumnuche nke mbụ nwere atụmatụ na azịza ikpeazụ; ebumnobi nke abụọ na-ebute oku ngwa ngwa nke ndị ahịa. OmniRoute na-achọpụta na-aga n'ihu na nsonaazụ ngwa site na usoro arịrịọ ahụ, jụọ onye nhazi ma ọ dị mkpa okirikiri ngwaọrụ ọzọ, ma na-eme ka onye ọrụ ma ọ bụ onye na-eme atụmatụ bụrụ onye ahịa na-eche nzọụkwụ ikpeazụ ihu.
+Ngwakọta `pipeline` nwere opekata mpe ụdị abụọ nwere ike ịbanye na planner/executor routing na `config.agenticOrchestration.enabled`. Ebumnuche nke mbụ nwere atụmatụ na azịza ikpeazụ; ebumnobi nke abụọ na-ebute oku ngwa ngwa nke ndị ahịa. OmniRoute na-achọpụta na-aga n'ihu na nsonaazụ ngwa site na usoro arịrịọ ahụ, jụọ onye nhazi ma ọ dị mkpa okirikiri ngwaọrụ ọzọ, ma na-eme ka onye ọrụ ma ọ bụ onye na-eme atụmatụ bụrụ onye ahịa na-eche nzọụkwụ ikpeazụ ihu.
 
-N'ịga n'ihu na nsonaazụ ngwa, OmniRoute na-akwụsịkwa ogbugbu mgbe agba abụọ emechara n'otu oge na-emegharị otu oku ngwaọrụ na-enwe nsonaazụ agbanweghị, ma ọ bụ mgbe nsonaazụ ọ bụla akara n'ụzọ doro anya na agba abụọ sochiri anya dara. Nsonaazụ gbanwere na-enye ohere oku ugboro ugboro (dịka ọmụmaatụ, ntuli aka). Onye nche na-amalitegharị na arịrịọ onye ọrụ ọhụrụ, otu oku na-adakọ na otu okirikiri, ma na-akwado Anthropic, Mkparịta ụka mmecha, nzaghachi na akụkọ Gemini. Onye na-eme atụmatụ na-enweta ihe kpatara ya ma nwee azịza ikpeazụ ọ bụrụgodị na ọ rịọrọ ngwá ọrụ ọzọ gburugburu.
+Nhọrọ `config.agenticOrchestration.contextCompaction` na-etinye mmefu ego ịkwụ ụgwọ dị iche tupu onye nhazi ọ bụla ma ọ bụ onye mmebe ezipụ. Kwado ya nke ọma:
 
-Ụdị agbakwunyere mgbe ebumnuche nke abụọ gachara ka a na-enye iwu nkwado ndabere nke ndị mmebe. Nzaghachi HTTP dara ada ma ọ bụ mbugharị mwepu na-aga n'ihu na onye ọrụ na-esote, na-ebu otu mkpebi onye nhazi yana ngwa ala mana nzọụkwụ nke onye mmebe ahụ ozugbo wee kpebie njikọ. A na-eweghachi nzaghachi nke ọma nke mbụ na-agbanweghị, gụnyere SSE gụgharia; Enweghị ike ịnwagharị ọdịda mgbe mmiri malitere ịga nke ọma ebe a. Ọ bụrụ na ndị mmebe niile daa, ọdịda ikpeazụ ga-eweghachite. Ndị ahịa ite ime kwụsị izipu.
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Ndị a bụ usoro mmefu ego agwa JSON ahaziri nke onye na-arụ ọrụ ahọpụtara, ọ bụghị mpio ihe ngosi akara ma ọ bụ oke elu ekwenyere. Kpọmkwem ụdị IDs na-ewepụ ndabara. N'elu ọnụ ụzọ ahụ, kọmpat na-ewepụ nkọwa ngwa ọrụ yiri nke ahụ, jiri mgbari na-ewepụ ihe akaebe ngwaọrụ buru ibu, ma wepụ otu akụkọ ihe mere eme ochie zuru oke na oke ebumnuche. Ọ na-ejigide ntụzịaka system/developer, arịrịọ onye ọrụ kachasị ọhụrụ, ngwa ọrụ ikpeazụ gụnyere calls/results yiri ya, yana nkuzi ụzọ Gemini nke na-eduga. A na-echekwa ntuziaka ọkwa dị elu na ntọala ngwaọrụ. Ihe ndekọ ihe nrịbama ewepụrụ akụkọ ihe mere eme; Nke a bụ trimming deterministic, ọ bụghị nchịkọta nke semantic. Ọ bụrụ na ọnọdụ pinned ka karịrị mmefu ego, arịrịọ ahụ ga-alaghachi 413 tupu ịkpọtụrụ ihe nlereanya ahụ. Na mkpịsị aka nwere nkwarụ ma ọ bụ n'okpuru ọnụ ụzọ, arịrịọ ahụ na-agafe na-agbanweghị agbanwe.
+
+N'ịga n'ihu na nsonaazụ ngwa, OmniRoute na-akwụsịkwa ogbugbu mgbe agba abụọ emechara n'otu oge na-emegharị otu oku ngwaọrụ na-enwe nsonaazụ agbanweghị, ma ọ bụ mgbe nsonaazụ ọ bụla akara n'ụzọ doro anya na agba abụọ sochiri anya dara. Nsonaazụ gbanwere na-enye ohere oku ugboro ugboro (dịka ọmụmaatụ, ntuli aka). Onye nche na-amalitegharị na arịrịọ onye ọrụ ọhụrụ, otu oku na-adakọ na otu okirikiri, ma na-akwado Anthropic, Mkparịta ụka mmecha, nzaghachi na akụkọ Gemini. Onye na-eme atụmatụ na-enweta ihe kpatara ya ma nwee azịza ikpeazụ ọ bụrụgodị na ọ na-arịọ ngwá ọrụ ọzọ gburugburu.
+
+Ụdị agbakwunyere mgbe ebumnuche nke abụọ gachara ka a na-enye iwu nkwado ndabere nke ndị mmebe. Nzaghachi HTTP dara ada ma ọ bụ mbugharị mwepu na-aga n'ihu na onye ọrụ na-esote, na-ebu otu mkpebi onye nhazi yana ngwa ala mana nzọụkwụ nke onye mmebe ahụ ozugbo wee kpebie njikọ. A na-eweghachi nzaghachi nke ọma nke mbụ na-agbanweghị agbanwe, gụnyere SSE gụgharia; Enweghị ike ịnwagharị ọdịda mgbe mmiri malitere ịga nke ọma ebe a. Ọ bụrụ na ndị mmebe niile daa, ọdịda ikpeazụ ga-eweghachite. Ndị ahịa ite ime kwụsị izipu.
 
 ```json
 {
@@ -358,7 +373,7 @@ N'ịga n'ihu na nsonaazụ ngwa, OmniRoute na-akwụsịkwa ogbugbu mgbe agba a
 }
 ```
 
-Onye mmebe ahụ nwere ike ịkpọnye ọtụtụ oku nọọrọ onwe ha n'otu nzaghachi. A na-edozi oku dabere na ntụgharị ngwa ọrụ ndị ahịa mechara, onye nhazi na-enyocha nsonaazụ ọ bụla. `maxToolRounds` ndabara na `8` wee nabata `1`–`32`; ozugbo iru eru, onye na-eme atụmatụ aghaghị iwepụta azịza ikpeazụ kacha mma dị. A na-echekwa mkpebi ndị na-eme atụmatụ ime, ebe nzaghachi ihu ndị ahịa ahọpụtara na-echekwa mmasị nkwanye ugwu mbụ.
+Onye mmebe ahụ nwere ike ịkpọnye ọtụtụ oku nọọrọ onwe ha n'otu nzaghachi. A na-edozi oku dabere na ntụgharị ngwa ọrụ ndị ahịa mechara, onye nhazi na-enyocha nsonaazụ ọ bụla. `maxToolRounds` ndabara na `8` wee nabata `1`–`32`; ozugbo iru eru, onye na-eme atụmatụ aghaghị iwepụta azịza ikpeazụ kacha mma dị. A na-echekwa mkpebi ndị na-eme atụmatụ ime, ebe nzaghachi ndị ahịa ahọpụtara na-echekwa mmasị mbugharị mbugharị.
 
 ### `round-robin` nnyapade ogbe na mgbasawanye akaụntụ
 
@@ -366,7 +381,7 @@ A na-achịkọta gburugburu-robin, ọ bụghị otu arịrịọ-kwa-nzọụk
 
 - `stickyRoundRobinLimit` (nhazi combo, wee `comboStickyRoundRobinLimit`, wee `settings.stickyRoundRobinLimit`, ndabara** 3** ) na-edobe otu ebumnuche ahụ maka ọtụtụ ihe ịga nke ọma n'usoro tupu ịtụgharị. Tọọ mbufe ngwakọta na `1` maka ntụgharị otu arịrịọ. Onye nchịkọta akụkọ combo na-egosi uru bara uru yana oyi akwa ọ si na ya pụta.
 - `connectionAwareExpansion` (nhazi nhazi, wee ntọala, ndabere** ụgha** ) na-agbasa ọkwa ọkwa onye ọ bụla n'ime ebumnuche akaụntụ ọ bụla tupu ntụgharị. Atụmatụ otu-B (ihe dị mkpa, arọ, gburugburu-robin, random, p2c, obere-eji, ọnụ ahịa kacha mma, lkgp, fill-mbụ, siri ike-random, ọnọdụ-kachasị mma, cache-kachasị mma, okirikiri-agba agba, fusion, pipeline) debe nlele ọkwa onye na-eweta ruo mgbe nke a ga-eme. Onye nchịkọta akụkọ combo na-ekpughe ihe nketa / gbanye / gbanyụọ; eketa na-eji ndabara zuru ụwa ọnụ (gbanyụọ).
-- Ntugharị mpaghara cache ozugbo (`promptCacheAffinityEnabled`, ndabara** eziokwu** ) na-enyegharị njikọ ndị etinyere iwu ka igodo cache dabara adaba nọrọ n'otu akaụntụ. Ọ na-ebute ụzọ karịa gburugburu-robin na ngbanwe dị arọ gafere usoro akaụntụ ọ bụla etinyere. Gbanyụọ ya n'okpuru Ntọala → Combo ndabara ma ọ bụrụ na ịchọrọ ntụgharị siri ike. Enweghị nfefe n'otu n'otu.
+- Ntugharị mpaghara cache ozugbo (`promptCacheAffinityEnabled`, ndabara** eziokwu** ) na-enyegharị njikọ ndị etinyere iwu ka igodo cache dabara adaba nọrọ n'otu akaụntụ. Ọ na-ebute ụzọ karịa gburugburu-robin na ntụgharị dị arọ n'ofe usoro akaụntụ ọ bụla etinyere. Gbanyụọ ya n'okpuru Ntọala → Combo ndabara ma ọ bụrụ na ịchọrọ ntụgharị siri ike. Enweghị nfefe n'otu n'otu.
 
 Maka ntụgharị akaụntụ ọtụtụ n'otu ụdị, masịrị** otu dynamic-akaụntụ nzọụkwụ** ( `connectionId` efu, ọdọ mmiri dum) nwere oke nnyapade `1`, ọ bụghị atọ `connectionId` s pinned. Nzọụkwụ agbakwunyere gbakwunyere mmekọrịta na-adaba na otu akaụntụ ọbụlagodi mgbe RR counter na-aga n'ihu.
 
@@ -827,47 +842,41 @@ Iji nye Tier 1 (ndebanye aha) nnukwu uru, bulie ibu `tierPriority`:
 
 Lee [`docs/guides/TIERS.md`](../guides/TIERS.md) maka nkọwa tier na nhazi ndị na-eweta ọrụ.
 
-## Nnwale & Mkpuchi
+## Nnwale & mkpuchi
 
-### Matriks mkpebi routing na-agbanweghi agbanwe (`npm run test:combo:matrix`)
+### Matriks nke na-ekpebi ụzọ ntụgharị (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` na-egosi **mkpebi** routing nke strategies ọhaneze 19 niile
-site na mbido ruo na ngwụcha n’ime ezigbo pipeline combo, site na upstream e mere mock.
-Mkpuchi ahụ gụnyere:
+`tests/integration/combo-matrix/*.test.ts` na-egosi ụzọ** mkpebi** n'ime atụmatụ ọha 21 niile na-ejedebe ruo-ọgwụgwụ site n'ezigbo pipeline nke nwere ihe na-akwa emo. Mkpuchi gụnyere:
 
-- Strategies `ROUTING_STRATEGY_VALUES` 19 niile (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (nke ime) site na mbido ruo na ngwụcha: izi ezi DRR + iweda mkpa mgbe saturation dị elu site na
-  ezigbo oghere njikọ `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Mkpuchi nnyefe zuru ụwa ọnụ `context-relay` n’ofe ọnụọgụ target niile.
+- Atụmatụ `ROUTING_STRATEGY_VALUES` 21 niile (nyere iwu, nha, ọnụ ahịa, okirikiri, ngwakọta,…).
+- `quota-share` (n'ime) njedebe ruo na njedebe: DRR ziri ezi + saturation deprioritization site na ezigbo `selectQuotaShareTarget` seam (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` mkpuchi aka zuru ụwa ọnụ gafee ọnụọgụ ebumnuche ọ bụla.
 
-Suite a na-agba na CI (ọrụ `test:integration`) na `--test-concurrency=1` na
-`--test-force-exit`, ka ọ bụrụ nke na-agbanweghi agbanwe ma ghara ịchọ credentials dị ndụ.
+Ụlọ ọrụ a na-agba ọsọ na CI (ọrụ `test:integration` ) na `--test-concurrency=1` na `--test-force-exit` ya mere ọ na-ekpebi ma ọ dịghị achọ nzere ndụ.
 
-### Smoke test ndụ nwere mgbochi (Ọ DỊGHỊ na CI — ezigbo providers)
+### Anwụrụ ọkụ dị ndụ (NOT na CI — ezigbo ndị na-eweta ya)
 
-| Iwu                                    | Ihe ọ na-eme                                                                                |
-| :------------------------------------- | :------------------------------------------------------------------------------------------ |
-| `npm run test:combo:live`              | Ezigbo routing n’ime process na `RUN_COMBO_LIVE=1`; na-eme snapshot nke DB OmniRoute dị ndụ |
-| `npm run test:combo:live:vps`          | Oku HTTP megide sava OmniRoute dị ndụ (tọọ `COMBO_LIVE_BASE_URL`)                           |
-| `npm run test:combo:live:vps:failover` | Otu ihe ahụ, tinyere ọnọdụ failover e kpachapụrụ anya kee                                   |
+| Iwu                                    | Ihe ọ na-eme                                                                  |
+| :------------------------------------- | :---------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Na-arụ ọrụ n'ezie routing na `RUN_COMBO_LIVE=1`; snapshots a ndụ OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP na-akpọ megide sava OmniRoute dị ndụ (tọọ `COMBO_LIVE_BASE_URL`)         |
+| `npm run test:combo:live:vps:failover` | Otu ahụ, ya na ndapụta ndapụta nke ọma                                        |
 
-Smoke tests ndị a na-anwale ezigbo ụzọ njikọ (combo → provider → completion). A kpachapụrụ anya
-wepụ ha na CI n’ihi na ha chọrọ credentials dị ndụ na ohere ịbanye VPS.
+Nnwale anwụrụ ọkụ ndị a na-egosipụta ụzọ waya n'ezie (combo → provider → completion). A kpachapụrụ ha na CI n'ihi na ha chọrọ nzere ndụ yana ohere VPS.
 
 ---
 
 ## Faịlụ
 
-| Faịlụ                                                     | Ebumnuche                                                                                                                |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Ọrụ inye akara nwere ihe 16, `DEFAULT_WEIGHTS`, nhazi pool                                                               |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Nnyocha ndakọrịta Model × ọrụ                                                                                            |
-| `open-sse/services/autoCombo/engine.ts`                   | Usoro nhọrọ, bandit, oke mmefu ego                                                                                       |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Mwepu, nyocha, ọnọdụ ihe mberede                                                                                         |
-| `open-sse/services/autoCombo/modePacks.ts`                | Profaịlụ ibu 6 (zipụ-ngwa-ngwa, nchekwa-ọnụahịa, ogo-mbụ, adabara-anọghị-n'ịntanetị, ntụkwasị-obi-mbụ, ọnọdụ-ọgbaaghara) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Ntụgharị prefix `auto/` + ụdị 6                                                                                          |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Na-emepụta `AutoComboConfig` n'ime ebe nchekwa site na njikọ ndị na-arụ ọrụ                                              |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook ule maka imegharị provider registry                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (usoro 20)                                                                                     |
-| `src/sse/handlers/chat.ts`                                | Njikọta: ụzọ mkpirisi auto-prefix                                                                                        |
+| Faịlụ                                                     | Ebumnuche                                                                                                                            |
+| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Ọrụ akara 16-ihe, `DEFAULT_WEIGHTS`, ọdọ mmiri norm                                                                                  |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Nleba anya nleba anya ọrụ ×                                                                                                          |
+| `open-sse/services/autoCombo/engine.ts`                   | Echiche nhọrọ, ndị ohi, okpu mmefu ego                                                                                               |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Mwepu, nyocha, ụdị omume                                                                                                             |
+| `open-sse/services/autoCombo/modePacks.ts`                | Profaịlụ dị arọ 6 (ụgbọ-ngwa ngwa, nchekwa ọnụ ahịa, ịdịmma-nke mbụ, enyi na-anọghị n'ịntanetị, ntụkwasị obi-mbụ, ọnọdụ ọgba aghara) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 dị iche iche                                                                                               |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Na-ewulite `AutoComboConfig` na ebe nchekwa site na njikọ dị ndụ                                                                     |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Nwale nko maka ndekọ na-eweta ndị na-akwa emo                                                                                        |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (atụmatụ 21)                                                                                               |
+| `src/sse/handlers/chat.ts`                                | Njikọta: akpaaka prefix mkpirisi okirikiri                                                                                           |

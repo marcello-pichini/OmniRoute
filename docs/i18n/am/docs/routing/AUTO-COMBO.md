@@ -297,9 +297,9 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## ሁሉም የማዞሪያ ስልቶች
 
-OmniRoute's combo engine ይደግፋል** 20 የማዞሪያ ስልቶች** (በ `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` የተገለፀ)። የአውቶ ኮምቦ ሞተር እራሱ በ `auto` ስትራቴጂ ስር ይጋለጣል; ሌሎቹ ለቀጣይ ጥንብሮች ይገኛሉ.
+OmniRoute's combo engine ይደግፋል** 21 የማዞሪያ ስልቶች** (በ `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` የተገለፀ)። የአውቶ ኮምቦ ሞተር እራሱ በ `auto` ስትራቴጂ ስር ይጋለጣል; ሌሎቹ ለቀጣይ ጥንብሮች ይገኛሉ.
 
-| ስልት                 | መግለጫ                                                                                                                               |
+| ስትራቴጂ               | መግለጫ                                                                                                                               |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
 | `priority`          | የመጀመሪያ ዒላማ የታዘዘ ዝርዝር ከግልጽ ቅድሚያ ጋር                                                                                                  |
 | `weighted`          | በዘፈቀደ የሚመዘነው በእያንዳንዱ ዒላማ ክብደት                                                                                                      |
@@ -312,6 +312,7 @@ OmniRoute's combo engine ይደግፋል** 20 የማዞሪያ ስልቶች** (�
 | `cost-optimized`    | በተሰጠው የካታሎግ ዋጋ በጥያቄ $ አሳንስ                                                                                                         |
 | `reset-aware` ⭐    | በኮታ ዳግም ማስጀመሪያ ጊዜ ቅድሚያ ስጥ — አጭር ዳግም ማስጀመሪያ መስኮቶች ከፍ ያለ ደረጃ ተሰጥቷቸዋል።                                                                |
 | `reset-window`      | የኮታ መስኮቱ በቅርቡ የሚጀምር ኢላማዎችን ይምረጡ                                                                                                    |
+| `expiry-first`      | ጥቅም ላይ ያልዋለበት የመጀመሪያ — ኮታው ጊዜው የሚያበቃበትን መለያ ያወጡት ከቅርቡ ዳግም ማስጀመሪያ ቀነ-ገደብ ጋር የመጀመሪያው ነው።                                             |
 | `headroom`          | ከቀረው የኮታ ዋና ክፍል ጋር ዒላማውን ይምረጡ                                                                                                      |
 | `quota-weighted`    | የደከሙ ሂሳቦችን ዝለል፣ ከዚያም በበረራ ላይ ባለው ጭነት ከተከፋፈለው የተረፈውን ኮታ መጠን ከቀሩት መካከል ይምረጡ። ነባር ንግግሮች እንደተሰካ ይቆያሉ።                                  |
 | `strict-random`     | መደጋገሚያዎች ሳይቀነሱ በዘፈቀደ                                                                                                               |
@@ -337,7 +338,21 @@ OmniRoute's combo engine ይደግፋል** 20 የማዞሪያ ስልቶች** (�
 
 ### ወኪል የቧንቧ መስመር ሁነታ
 
-ቢያንስ ሁለት ሞዴሎች ያሉት `pipeline` ጥምር `config.agenticOrchestration.enabled` ጋር ወደ planner/executor ማዘዋወር መምረጥ ይችላል። የመጀመሪያው ኢላማ እቅድ እና የመጨረሻ መልሶች አሉት; ሁለተኛው ዒላማ የደንበኛ-ቤተኛ መሣሪያ ጥሪዎችን ያስወጣል። OmniRoute ከጥያቄው ፕሮቶኮል የመሳሪያ-ውጤት መቀጠያዎችን ፈልጎ ያገኛል፣ እቅድ አውጪውን ሌላ የመሳሪያ ዙር ያስፈልግ እንደሆነ ይጠይቃል፣ እና በተለዋዋጭ ሁኔታ አስፈፃሚውን ወይም እቅድ አውጪውን ደንበኛን የሚመለከት የመጨረሻ ደረጃ ያደርገዋል።
+ቢያንስ ሁለት ሞዴሎች ያሉት `pipeline` ጥምር `config.agenticOrchestration.enabled` ጋር ወደ planner/executor ማዞሪያ መርጦ መግባት ይችላል። የመጀመሪያው ኢላማ እቅድ እና የመጨረሻ መልሶች አሉት; ሁለተኛው ዒላማ የደንበኛ-ቤተኛ መሣሪያ ጥሪዎችን ያስወጣል። OmniRoute ከጥያቄው ፕሮቶኮል የመሳሪያ-ውጤት መቀጠያዎችን ፈልጎ ያገኛል፣ እቅድ አውጪውን ሌላ የመሳሪያ ዙር ያስፈልግ እንደሆነ ይጠይቃል፣ እና በተለዋዋጭ ሁኔታ አስፈፃሚውን ወይም እቅድ አውጪውን ደንበኛን የሚመለከት የመጨረሻ ደረጃ ያደርገዋል።
+
+አማራጭ `config.agenticOrchestration.contextCompaction` ከእያንዳንዱ እቅድ አውጪ ወይም አስፈፃሚ ከመላኩ በፊት የተለየ የመጫኛ በጀት ይተገበራል። በግልጽ አንቃው፡-
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+እነዚህ ተከታታይ JSON ቁምፊ በጀቶች በኦፕሬተሩ የተመረጡ እንጂ የአውድ መስኮቶችን ወይም የተረጋገጡ የወለል ገደቦች አይደሉም። ትክክለኛው ሞዴል IDs ነባሪውን ይሽራል። ከመነሻው በላይ፣ መጠቅለል ተመሳሳይ የመሳሪያ ትርጓሜዎችን ያስወግዳል፣ ከመጠን በላይ የሆኑ የመሳሪያ ማስረጃዎችን በምግብ መፍጨት ይከርክማል፣ እና የቆዩ ሙሉ የታሪክ ቡድኖችን ወደ ኢላማው ጥምርታ ያስወግዳል። system/developer መመሪያዎችን፣ የቅርብ ጊዜውን የተጠቃሚ ጥያቄ፣ የመጨረሻውን የመሳሪያ ዙር ትይዩ calls/results እና የ Gemini መሪ የማዞሪያ መመሪያን ይይዛል። ከፍተኛ ደረጃ መመሪያዎች እና የመሣሪያ ቅንብሮች ተጠብቀዋል። የመጥፋት ምልክት ማድረጊያ መዝገቦች ታሪክን ተወግደዋል; ይህ ቆራጥ መከርከም እንጂ የትርጉም ማጠቃለያ አይደለም። የተሰካው አውድ አሁንም ከበጀት በላይ ከሆነ፣ ሞዴሉን ከማነጋገርዎ በፊት ጥያቄው 413 ይመለሳል። መጠቅለል ከተሰናከለ ወይም ከመነሻው በታች ጥያቄው ሳይለወጥ ያልፋል።
 
 በመሳሪያ-ውጤት ቀጣይነት፣ ሁለት ተከታታይ የተጠናቀቁ ዙሮች ተመሳሳይ የመሳሪያ ጥሪዎችን ሲደጋገሙ፣ ወይም እያንዳንዱ በግልጽ ምልክት የተደረገበት በሁለት ተከታታይ ዙሮች OmniRoute ዝቃ መፈጸሙን ያቆማል። የተቀየሩ ውጤቶች ተደጋጋሚ ጥሪዎችን ይፈቅዳሉ (ለምሳሌ ድምጽ መስጠት)። ጠባቂው በአዲስ የተጠቃሚ ጥያቄ ዳግም ያስጀምራል፣ ቡድኖች ወደ አንድ ዙር በትይዩ ይደውላሉ፣ እና Anthropic፣ የውይይት ማጠናቀቅን፣ ምላሾችን እና Gemini ታሪኮችን ይደግፋል። እቅድ አውጪው ምክንያቱን ይቀበላል እና ሌላ የመሳሪያ ዙር ቢጠይቅም የመጨረሻውን መልስ በባለቤትነት ይይዛል።
 
@@ -353,17 +368,17 @@ OmniRoute's combo engine ይደግፋል** 20 የማዞሪያ ስልቶች** (�
 }
 ```
 
-ፈፃሚው በአንድ ምላሽ ብዙ ገለልተኛ ጥሪዎችን ሊያስተላልፍ ይችላል። ጥገኞች ጥሪዎች የሚስተናገዱት በኋለኛው የደንበኛ መሳሪያ-ውጤት ተራ ሲሆን እቅድ አውጪው እያንዳንዱን ውጤት እየገመገመ ነው። `maxToolRounds` ነባሪ ወደ `8` እና `1` ይቀበላል -`32`; አንዴ ከደረሰ፣ እቅድ አውጪው የተገኘውን የመጨረሻ መልስ መስጠት አለበት። የውስጣዊ እቅድ አውጪ ውሳኔዎች ተዘግተዋል፣ የተመረጠው ደንበኛን የሚመለከት ምላሽ ግን የመጀመሪያውን የዥረት ምርጫ ይጠብቃል።
+ፈፃሚው በአንድ ምላሽ ብዙ ገለልተኛ ጥሪዎችን ሊያስተላልፍ ይችላል። ጥገኞች ጥሪዎች የሚስተናገዱት በኋለኛው የደንበኛ መሳሪያ-ውጤት ተራ ሲሆን እቅድ አውጪው እያንዳንዱን ውጤት እየገመገመ ነው። `maxToolRounds` ወደ `8` ነባሪ እና `1`-`32` ይቀበላል; አንዴ ከደረሰ፣ እቅድ አውጪው የተገኘውን የመጨረሻ መልስ መስጠት አለበት። የውስጣዊ እቅድ አውጪ ውሳኔዎች ተዘግተዋል፣ የተመረጠው ደንበኛን የሚመለከት ምላሽ ግን የመጀመሪያውን የዥረት ምርጫ ይጠብቃል።
 
 ### `round-robin` የሚለጠፍ ባች እና የመለያ መስፋፋት።
 
 ክብ-ሮቢን የተከፋፈለ ነው እንጂ በአንድ እርምጃ አንድ ጥያቄ አይደለም፡
 
-- `stickyRoundRobinLimit` (ኮምቦ ውቅር፣ ከዚያ `comboStickyRoundRobinLimit`፣ ከዚያ `settings.stickyRoundRobinLimit`፣ ነባሪ** 3** ) ከመዞሩ በፊት ለተከታታይ ስኬቶች ተመሳሳይ ዒላማ ያደርጋል። የአንድ ጥያቄ ማሽከርከር ጥምር መሻርን ወደ `1` ያዘጋጁ። ጥምር አርታዒው ውጤታማውን ዋጋ እና ከየትኛው ንብርብር እንደመጣ ያሳያል።
+- `stickyRoundRobinLimit` (የኮምቦ ውቅር፣ ከዚያ `comboStickyRoundRobinLimit`፣ ከዚያ `settings.stickyRoundRobinLimit`፣ ነባሪ** 3** ) ከመዞሩ በፊት ለተከታታይ ስኬቶች ተመሳሳይ ዒላማ ያደርጋል። ጥምር መሻርን ለአንድ ጥያቄ ማሽከርከር ወደ `1` ያዘጋጁ። ጥምር አርታዒው ውጤታማውን ዋጋ እና ከየትኛው ንብርብር እንደመጣ ያሳያል።
 - `connectionAwareExpansion` (የኮምቦ ውቅር፣ ከዚያ ቅንብሮች፣ ነባሪ** የውሸት** ) ከማሽከርከር በፊት እያንዳንዱን የአቅራቢ ደረጃ ወደ በየመለያ ዒላማዎች ያሰፋል። የቡድን-ቢ ስትራቴጂዎች (ቅድሚያ፣ ክብደት ያለው፣ ክብ-ሮቢን፣ በዘፈቀደ፣ p2c፣ በትንሹ ጥቅም ላይ የዋለ፣ ወጪ-የተመቻቸ፣ lkgp፣ ሙላ-መጀመሪያ፣ ጥብቅ- የዘፈቀደ፣ አውድ-የተመቻቸ፣ መሸጎጫ-የተመቻቸ፣ አውድ-ማስተላለፊያ፣ ውህደት፣ ቧንቧ) ይህ እስኪሆን ድረስ የአቅራቢ ደረጃ እይታን ያቆዩ። ጥምር አርታዒው ውርስ / ማብራት / ማጥፋትን ያጋልጣል; ርስት ዓለም አቀፋዊውን ነባሪ (ጠፍቷል) ይጠቀማል።
 - ፈጣን መሸጎጫ አካባቢ ማዞሪያ (`promptCacheAffinityEnabled`፣ ነባሪ** እውነት ነው።** ) የተገናኙትን ግንኙነቶች እንደገና ያዛል ስለዚህ የሚዛመዱ የመሸጎጫ ቁልፎች በአንድ መለያ ላይ ይቆያሉ። በክብ-ሮቢን እና በክብደት ማሽከርከር በእያንዳንዱ መለያ በተሰኩ ደረጃዎች ላይ ቅድሚያ ይሰጣል። ጥብቅ ማሽከርከር ካስፈለገዎት በቅንብሮች → Combo defaults ስር ያጥፉት። በኮምቦ መሻር የለም።
 
-በአንድ ሞዴል ላይ ባለ ብዙ መለያ ማሽከርከርን ይምረጡ** አንድ ተለዋዋጭ-የመለያ ደረጃ** (ባዶ `connectionId`፣ ሙሉ ገንዳ) የሚጣብቅ ገደብ `1` ያለው፣ ባለ ሶስት የተሰኩ `connectionId` s አይደለም። የተሰካው ደረጃዎች እና የዝምድና ግንኙነት RR ቆጣሪ እየገፋ እያለም በተመሳሳይ መለያ ላይ ይወድቃሉ።
+በአንድ ሞዴል ላይ ባለ ብዙ መለያ ማሽከርከርን ይምረጡ** አንድ ተለዋዋጭ-የመለያ ደረጃ** (ባዶ `connectionId`፣ ሙሉ ገንዳ) የሚለጠፍ ገደብ `1` ያለው፣ ባለሶስት ፒንክ `connectionId` s አይደለም። የተሰካው ደረጃዎች እና የዝምድና ግንኙነት RR ቆጣሪ እየገፋ እያለም በተመሳሳይ መለያ ላይ ይወድቃሉ።
 
 ## የFusion ስትራቴጂ
 
@@ -834,45 +849,39 @@ offline-friendly) «የክብደት መገለጫዎች በየጥቅሉ» ሰን�
 
 ## ሙከራ እና ሽፋን
 
-### ውስን ውጤት የሚሰጥ የማዘዋወር-ውሳኔ ማትሪክስ (`npm run test:combo:matrix`)
+### ቆራጥ ማዞሪያ-ውሳኔ ማትሪክስ (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` የሁሉንም 19 ይፋዊ
-ስልቶች የማዘዋወር **ውሳኔ**፣ በተመሰለ የላይኛው ዥረት አማካኝነት በእውነተኛው የኮምቦ የሥራ ሂደት በኩል ከጫፍ እስከ ጫፍ ያረጋግጣል።
-ሽፋኑ የሚከተሉትን ያካትታል፦
+`tests/integration/combo-matrix/*.test.ts` ማዞሪያውን ያረጋግጣል** ውሳኔ** ከ 21 ቱ የህዝብ ስልቶች ከጫፍ እስከ ጫፍ በእውነተኛው ጥምር ቧንቧ መስመር የተሳለቀ ነው። ሽፋን የሚከተሉትን ያጠቃልላል
 
-- ሁሉንም 19 የ`ROUTING_STRATEGY_VALUES` ስልቶች (ordered፣ weighted፣ cost፣ context፣ fusion፣ …)።
-- `quota-share` (ውስጣዊ) ከጫፍ እስከ ጫፍ፦ የDRR ፍትሐዊነት + በእውነተኛው `selectQuotaShareTarget` መገናኛ በኩል ሙሌትን በቅድሚያ አለመስጠት
-  (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`)።
-- በእያንዳንዱ የዒላማ ብዛት ላይ ያለው የ`context-relay` ሁለንተናዊ ርክክብ ሽፋን።
+- ሁሉም 21 `ROUTING_STRATEGY_VALUES` ስልቶች (የታዘዙ፣የተመዘኑ፣ወጪ፣አውድ፣ውህደት፣…)።
+- `quota-share` (ውስጣዊ) ከጫፍ እስከ ጫፍ DRR ፍትሃዊነት + ሙሌት ከቅድመ-መገለል በእውነተኛው `selectQuotaShareTarget` ስፌት (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`)።
+- `context-relay` ሁለንተናዊ-የእጅ አዙር ሽፋን በእያንዳንዱ የዒላማ ቆጠራ።
 
-ይህ የሙከራ ስብስብ በCI (`test:integration` job) ውስጥ ከ`--test-concurrency=1` እና
-`--test-force-exit` ጋር ይከናወናል፤ በመሆኑም ውጤቱ ውስን ነው እና ቀጥታ የመግቢያ ማስረጃዎችን አይፈልግም።
+ይህ ስብስብ በ CI (`test:integration` job) `--test-concurrency=1` እና `--test-force-exit` ጋር ይሰራል ስለዚህ የሚወስነው እና የቀጥታ ምስክርነቶችን አያስፈልገውም።
 
-### በቅድመ ሁኔታ የተገደበ ቀጥታ የመጀመሪያ ሙከራ (በCI ውስጥ **አይደለም** — እውነተኛ አቅራቢዎች)
+### የታሸገ የቀጥታ ጭስ (NOT በ CI — እውነተኛ አቅራቢዎች)
 
-| ትእዛዝ                                   | የሚያደርገው                                                                           |
-| :------------------------------------- | :-------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1`ን በመጠቀም በሂደት ውስጥ እውነተኛ ማዘዋወር፤ የቀጥታ OmniRoute DB ቅጽበተ ግልባጭ ይወስዳል |
-| `npm run test:combo:live:vps`          | በቀጥታ OmniRoute አገልጋይ ላይ የHTTP ጥሪዎችን ያደርጋል (`COMBO_LIVE_BASE_URL`ን ያዘጋጁ)           |
-| `npm run test:combo:live:vps:failover` | ተመሳሳይ፣ ነገር ግን ሆን ተብለው ከተዘጋጁ የመቀያየሪያ ሁኔታዎች ጋር                                      |
+| ትዕዛዝ                                   | ምን ያደርጋል                                                                |
+| :------------------------------------- | :---------------------------------------------------------------------- |
+| `npm run test:combo:live`              | በሂደት ላይ እውነተኛ መስመር ከ `RUN_COMBO_LIVE=1` ጋር; የቀጥታ OmniRoute DB ቅጽበተ-ፎቶዎች |
+| `npm run test:combo:live:vps`          | HTTP በቀጥታ OmniRoute አገልጋይ ጋር ይደውላል ( `COMBO_LIVE_BASE_URL` አዘጋጅ)        |
+| `npm run test:combo:live:vps:failover` | ተመሳሳይ፣ ሆን ተብሎ ያልተሳካላቸው ሁኔታዎች                                            |
 
-እነዚህ የመጀመሪያ ሙከራዎች እውነተኛውን የግንኙነት መንገድ (combo → provider → completion) ይፈትሻሉ።
-ቀጥታ የመግቢያ ማስረጃዎችን እና የVPS መዳረሻን ስለሚፈልጉ፣ ሆን ተብለው ከCI ውጭ ተደርገዋል።
+እነዚህ የጭስ ሙከራዎች ትክክለኛውን የሽቦ መንገድ (የኮምቦ → አቅራቢ → ማጠናቀቅን) ይለማመዳሉ። ሆን ተብሎ ከ CI የተገለሉ ናቸው ምክንያቱም የቀጥታ ምስክርነቶችን እና VPS መዳረሻን ይፈልጋሉ።
 
 ---
 
 ## ፋይሎች
 
-| ፋይል                                                       | ዓላማ                                                                                                    |
-| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | ባለ16-ምክንያት የውጤት አሰጣጥ ፈንክሽን፣ `DEFAULT_WEIGHTS`፣ የpool መደበኛነት                                            |
-| `open-sse/services/autoCombo/taskFitness.ts`              | የModel × task ብቃት ፍለጋ                                                                                  |
-| `open-sse/services/autoCombo/engine.ts`                   | የምርጫ ሎጂክ፣ bandit፣ የበጀት ገደብ                                                                             |
-| `open-sse/services/autoCombo/selfHealing.ts`              | ማግለል፣ probes፣ የincident ሁነታ                                                                            |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 የክብደት መገለጫዎች (ship-fast፣ cost-saver፣ quality-first፣ offline-friendly፣ reliability-first፣ chaos-mode) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ቅድመ ቅጥያ parser + 6 ልዩነቶች                                                                       |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | ከቀጥታ connections የin-memory `AutoComboConfig` ይገነባል                                                    |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | provider registryን ለመቅዳት የሙከራ hook                                                                     |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategies)                                                              |
-| `src/sse/handlers/chat.ts`                                | ውህደት፦ የauto-prefix አጭር ዙር                                                                              |
+| ፋይል                                                       | ዓላማ                                                                                        |
+| :-------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | ባለ 16-ደረጃ የውጤት ተግባር፣ `DEFAULT_WEIGHTS`፣ ገንዳ መደበኛ                                           |
+| `open-sse/services/autoCombo/taskFitness.ts`              | ሞዴል × ተግባር የአካል ብቃት ፍለጋ                                                                    |
+| `open-sse/services/autoCombo/engine.ts`                   | የምርጫ አመክንዮ፣ ሽፍታ፣ የበጀት ካፕ                                                                   |
+| `open-sse/services/autoCombo/selfHealing.ts`              | ማግለል፣ መመርመሪያዎች፣ የአደጋ ሁነታ                                                                   |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 የክብደት መገለጫዎች (በመርከብ ፈጣን፣ ወጪ ቆጣቢ፣ ጥራት ያለው-መጀመሪያ፣ ከመስመር ውጭ ተስማሚ፣ አስተማማኝነት-መጀመሪያ፣ ትርምስ-ሁነታ) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ቅድመ ቅጥያ ተንታኝ + 6 ተለዋጮች                                                             |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | ከቀጥታ ግንኙነቶች `AutoComboConfig` በማህደረ ትውስታ ይገነባል።                                            |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | የአቅራቢውን መዝገብ ለማሾፍ የሙከራ መንጠቆ                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 ስትራቴጂዎች)                                                     |
+| `src/sse/handlers/chat.ts`                                | ውህደት፡ ራስ-ቅድመ-ቅጥያ አጭር-የወረዳ                                                                  |

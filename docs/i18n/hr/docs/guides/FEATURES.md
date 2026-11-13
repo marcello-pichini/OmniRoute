@@ -57,27 +57,17 @@ OpenRouter veze mogu pohraniti `preset` po vezi u Advanced Settings. Kada je pos
 
 ---
 
-## 🎨 Combosi
+## 🎨 kombinacije
 
-Kreirajte combose za usmjeravanje modela s 19 javnih strategija: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralelno raspoređivanje na panel modela, zatim sinteza jednog odgovora putem suca) i **pipeline**. Svaki combo povezuje više modela s automatskim fallbackom te uključuje brze predloške i provjere spremnosti.
+Stvorite kombinacije usmjeravanja modela s 21 javnom strategijom: prioritet, ponderirana, kružna, kontekstni relej, prvo popuni, p2c (power-of-two izbora), nasumična, najmanje korištena, troškovno optimizirana, reset-svjesna, reset-window, expiry-first, headroom, kvota-weighted, strict-random, auto, lkgp (posljednji-poznati-dobar-pružatelj), optimizirano za kontekst, optimizirano za predmemoriju,** fuzija** (paralelno se proširite na panel modela, zatim sintetizirajte jedan odgovor preko suca), i** cjevovod** . Svaka kombinacija povezuje više modela s automatskim vraćanjem i uključuje brze predloške i provjere spremnosti.
 
-Nedavna poboljšanja comboa:
+Nedavna poboljšanja kombinacije:
 
-- **Strukturirani combo builder** — kreirajte svaki korak odabirom providera, modela i točnog računa/veze
-- **Podrška za ponovljene providere** — ponovno koristite isti provider više puta u jednom combou sve dok je tuple `(provider, model, connection)` jedinstven
-- **Zdravlje combo ciljeva** — analitika i prikazi zdravlja sada razlikuju pojedinačne combo ciljeve/korake umjesto da sve sažimaju u niz modela
-- **Redoslijed kompozitnih razina (tier)** — `defaultTier -> fallbackTier` sada utječe na redoslijed izvršavanja/fallbacka pri izvođenju za korake comboa na vrhovnoj razini
-- **Predlošci sistemskih poruka** — combo `system_message` podržava poslužiteljske
-  placeholdere `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` i `{{FINGERPRINT}}`,
-  koji se proširuju iz stvarno usmjerenog cilja neposredno prije slanja.
-  Nalaze se na dopuštenom popisu i nisu rekurzivni; nepoznati placeholderi ostaju u izvornom obliku; prazne vrijednosti
-  proširuju se u prazno; klijentski sistemski prompti se nikada ne prepisuju. `{{FINGERPRINT}}`
-  razrješava se samo za besplatne providere temeljene na fingerprintu s pinanim ili
-  automatski rotiranim fingerprintom — svugdje drugdje proširuje se u prazno (npr.
-  veze s jednim fingerprintom, provideri koji nisu fp). Proširenje obuhvaća
-  standardnu petlju slanja, round-robin i pinane sesije s context-cacheom;
-  fusion, chaos, pipeline i strategije s ugniježđenim izvršavanjem (nested-execute) još ne proširuju
-  placeholdere.
+- **Strukturirani combo builder** — kreirajte svaki korak odabirom pružatelja usluga, modela i točnog account/connection
+- **Ponovna podrška pružatelja usluga** — više puta koristi istog pružatelja u jednoj kombinaciji sve dok je `(provider, model, connection)` tuple jedinstven
+- **Combo target zdravlje** — analitika i zdravstvene površine sada razlikuju pojedinačne kombinacije targets/steps umjesto sažimanja svega u nizove modela
+- **Složeni poredak slojeva** — `defaultTier -> fallbackTier` sada utječe na redoslijed execution/fallback vremena izvođenja za kombinirane korake najviše razine
+- **Predlošci odzivnika sustava** — combo `system_message` podržava `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` i `{{FINGERPRINT}}` rezervirana mjesta na strani poslužitelja, proširena od stvarno preusmjerenog cilja neposredno prije slanja. Na popisu dopuštenih i nerekurzivni; nepoznata rezervirana mjesta ostaju doslovna; prazne vrijednosti proširuju se u prazne; odzivnici klijentskog sustava nikad se ne prepisuju. `{{FINGERPRINT}}` rješava samo besplatne pružatelje koji se temelje na otisku prsta s prikvačenim ili automatski rotiranim otiskom prsta — proširuje se u prazno na drugim mjestima (npr. veze s jednim otiskom prsta, pružatelji koji nisu fp). Proširenje pokriva standardnu petlju slanja, kružni postupak i prikvačenu sesiju predmemorije konteksta; fuzija, kaos, cjevovod i strategije ugniježđenog izvršavanja još ne proširuju rezervirana mjesta.
 
 ![Combos Dashboard](../screenshots/02-combos.png)
 

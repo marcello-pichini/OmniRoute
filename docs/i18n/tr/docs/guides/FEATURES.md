@@ -57,29 +57,19 @@ OpenRouter bağlantıları, Advanced Settings bölümünde bağlantı başına b
 
 ---
 
-## 🎨 Kombolar
+## 🎨 Kombinasyonları
 
-19 herkese açık stratejiyle model yönlendirme komboları oluşturun: öncelik, ağırlıklı, round-robin, bağlam aktarma, önce doldurma, p2c (iki seçenekten güçlü olan), rastgele, en az kullanılan, maliyet optimizasyonlu, sıfırlama duyarlı, sıfırlama penceresi, kullanılabilir kapasite, katı rastgele, otomatik, lkgp (son bilinen iyi sağlayıcı), bağlam optimizasyonlu, önbellek optimizasyonlu, **fusion** (bir model paneline paralel olarak dağıtım yapar, ardından bir hakem aracılığıyla tek bir yanıt sentezler) ve **pipeline**. Her kombo, otomatik yedeklemeyle birden fazla modeli zincirler ve hızlı şablonlar ile hazırlık kontrolleri içerir.
+21 genel stratejiyle model yönlendirme kombinasyonları oluşturun: öncelik, ağırlıklı, hepsini bir kez deneme, bağlam aktarımı, önce doldur, p2c (iki seçeneğin gücü), rastgele, en az kullanılan, maliyet açısından optimize edilmiş, sıfırlamaya duyarlı, sıfırlama penceresi, önce sona erme, boşluk payı, kota ağırlıklı, katı rastgele, otomatik, lkgp (son bilinen iyi sağlayıcı), bağlam açısından optimize edilmiş, önbellek için optimize edilmiş,** füzyon** (paralel olarak modellerden oluşan bir panele dağılın, ardından bir cevabı jüri aracılığıyla sentezleyin) ve** boru hattı** . Her bir kombinasyon birden fazla modeli otomatik geri dönüşle zincirler ve hızlı şablonlar ve hazırlık kontrolleri içerir.
 
 Son kombo iyileştirmeleri:
 
-- **Yapılandırılmış kombo oluşturucu** — sağlayıcıyı, modeli ve tam hesabı/bağlantıyı seçerek her adımı oluşturun
-- **Tekrarlanan sağlayıcı desteği** — `(provider, model, connection)` demeti benzersiz olduğu sürece aynı sağlayıcıyı tek bir komboda birden çok kez yeniden kullanın
-- **Kombo hedefi sağlığı** — analiz ve sistem sağlığı yüzeyleri artık her şeyi model dizgelerinde birleştirmek yerine ayrı kombo hedeflerini/adımlarını birbirinden ayırır
-- **Bileşik katman sıralaması** — `defaultTier -> fallbackTier` artık üst düzey kombo adımlarının çalışma zamanı yürütme/yedekleme sırasını etkiler
-- **Sistem istemi şablonları** — kombo `system_message`, sunucu tarafında
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ve `{{FINGERPRINT}}`
-  yer tutucularını destekler; bunlar gönderimden hemen önce fiilen yönlendirilen hedeften genişletilir.
-  İzin verilenler listesiyle sınırlıdır ve özyinelemeli değildir; bilinmeyen yer tutucular değişmeden kalır; boş değerler
-  boş olarak genişletilir; istemci sistem istemleri asla yeniden yazılmaz. `{{FINGERPRINT}}`
-  yalnızca sabitlenmiş veya otomatik olarak döndürülen parmak izine sahip, parmak izi tabanlı ücretsiz sağlayıcılarda
-  çözümlenir — diğer durumlarda boş olarak genişletilir (ör.
-  tek parmak izli bağlantılar, fp olmayan sağlayıcılar). Genişletme;
-  standart gönderim döngüsünü, round-robin yöntemini ve sabitlenmiş bağlam önbelleği oturumlarını kapsar;
-  fusion, chaos, pipeline ve iç içe execute stratejileri henüz
-  yer tutucuları genişletmez.
+- **Yapılandırılmış kombo oluşturucu** — sağlayıcıyı, modeli ve tam account/connection seçerek her adımı oluşturur
+- **Tekrarlanan sağlayıcı desteği** `(provider, model, connection)` tuple'ı benzersiz olduğu sürece — aynı sağlayıcıyı tek bir kombinasyonda birçok kez yeniden kullanır
+- **Birleşik hedef sağlığı** — analitiği ve sağlık yüzeyleri artık her şeyi model dizelerine daraltmak yerine bireysel kombo targets/steps ayırt ediyor
+- **Bileşik katman sıralaması** — `defaultTier -> fallbackTier` artık üst düzey birleşik adımlar için çalışma zamanı execution/fallback sırasını etkiliyor
+- **Sistem istemi şablonları** — açılan `system_message` sevkıyattan hemen önce gerçekte yönlendirilen hedeften genişletilen sunucu tarafı `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ve `{{FINGERPRINT}}` yer tutucularını destekler. İzin verilenler listesinde yer alan ve yinelenmeyen; bilinmeyen yer tutucular gerçek anlamda kalır; boş değerler boş değerlere genişler; istemci sistemi istemleri hiçbir zaman yeniden yazılmaz. `{{FINGERPRINT}}` yalnızca sabitlenmiş veya otomatik olarak döndürülmüş parmak izine sahip parmak izi tabanlı ücretsiz sağlayıcılar için çözümlenir — başka yerlerde boşalacak şekilde genişler (örn. tek parmak izi bağlantıları, fp olmayan sağlayıcılar). Genişletme, standart dağıtım döngüsünü, hepsini bir kez denemeyi ve sabitlenmiş bağlam önbellek oturumlarını kapsar; füzyon, kaos, ardışık düzen ve iç içe yürütme stratejileri henüz yer tutucuları genişletmiyor.
 
-![Kombolar Panosu](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

@@ -305,7 +305,7 @@ nustatytos reikšmės perduodamos esamoms variklio `config.modePack` / `config.b
 
 ## Visos maršruto strategijos
 
-OmniRoute kombinuoto variklio atramos** 20 maršruto parinkimo strategijų** (deklaruojama `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats „Auto Combo“ variklis veikia pagal `auto` strategiją; kiti galimi nuolatiniams deriniams.
+OmniRoute kombinuoto variklio atramos** 21 maršruto parinkimo strategija** (deklaruojama `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Pats „Auto Combo“ variklis veikia pagal `auto` strategiją; kiti galimi nuolatiniams deriniams.
 
 | strategija          | Aprašymas                                                                                                                                                                                                                |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -320,6 +320,7 @@ OmniRoute kombinuoto variklio atramos** 20 maršruto parinkimo strategijų** (de
 | `cost-optimized`    | Sumažinkite USD už užklausą, atsižvelgiant į katalogo kainas                                                                                                                                                             |
 | `reset-aware` ⭐    | Pirmenybė pagal kvotos nustatymo iš naujo laiką — trumpi atstatymo langai įvertinti aukščiau                                                                                                                             |
 | `reset-window`      | Pirmenybę teikite taikiniams, kurių kvotos langas nustatomas iš naujo greičiau                                                                                                                                           |
+| `expiry-first`      | Išleiskite sąskaitą, kurios kvota kitu atveju pasibaigtų nepanaudota pirmiausia — aukščiausia likutis su artimiausiu iš naujo nustatytu terminu eina pirma                                                               |
 | `headroom`          | Pasirinkite taikinį su daugiausiai likusių kvotų                                                                                                                                                                         |
 | `quota-weighted`    | Praleiskite išnaudotas paskyras, tada pasirinkite iš likusių proporcingai likusiai kvotai, padalytai iš skrydžio metu siunčiamo krovinio; esami pokalbiai lieka prisegti                                                 |
 | `strict-random`     | Atsitiktinis be pakartojimų dubliavimo                                                                                                                                                                                   |
@@ -347,6 +348,20 @@ Griežtai sukimui naudokite `round-robin`; vienodi `weighted` svoriai suteikia s
 
 `pipeline` derinys su mažiausiai dviem modeliais gali pasirinkti planner/executor maršrutą su `config.agenticOrchestration.enabled`. Pirmajam taikiniui priklauso planavimas ir galutiniai atsakymai; antrasis tikslas siunčia kliento įrankio iškvietimus. OmniRoute aptinka įrankio rezultatų tęsinius iš užklausos protokolo, klausia planuotojo, ar reikalingas kitas įrankio ciklas, ir dinamiškai paverčia vykdytoją arba planuotoją galutiniu klientui skirtu žingsniu.
 
+Neprivaloma `config.agenticOrchestration.contextCompaction` taiko atskirą naudingosios apkrovos biudžetą prieš kiekvieną planuotojo ar vykdytojo išsiuntimą. Aiškiai įjunkite:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Tai yra nuoseklūs JSON simbolių biudžetai, kuriuos pasirenka operatorius, o ne prieigos rakto konteksto langai arba garantuoti viršutiniai apribojimai. Tikslus modelis IDs nepaiso numatytojo. Virš slenksčio sutankinimas pašalina identiškus įrankių apibrėžimus, apkarpo pernelyg didelius įrankio įrodymus su santrauka ir pašalina senas išsamias istorijos grupes, kad būtų pasiektas tikslinis santykis. Jame išsaugomos system/developer instrukcijos, naujausia vartotojo užklausa, paskutinis įrankio ciklas, įskaitant lygiagrečią calls/results, ir Gemini pagrindinė maršruto parinkimo instrukcija. Išsaugomos aukščiausio lygio instrukcijos ir įrankių nustatymai. Praleidimo žymeklis įrašo pašalintą istoriją; tai deterministinis apipjaustymas, o ne semantinė santrauka. Jei prisegtas kontekstas vis tiek viršija biudžetą, užklausa grąžina 413 prieš susisiekiant su modeliu. Kai sutankinimas išjungtas arba žemiau slenksčio, užklausa perduodama nepakitusi.
+
 Tęsiant įrankio rezultatą, OmniRoute taip pat sustabdo vykdymą, kai du iš eilės užbaigti raundai kartoja tuos pačius įrankio iškvietimus nepakitę rezultato arba kai kiekvienas aiškiai pažymėtas rezultatas per du raundus iš eilės nepavyko. Pasikeitę rezultatai leidžia pakartotinai skambinti (pavyzdžiui, apklausa). Apsauga iš naujo nustatoma pagal naują vartotojo užklausą, sugrupuoja lygiagrečius skambučius į vieną raundą ir palaiko Anthropic, pokalbių užbaigimus, atsakymus ir Gemini istorijas. Planuotojas gauna priežastį ir jam priklauso galutinis atsakymas, net jei jis prašo kito įrankio etapo.
 
 Papildomi modeliai po antrojo tikslo yra užsakomos vykdytojo atsarginės kopijos. Nesėkmingas HTTP atsakymas arba transportavimo išimtis perduodama kitam vykdytojui, turinčiam tą patį planuotojo sprendimą ir vietinius įrankius, tačiau paties vykdytojo veiksmų raginimas ir išspręstas ryšys. Pirmasis sėkmingas atsakymas grąžinamas nepakeistas, įskaitant SSE srautinį perdavimą; gedimų po sėkmingo srauto pradžios čia negalima bandyti iš naujo. Jei nepavyksta visiems vykdytojams, grąžinamas paskutinis gedimas. Klientas nutraukia siuntimo sustabdymą.
@@ -369,7 +384,7 @@ Apklausa vykdoma grupėmis, o ne viena užklausa per žingsnį:
 
 - `stickyRoundRobinLimit` (kombinuota konfigūracija, tada `comboStickyRoundRobinLimit`, tada `settings.stickyRoundRobinLimit`, numatytoji** 3** ) išlaiko tą patį tikslą daugeliui sėkmingų iš eilės prieš pakeitimą. Nustatykite kombinuotąjį nepaisymą į `1`, kad pasuktumėte vieną užklausą. Kombinuotasis redaktorius rodo efektyvią vertę ir iš kurio sluoksnio ji atsirado.
 - `connectionAwareExpansion` (kombinuota konfigūracija, tada nustatymai, numatytoji** klaidinga** ) išplečia kiekvieną teikėjo lygio veiksmą į kiekvienos paskyros tikslus prieš rotaciją. B grupės strategijos (prioritetinis, svertinis, apvalus, atsitiktinis, p2c, mažiausiai naudojamas, optimizuotas sąnaudas, lkgp, užpildymas pirmiausia, griežtas atsitiktinis, optimizuotas pagal kontekstą, optimizuotas talpykloje, konteksto perdavimas, suliejimas, konvejerinis) išlaiko tiekėjo lygio vaizdą, kol ši funkcija neįjungta. Kombinuotas redaktorius atskleidžia paveldėti / įjungti / išjungti; paveldėti naudoja visuotinę numatytąją reikšmę (išjungta).
-- Greitosios talpyklos vietovės maršruto parinkimas (`promptCacheAffinityEnabled`, numatytasis** tiesa** ) pertvarko prisegtus ryšius, kad atitiktų talpyklos raktai liktų vienoje paskyroje. Ji turi viršenybę prieš apvalų ir svertinį sukimąsi per prisegtus paskyros veiksmus. Išjunkite jį skiltyje Nustatymai → Combo numatytieji nustatymai, jei reikia griežto pasukimo. Nėra derinio nepaisymo.
+- Prompt-cache vietovės maršruto parinkimas (`promptCacheAffinityEnabled`, numatytasis** tiesa** ) pertvarko prisegtus ryšius, kad atitiktų talpyklos raktai liktų vienoje paskyroje. Ji turi viršenybę prieš apvalų ir svertinį sukimąsi per prisegtus paskyros veiksmus. Išjunkite jį skiltyje Nustatymai → Combo numatytieji nustatymai, jei reikia griežto pasukimo. Nėra derinio nepaisymo.
 
 Pirmenybė teikiama kelių paskyrų rotacijai viename modelyje** vienas dinaminės paskyros veiksmas** (tuščias `connectionId`, visas baseinas) su lipnios ribos `1`, o ne trimis prisegtais `connectionId` s. Prisegti žingsniai ir giminingumas susitraukia į tą pačią paskyrą, net kai RR skaitiklis juda į priekį.
 
@@ -833,45 +848,39 @@ Lygių apibrėžtis ir teikėjų klasifikaciją žr. [`docs/guides/TIERS.md`](..
 
 ## Testavimas ir aprėptis
 
-### Deterministinė maršruto parinkimo sprendimų matrica (`npm run test:combo:matrix`)
+### Deterministinė maršruto parinkimo ir sprendimo matrica (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` patvirtina visų 19 viešųjų strategijų maršruto parinkimo **sprendimą**
-nuo pradžios iki galo per tikrąjį derinių konvejerį, naudojant imituojamą išorinę paslaugą.
-Aprėpiama:
+`tests/integration/combo-matrix/*.test.ts` įrodo maršrutą** sprendimas** iš visų 21 viešosios strategijos nuo galo iki galo per tikrą kombinuotą dujotiekį su pasityčiojimu prieš srovę. Aprėptis apima:
 
-- Visos 19 `ROUTING_STRATEGY_VALUES` strategijų (ordered, weighted, cost, context, fusion, …).
-- Visapusis `quota-share` (vidinės strategijos) testavimas: DRR teisingumas + apkrovos prisotinimo prioriteto mažinimas per
-  tikrąją `selectQuotaShareTarget` sąsają (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Universaliojo perdavimo `context-relay` aprėptis su kiekvienu galimu paskirties vietų skaičiumi.
+- Visos 21 `ROUTING_STRATEGY_VALUES` strategija (sutvarkyta, svertinė, kaina, kontekstas, sintezė ir kt.).
+- `quota-share` (vidinis) nuo galo iki galo: DRR sąžiningumas + prisotinimo prioritetų panaikinimas naudojant tikrą `selectQuotaShareTarget` siūlę (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universalus perdavimo aprėptis visais tikslais.
 
-Šis testų rinkinys vykdomas CI (`test:integration` užduotyje) su `--test-concurrency=1` ir
-`--test-force-exit`, todėl jis yra deterministinis ir jam nereikia tikrų prisijungimo duomenų.
+Šis rinkinys veikia CI (`test:integration` job) su `--test-concurrency=1` ir `--test-force-exit`, todėl yra deterministinis ir nereikalauja tiesioginių kredencialų.
 
-### Sąlyginiai tiesioginiai baziniai testai (NE CI aplinkoje — tikri teikėjai)
+### Apriboti gyvi dūmai (NOT in CI — nekilnojamojo paslaugų teikėjai)
 
-| Komanda                                | Ką ji atlieka                                                                                                                |
-| :------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Tikras maršruto parinkimas tame pačiame procese su `RUN_COMBO_LIVE=1`; sukuriama veikiančios „OmniRoute“ DB momentinė kopija |
-| `npm run test:combo:live:vps`          | HTTP iškvietos į veikiantį „OmniRoute“ serverį (nustatykite `COMBO_LIVE_BASE_URL`)                                           |
-| `npm run test:combo:live:vps:failover` | Tas pats, tačiau su sąmoningai sukeltais perjungimo sutrikimo atveju scenarijais                                             |
+| komandą                                | Ką tai daro                                                                                                   |
+| :------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
+| `npm run test:combo:live`              | Realus maršruto parinkimas proceso metu su `RUN_COMBO_LIVE=1`; tiesioginės OmniRoute DB momentinės nuotraukos |
+| `npm run test:combo:live:vps`          | HTTP skambučiai prieš tiesioginį OmniRoute serverį (nustatyti `COMBO_LIVE_BASE_URL`)                          |
+| `npm run test:combo:live:vps:failover` | Tas pats, su apgalvotais nesėkmingo perkėlimo scenarijais                                                     |
 
-Šie baziniai testai tikrina tikrąjį duomenų perdavimo kelią (derinys → teikėjas → užbaigimas). Jie
-sąmoningai neįtraukti į CI, nes jiems reikia tikrų prisijungimo duomenų ir prieigos prie VPS.
+Šie dūmų testai atlieka tikrąjį laidų kelią (kombinuotas → teikėjo → užbaigimas). Jie sąmoningai neįtraukiami į CI nes jiems reikalingi tiesioginiai kredencialai ir VPS prieiga.
 
 ---
 
 ## Failai
 
-| Failas                                                    | Paskirtis                                                                                                                                             |
-| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 veiksnių vertinimo funkcija, `DEFAULT_WEIGHTS`, telkinio normalizavimas                                                                            |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Modelio × užduoties tinkamumo paieška                                                                                                                 |
-| `open-sse/services/autoCombo/engine.ts`                   | Atrankos logika, banditas, biudžeto riba                                                                                                              |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Išskyrimas, patikros, incidentų režimas                                                                                                               |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 svorių profiliai (greitas pateikimas, išlaidų taupymas, kokybė pirmiausia, pritaikyta darbui neprisijungus, patikimumas pirmiausia, chaoso režimas) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefikso analizatorius + 6 variantai                                                                                                          |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Iš aktyvių ryšių atmintyje sukuria `AutoComboConfig`                                                                                                  |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testavimo sąsaja teikėjų registrui imituoti                                                                                                           |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategijų)                                                                                                             |
-| `src/sse/handlers/chat.ts`                                | Integracija: ankstyvas išėjimas pagal „auto“ prefiksą                                                                                                 |
+| Failas                                                    | Tikslas                                                                                                                             |
+| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 koeficientų balų funkcija, `DEFAULT_WEIGHTS`, baseino norma                                                                      |
+| `open-sse/services/autoCombo/taskFitness.ts`              | × modelio užduočių fitneso paieška                                                                                                  |
+| `open-sse/services/autoCombo/engine.ts`                   | Atrankos logika, banditas, biudžeto riba                                                                                            |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Išskyrimas, zondai, incidento režimas                                                                                               |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 svorio profiliai (greitai gabenamas, taupantis, pirmiausia kokybė, patogus neprisijungus, pirmiausia patikimumas, chaoso režimas) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` priešdėlio analizatorius + 6 variantai                                                                                      |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Sukuria `AutoComboConfig` atmintyje iš tiesioginių ryšių                                                                            |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Bandomasis kabliukas tyčiojantis iš teikėjų registro                                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategija)                                                                                           |
+| `src/sse/handlers/chat.ts`                                | Integravimas: automatinio priešdėlio trumpasis jungimas                                                                             |

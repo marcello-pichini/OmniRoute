@@ -307,7 +307,7 @@ aniqlangan qiymatlar mexanizmning mavjud `config.modePack` / `config.budgetCap` 
 
 ## Barcha marshrutlash strategiyalari
 
-OmniRoute ning kombinatsiyalangan dvigatelini qo'llab-quvvatlaydi** 20 marshrutlash strategiyasi** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` da e'lon qilingan). Auto Combo dvigatelining o'zi `auto` strategiyasi ostida namoyon bo'ladi; qolganlari doimiy kombinatsiyalar uchun mavjud.
+OmniRoute ning kombinatsiyalangan dvigatelini qo'llab-quvvatlaydi** 21 marshrutlash strategiyasi** ( `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` da e'lon qilingan). Auto Combo dvigatelining o'zi `auto` strategiyasi ostida namoyon bo'ladi; qolganlari doimiy kombinatsiyalar uchun mavjud.
 
 | Strategiya          | Tavsif                                                                                                                                                                                                                       |
 | :------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,11 +317,12 @@ OmniRoute ning kombinatsiyalangan dvigatelini qo'llab-quvvatlaydi** 20 marshrutl
 | `context-relay`     | Kontekstni maqsadlar bo'yicha taqsimlang (uzoq suhbatlar)                                                                                                                                                                    |
 | `fill-first`        | Keyingisiga o'tishdan oldin har bir maqsad uchun kvotani to'ldiring                                                                                                                                                          |
 | `p2c`               | Power-of-2-choices tasodifiy yuk balansi                                                                                                                                                                                     |
-| `random`            | Yagona tasodifiy tanlash                                                                                                                                                                                                     |
+| `random`            | Yagona tasodifiy tanlov                                                                                                                                                                                                      |
 | `least-used`        | Eng past oqim yukiga ega maqsadni tanlang                                                                                                                                                                                    |
 | `cost-optimized`    | Katalog narxini hisobga olgan holda har bir so'rov uchun $ ni minimallashtiring                                                                                                                                              |
 | `reset-aware` ⭐    | Kvotani qayta o'rnatish vaqti bo'yicha birinchi o'ringa qo'ying — qisqa tiklash oynalari yuqori o'ringa ega                                                                                                                  |
 | `reset-window`      | Kvota oynasi tezroq tiklanadigan maqsadlarga ustunlik bering                                                                                                                                                                 |
+| `expiry-first`      | Kvota muddati tugashi mumkin bo'lgan hisobni ishlatilmagan birinchi — uchun sarflang. Qolgan eng yuqori qoldiq, eng yaqin tiklash muddati birinchi bo'ladi                                                                   |
 | `headroom`          | Maqsadni eng ko'p qolgan kvotani tanlang                                                                                                                                                                                     |
 | `quota-weighted`    | Tugagan hisoblarni o'tkazib yuboring, so'ngra qolgan kvotaga mutanosib ravishda parvozdagi yukga bo'lingan holda qolganlarini tanlang; mavjud suhbatlar mahkamlangan qoladi                                                  |
 | `strict-random`     | Tasodifiy takroriy takrorlashsiz                                                                                                                                                                                             |
@@ -349,6 +350,20 @@ Qattiq aylanish uchun `round-robin` foydalaning; `weighted` bo'yicha teng og'irl
 
 Kamida ikkita modelga ega `pipeline` kombinatsiyasi `config.agenticOrchestration.enabled` bilan planner/executor marshrutlashni tanlashi mumkin. Birinchi maqsad rejalashtirish va yakuniy javoblarga ega; ikkinchi maqsad mijozga tegishli vosita qo'ng'iroqlarini chiqaradi. OmniRoute so'rov protokolidan asbob-natija davomini aniqlaydi, rejalashtiruvchidan boshqa vosita bosqichi kerakmi yoki yo'qligini so'raydi va dinamik ravishda ijrochi yoki rejalashtiruvchini mijoz oldida turgan yakuniy bosqichga aylantiradi.
 
+Ixtiyoriy `config.agenticOrchestration.contextCompaction` har bir rejalashtiruvchi yoki ijrochi jo‘natmasidan oldin alohida foydali yuk byudjetini qo‘llaydi. Uni aniq yoqing:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Bu token kontekst oynalari yoki kafolatlangan yuqori oqim chegaralari emas, balki operator tomonidan tanlangan seriyali JSON belgilar byudjetlari. Aniq model IDs standartni bekor qiladi. Eshik chegarasidan yuqori bo'lsa, siqish bir xil asbob ta'riflarini olib tashlaydi, katta o'lchamdagi asboblar dalillarini dayjest bilan qisqartiradi va maqsadli nisbatga nisbatan eski to'liq tarix guruhlarini olib tashlaydi. system/developer ko'rsatmalarini, foydalanuvchining so'nggi so'rovini, parallel calls/results va Gemini ning etakchi marshrutlash yo'riqnomasini o'z ichiga olgan so'nggi vosita raundini saqlaydi. Yuqori darajadagi ko'rsatmalar va asbob sozlamalari saqlanib qolgan. Tushunmaslik belgisi olib tashlangan tarixni qayd qiladi; Bu semantik xulosa emas, balki deterministik kesishdir. Agar mahkamlangan kontekst hali ham byudjetdan oshsa, so'rov modelga murojaat qilishdan oldin 413 ni qaytaradi. Siqish o'chirilgan yoki chegaradan past bo'lsa, so'rov o'zgarishsiz o'tadi.
+
 Asbob-natijani davom ettirishda, ketma-ket bajarilgan ikkita raund bir xil asbob qo'ng'iroqlarini o'zgarmagan natijalar bilan takrorlaganda yoki ketma-ket ikkita turda har bir aniq belgilangan natija muvaffaqiyatsizlikka uchraganda, OmniRoute ham bajarishni to'xtatadi. O'zgartirilgan natijalar takroriy qo'ng'iroqlarga ruxsat beradi (masalan, so'rov). Qo'riqchi yangi foydalanuvchi so'roviga ko'ra qayta tiklanadi, parallel qo'ng'iroqlarni bir turga guruhlaydi va Anthropic, Chat yakunlari, javoblar va Gemini tarixini qo'llab-quvvatlaydi. Rejalashtiruvchi sababni oladi va boshqa vosita turini talab qilsa ham yakuniy javobga ega bo'ladi.
 
 Ikkinchi nishondan keyin qo'shimcha modellar buyurtma qilingan ijrochi zahiralari. Muvaffaqiyatsiz HTTP javobi yoki transportdan istisno keyingi ijrochiga o'tadi, u bir xil rejalashtiruvchi qarori va mahalliy vositalarni, lekin o'sha ijrochining o'z qadami tez va hal qilingan ulanishni olib yuradi. Birinchi muvaffaqiyatli javob o'zgarishsiz qaytariladi, shu jumladan SSE oqimi; Muvaffaqiyatli oqim boshlanganidan keyin yuzaga kelgan nosozliklarni bu yerda qayta urinib bo‘lmaydi. Agar barcha ijrochilar muvaffaqiyatsiz bo'lsa, oxirgi muvaffaqiyatsizlik qaytariladi. Mijoz jo'natishni to'xtatadi.
@@ -369,9 +384,9 @@ Ijrochi bir javobda bir nechta mustaqil qo'ng'iroqlarni chiqarishi mumkin. Bog'l
 
 Har bir bosqichda bitta so‘rov emas, davra-robin to‘plangan:
 
-- `stickyRoundRobinLimit` (kombo konfiguratsiya, keyin `comboStickyRoundRobinLimit`, keyin `settings.stickyRoundRobinLimit`, standart** 3** ) aylanishdan oldin ko'plab ketma-ket muvaffaqiyatlar uchun bir xil maqsadni saqlab qoladi. Bir so'rovni aylantirish uchun kombinatsiyani bekor qilishni `1` ga o'rnating. Kombo muharriri samarali qiymatni va qaysi qatlamdan kelganligini ko'rsatadi.
+- `stickyRoundRobinLimit` (kombo konfiguratsiya, keyin `comboStickyRoundRobinLimit`, keyin `settings.stickyRoundRobinLimit`, standart** 3** ) aylanishdan oldin ko'plab ketma-ket muvaffaqiyatlar uchun bir xil maqsadni saqlaydi. Bir so'rovni aylantirish uchun kombinatsiyani bekor qilishni `1` ga o'rnating. Kombo muharriri samarali qiymatni va qaysi qatlamdan kelganligini ko'rsatadi.
 - `connectionAwareExpansion` (kombo konfiguratsiya, keyin sozlamalar, standart** yolg'on** ) aylanishdan oldin provayder darajasidagi har bir qadamni har bir hisob maqsadlariga kengaytiradi. B guruhi strategiyalari (ustuvorlik, vaznli, davra-robin, tasodifiy, p2c, eng kam foydalanilgan, xarajat optimallashtirilgan, lkgp, birinchi to‘ldirish, qat’iy tasodifiy, kontekst optimallashtirilgan, kesh-optimallashtirilgan, kontekst-rele, termoyadroviy, quvur liniyasi) bu yoqilgunga qadar provayder darajasidagi ko‘rinishni saqlab turadi. Kombo muharriri meros / yoqish / o'chirishni ko'rsatadi; inherit global standartdan foydalanadi (o'chirilgan).
-- Tezkor-kesh joylashuvi marshrutlash (`promptCacheAffinityEnabled`, standart** rost** ) biriktirilgan ulanishlarni qayta tartiblaydi, shuning uchun mos kesh kalitlari bitta hisobda qoladi. U har bir hisob uchun belgilangan bosqichlar bo'ylab aylanma va vaznli aylanishdan ustun turadi. Agar sizga qat'iy aylantirish kerak bo'lsa, uni Sozlamalar → Combo defaults ostida o'chiring. Har bir kombinatsiyani bekor qilish yo'q.
+- Tezkor-kesh joylashuvi marshrutlash (`promptCacheAffinityEnabled`, standart** rost** ) biriktirilgan ulanishlarni qayta tartiblaydi, shuning uchun mos kesh kalitlari bitta hisobda qoladi. U har bir hisob uchun belgilangan qadamlar bo'ylab aylanma va vaznli aylanishdan ustun turadi. Agar sizga qat'iy aylantirish kerak bo'lsa, uni Sozlamalar → Combo sukut bo'yicha o'chirib qo'ying. Har bir kombinatsiyani bekor qilish yo'q.
 
 Bitta modelda ko'p hisobni aylantirish uchun afzal qiling** bitta dinamik hisob qadami** (bo'sh `connectionId`, butun hovuz) yopishqoq chegarasi bilan `1`, uchta pinned `connectionId` s emas. Qadamlar va yaqinlik RR hisoblagichi oldinga siljishida ham bir xil hisobga tushadi.
 
@@ -839,39 +854,39 @@ Daraja ta’riflari va provayderlar tasnifi uchun [`docs/guides/TIERS.md`](../gu
 
 ## Sinov va qamrov
 
-### Deterministik marshrutlash qarorlari matritsasi (`npm run test:combo:matrix`)
+### Deterministik marshrutlash-qaror matritsasi (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` haqiqiy kombinatsiya konveyeri va taqlid qilingan yuqori oqim orqali barcha 19 ta ommaviy strategiyaning marshrutlash **qarori**ni boshidan oxirigacha tasdiqlaydi. Qamrov quyidagilarni oʻz ichiga oladi:
+`tests/integration/combo-matrix/*.test.ts` marshrutlashni isbotlaydi** qaror** barcha 21 ommaviy strategiyalar masxara yuqori oqimi bilan haqiqiy kombo quvur liniyasi orqali oxirigacha. Qamrov quyidagilarni o'z ichiga oladi:
 
-- Barcha 19 ta `ROUTING_STRATEGY_VALUES` strategiyasi (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (ichki) boshidan oxirigacha: haqiqiy `selectQuotaShareTarget` ulanish nuqtasi (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`) orqali DRR adolatliligi va toʻyinganlikdagi ustuvorlikni pasaytirish.
-- Har bir maqsad soni boʻyicha `context-relay` universal topshirish qamrovi.
+- Barcha 21 `ROUTING_STRATEGY_VALUES` strategiyasi (tartibli, vaznli, xarajat, kontekst, termoyadroviy, …).
+- `quota-share` (ichki) end-to-end: DRR adolatlilik + to'yinganlik haqiqiy `selectQuotaShareTarget` tikuv (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`) orqali deprioritizatsiya.
+- `context-relay` universal-handoff qamrovi har bir maqsadli hisobda.
 
-Ushbu sinovlar toʻplami CI ichida (`test:integration` vazifasi) `--test-concurrency=1` va `--test-force-exit` parametrlari bilan ishga tushiriladi, shuning uchun u deterministik boʻlib, amaldagi hisob maʼlumotlarini talab qilmaydi.
+Bu to'plam CI (`test:integration` job) da `--test-concurrency=1` va `--test-force-exit` bilan ishlaydi, shuning uchun u deterministik va jonli hisob ma'lumotlarini talab qilmaydi.
 
-### Shartli jonli tezkor sinovlar (CI ichida EMAS — haqiqiy provayderlar)
+### Gated jonli tutun (NOT in CI — real provayderlar)
 
-| Buyruq                                 | Nima qiladi                                                                                        |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` bilan jarayon ichidagi haqiqiy marshrutlash; jonli OmniRoute DB nusxasini oladi |
-| `npm run test:combo:live:vps`          | Jonli OmniRoute serveriga HTTP chaqiruvlari (`COMBO_LIVE_BASE_URL`ni sozlang)                      |
-| `npm run test:combo:live:vps:failover` | Xuddi shu, ataylab yaratilgan uzilishdan tiklanish ssenariylari bilan                              |
+| Buyruq                                 | Nima qiladi                                                                                |
+| :------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | `RUN_COMBO_LIVE=1` bilan jarayonda real marshrutlash; jonli OmniRoute DB suratlarini oladi |
+| `npm run test:combo:live:vps`          | HTTP jonli OmniRoute serveriga qo'ng'iroqlar ( `COMBO_LIVE_BASE_URL` o'rnating)            |
+| `npm run test:combo:live:vps:failover` | Xuddi shunday, ataylab o'chirilish stsenariylari bilan                                     |
 
-Ushbu tezkor sinovlar haqiqiy uzatish yoʻlini (kombinatsiya → provayder → yakunlash) tekshiradi. Ular amaldagi hisob maʼlumotlari va VPS kirishini talab qilgani sababli CI tarkibidan ataylab chiqarib tashlangan.
+Ushbu tutun testlari haqiqiy sim yo'lini amalga oshiradi (combo → provayderi → yakuni). Ular CI dan ataylab chiqarib tashlanadi, chunki ular jonli hisobga olish ma'lumotlari va VPS ruxsatini talab qiladi.
 
 ---
 
 ## Fayllar
 
-| Fayl                                                      | Maqsadi                                                                                                                                   |
-| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 omilli baholash funksiyasi, `DEFAULT_WEIGHTS`, pul normasi                                                                             |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Model × vazifa mosligi qidiruvi                                                                                                           |
-| `open-sse/services/autoCombo/engine.ts`                   | Tanlash mantigʻi, bandit, budjet cheklovi                                                                                                 |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Istisno qilish, tekshiruvlar, hodisa rejimi                                                                                               |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 ta vazn profili (tez chiqarish, xarajatni tejash, sifatni ustun qoʻyish, oflayn uchun qulay, ishonchlilikni ustun qoʻyish, xaos rejimi) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksi parseri + 6 ta variant                                                                                                   |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Faol ulanishlardan xotiradagi `AutoComboConfig`ni yaratadi                                                                                |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayderlar reyestrini soxtalashtirish uchun test ilgagi                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 ta strategiya)                                                                                              |
-| `src/sse/handlers/chat.ts`                                | Integratsiya: auto-prefiks uchun qisqa tutashuv                                                                                           |
+| Fayl                                                      | Maqsad                                                                                                                                      |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16 faktorli ball funksiyasi, `DEFAULT_WEIGHTS`, hovuz normasi                                                                               |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Model × vazifasi fitnes qidiruvi                                                                                                            |
+| `open-sse/services/autoCombo/engine.ts`                   | Tanlov mantig'i, bandit, byudjet qopqog'i                                                                                                   |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Istisno qilish, problar, hodisa rejimi                                                                                                      |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 ta vazn profili (tezkor, tejamkorlik, sifat birinchi navbatda, oflayn rejimda qulay, ishonchlilik birinchi navbatda, tartibsizlik rejimi) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksi parser + 6 varianti                                                                                                        |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Jonli ulanishlardan xotirada `AutoComboConfig` quradi                                                                                       |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Provayder registrini masxara qilish uchun sinov kancasi                                                                                     |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strategiya)                                                                                                   |
+| `src/sse/handlers/chat.ts`                                | Integratsiya: avto-prefiks qisqa tutashuvi                                                                                                  |

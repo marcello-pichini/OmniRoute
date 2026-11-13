@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 izvršnih modula najviše razine (`*.ts` minus `base.ts`, `index.ts` i testovi — broj `npm run check:docs-counts` mjere). Svaka klasa izvršitelja proširuje `BaseExecutor` (`base.ts`), izravno ili preko `DefaultExecutor` ili drugog izvršitelja; preostali moduli su pomoćnici po pružatelju (sheme alata, fetch/TTS adapteri, rukovatelji quirkovima). Izvršitelji uključuju:
+170 izvršnih modula najviše razine (`*.ts` minus `base.ts`, `index.ts` i testovi — broj `npm run check:docs-counts` mjere). Svaka klasa izvršitelja proširuje `BaseExecutor` (`base.ts`), izravno ili preko `DefaultExecutor` ili drugog izvršitelja; preostali moduli su pomoćnici po pružatelju (sheme alata, fetch/TTS adapteri, rukovatelji quirkovima). Izvršitelji uključuju:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (pomoćnik zajedničkog identiteta) i `index.ts` (registar).
 
-> Napomena: pružatelje koji nisu ovdje navedeni opslužuje `default.ts` pomoću generičkog izvršnog programa koji je kompatibilan s OpenAI-om. Cijeli katalog pružatelja (381 pružatelja) nalazi se u `src/shared/constants/providers.ts`.
+> Napomena: pružatelje koji nisu ovdje navedeni opslužuje `default.ts` pomoću generičkog izvršnog programa koji je kompatibilan s OpenAI-om. Cijeli katalog pružatelja (393 pružatelja) nalazi se u `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -504,7 +504,7 @@ Hub-and-spoke prijevod (OpenAI je središte).
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — `TransformStream` -based Odgovori API ↔ Pretvarač dovršetaka razgovora (koristi ga `responses/` ruta za sve).
+- `responsesTransformer.ts` — `TransformStream` -based Odgovori API ↔ Pretvarač dovršetaka razgovora (koristi ga `responses/` route catch-all).
 
 ### 4.5 `open-sse/services/`
 
@@ -512,7 +512,7 @@ Istaknuto (cijeli popis pod `open-sse/services/`):
 
 | Zabrinutost                | Datoteke                                                                                                                                                                                                                                                 |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kombinirano usmjeravanje   | `combo.ts` (20 strategija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| Kombinirano usmjeravanje   | `combo.ts` (21 strategija), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
 | Auto Combo motor           | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Elastičnost                | `accountFallback.ts` (hlađenje + zaključavanje), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                   |
 | Kvote                      | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

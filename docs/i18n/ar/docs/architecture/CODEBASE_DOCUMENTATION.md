@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -486,11 +486,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 وحدة تنفيذية عالية المستوى (`*.ts` ناقص `base.ts` و `index.ts` واختبارات — ومقاييس العد `npm run check:docs-counts` ). تقوم كل فئة منفذة بتمديد `BaseExecutor` (`base.ts`) مباشرة أو من خلال `DefaultExecutor` أو منفذ آخر؛ الوحدات المتبقية عبارة عن مساعدين لكل مزود (مخططات الأدوات، ومحولات fetch/TTS ، ومعالجات quirk). المنفذون يشملون:
+170 وحدة تنفيذية عالية المستوى (`*.ts` ناقص `base.ts` و `index.ts` واختبارات — ومقاييس العد `npm run check:docs-counts` ). تقوم كل فئة منفذة بتمديد `BaseExecutor` (`base.ts`) مباشرة أو من خلال `DefaultExecutor` أو منفذ آخر؛ الوحدات المتبقية عبارة عن مساعدين لكل مزود (مخططات الأدوات، ومحولات fetch/TTS ، ومعالجات quirk). المنفذون يشملون:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (shared identity helper) and `index.ts` (registry).
 
-> ملاحظة: يتم تقديم الخدمات للموفرين غير المدرجين هنا بواسطة `default.ts` باستخدام المنفذ العام المتوافق مع OpenAI. يوجد كتالوج المزودين الكامل (381 مقدمًا) في `src/shared/constants/providers.ts`.
+> ملاحظة: يتم تقديم الخدمات للموفرين غير المدرجين هنا بواسطة `default.ts` باستخدام المنفذ العام المتوافق مع OpenAI. يوجد كتالوج المزودين الكامل (393 مزودًا) في `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ open-sse/
 
 | هَم                  | ملفات                                                                                                                                                                                                                                                    |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| توجيه التحرير والسرد | `combo.ts` (20 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                    |
+| توجيه التحرير والسرد | `combo.ts` (21 استراتيجية)، `comboConfig.ts`، `comboMetrics.ts`، `comboManifestMetrics.ts`، `comboAgentMiddleware.ts`                                                                                                                                    |
 | محرك كومبو تلقائي    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | صمود                 | `accountFallback.ts` (فترة التهدئة + lockout)، `errorClassifier.ts`، `requestRejectedStreak.ts`، `emergencyFallback.ts`، `rateLimitManager.ts`، `rateLimitSemaphore.ts`، `accountSemaphore.ts`، `accountSelector.ts`                                     |
 | الحصص                | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

@@ -57,29 +57,19 @@ OpenRouter-Verbindungen können in den erweiterten Einstellungen pro Verbindung 
 
 ---
 
-## 🎨 Kombinationen
+## 🎨 Combos
 
-Erstelle Modell-Routing-Kombinationen mit 19 öffentlichen Strategien: priority, weighted, round-robin, context-relay, fill-first, p2c (Auswahl aus zwei Optionen), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (zuletzt funktionierender Anbieter), context-optimized, cache-optimized, **fusion** (Anfragen werden parallel an eine Gruppe von Modellen verteilt und anschließend wird über ein Bewertungsmodell eine einzelne Antwort synthetisiert) und **pipeline**. Jede Kombination verkettet mehrere Modelle mit automatischem Fallback und umfasst Schnellvorlagen sowie Bereitschaftsprüfungen.
+Erstellen Sie Modell-Routing-Kombinationen mit 21 öffentlichen Strategien: Priorität, gewichtet, Round-Robin, Kontext-Relay, Fill-First, P2C (Power-of-Two-Auswahl), Random, Least-Used, Kostenoptimiert, Reset-Aware, Reset-Window, Expiry-First, Headroom, Quotengewichtet, Strict-Random, Auto, Lkgp (Last-known-good-Provider), Kontextoptimiert, Cache-optimiert,** Fusion** (verteilt sich parallel zu einer Gruppe von Modellen und synthetisiert dann eine Antwort über einen Juror) und** Pipeline** . Jede Kombination verkettet mehrere Modelle mit automatischem Fallback und umfasst schnelle Vorlagen und Bereitschaftsprüfungen.
 
-Aktuelle Verbesserungen bei Kombinationen:
+Aktuelle Combo-Verbesserungen:
 
-- **Strukturierter Kombinations-Builder** — erstelle jeden Schritt durch Auswahl von Anbieter, Modell und genauem Konto bzw. genauer Verbindung
-- **Unterstützung wiederholter Anbieter** — verwende denselben Anbieter mehrfach innerhalb einer Kombination, solange das Tupel `(provider, model, connection)` eindeutig ist
-- **Zustand von Kombinationszielen** — Analyse- und Zustandsansichten unterscheiden jetzt einzelne Kombinationsziele bzw. -schritte, anstatt alles zu Modellzeichenfolgen zusammenzufassen
-- **Zusammengesetzte Ebenenreihenfolge** — `defaultTier -> fallbackTier` beeinflusst jetzt die Ausführungs- und Fallback-Reihenfolge zur Laufzeit für Kombinationsschritte der obersten Ebene
-- **System-Prompt-Vorlagen** — `system_message` einer Kombination unterstützt serverseitige
-  Platzhalter vom Typ `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` und `{{FINGERPRINT}}`,
-  die unmittelbar vor dem Versand anhand des tatsächlich ausgewählten Ziels ersetzt werden.
-  Sie sind auf einer Zulassungsliste definiert und nicht rekursiv; unbekannte Platzhalter bleiben unverändert; leere Werte
-  werden durch leere Inhalte ersetzt; System-Prompts des Clients werden niemals umgeschrieben. `{{FINGERPRINT}}`
-  wird nur bei Fingerprint-basierten kostenlosen Anbietern mit einem angehefteten oder
-  automatisch rotierenden Fingerprint aufgelöst — andernfalls wird es durch einen leeren Inhalt ersetzt (z. B.
-  bei Verbindungen mit einem einzelnen Fingerprint oder Anbietern ohne Fingerprint-Unterstützung). Die Ersetzung wird in der
-  standardmäßigen Versand-Schleife, bei round-robin und in angehefteten Kontext-Cache-Sitzungen durchgeführt;
-  die Strategien fusion, chaos, pipeline und nested-execute ersetzen
-  Platzhalter derzeit noch nicht.
+- **Strukturierter Combo-Builder** — erstellt jeden Schritt, indem Sie Anbieter, Modell und genaue account/connection auswählen
+- **Wiederholter Provider-Support** — verwendet denselben Anbieter viele Male in einer Kombination, solange das `(provider, model, connection)` Tupel eindeutig ist
+- **Kombinierte Zielgesundheit** — -Analyse- und Gesundheitsoberflächen unterscheiden jetzt einzelne Combo- targets/steps, anstatt alles in Modellzeichenfolgen zusammenzufassen
+- **Reihenfolge der zusammengesetzten Ebenen** — `defaultTier -> fallbackTier` beeinflusst jetzt die Laufzeit execution/fallback Reihenfolge für Kombinationsschritte der obersten Ebene
+- **Vorlagen für Systemaufforderungen** — Combo `system_message` unterstützt serverseitige Platzhalter `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` und `{{FINGERPRINT}}`, erweitert vom tatsächlich weitergeleiteten Ziel direkt vor dem Versand. Auf der Zulassungsliste und nicht rekursiv; unbekannte Platzhalter bleiben wörtlich; leere Werte werden zu leer erweitert; Client-Systemaufforderungen werden nie neu geschrieben. `{{FINGERPRINT}}` wird nur für fingerabdruckbasierte kostenlose Anbieter mit einem angehefteten oder automatisch gedrehten Fingerabdruck aufgelöst. — wird an anderer Stelle erweitert (z. B. Single-Fingerprint-Verbindungen, Nicht-FP-Anbieter). Die Erweiterung umfasst die Standard-Dispatch-Loop-, Round-Robin- und angehefteten Kontext-Cache-Sitzungen. Fusions-, Chaos-, Pipeline- und Nested-Execute-Strategien erweitern Platzhalter noch nicht.
 
-![Kombinations-Dashboard](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

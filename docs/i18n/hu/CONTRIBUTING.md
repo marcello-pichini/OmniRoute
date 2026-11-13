@@ -301,72 +301,72 @@ Alkalmazott példákért lásd az `open-sse/utils/stream.ts` és az `open-sse/ut
 
 ---
 
-## Projektstruktúra
+## Projekt felépítése
 
 ```
 src/                        # TypeScript (.ts / .tsx)
 ├── app/                    # Next.js 16 App Router
-│   ├── (dashboard)/        # Irányítópultoldalak (23 szakasz)
-│   ├── api/                # API-útvonalak (51 könyvtár)
-│   └── login/              # Hitelesítési oldalak (.tsx)
-├── domain/                 # Házirendmotor (policyEngine, comboResolver, costRules stb.)
-├── lib/                    # Alapvető üzleti logika (.ts)
-│   ├── a2a/                # Agent-to-Agent v0.3 protokollkiszolgáló
-│   ├── acp/                # Agent Communication Protocol-nyilvántartás
-│   ├── compliance/         # Megfelelőségi házirendmotor
-│   ├── db/                 # SQLite-tartománymodulok + 130 migráció
-│   ├── memory/             # Tartós társalgási memória
-│   ├── oauth/              # OAuth-szolgáltatók, szolgáltatások és segédprogramok
-│   ├── skills/             # Bővíthető képesség-keretrendszer
-│   ├── usage/              # Használatkövetés és költségszámítás
-│   └── localDb.ts          # Kizárólag újraexportálási réteg — soha ne adj hozzá logikát
-├── middleware/              # Kérésköztesréteg (promptInjectionGuard)
-├── mitm/                   # MITM-proxy (tanúsítvány, DNS, célútválasztás)
+│   ├── (dashboard)/        # Dashboard pages (23 sections)
+│   ├── api/                # API routes (51 directories)
+│   └── login/              # Auth pages (.tsx)
+├── domain/                 # Policy engine (policyEngine, comboResolver, costRules, etc.)
+├── lib/                    # Core business logic (.ts)
+│   ├── a2a/                # Agent-to-Agent v0.3 protocol server
+│   ├── acp/                # Agent Communication Protocol registry
+│   ├── compliance/         # Compliance policy engine
+│   ├── db/                 # SQLite domain modules + 130 migrations
+│   ├── memory/             # Persistent conversational memory
+│   ├── oauth/              # OAuth providers, services, and utilities
+│   ├── skills/             # Extensible skill framework
+│   ├── usage/              # Usage tracking and cost calculation
+│   └── localDb.ts          # Re-export layer only — never add logic here
+├── middleware/              # Request middleware (promptInjectionGuard)
+├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
-│   ├── components/         # React-komponensek (.tsx)
-│   ├── constants/          # Szolgáltatódefiníciók (329), MCP-hatókörök, 20 útválasztási stratégia
-│   ├── utils/              # Áramkör-megszakító, tisztító, hitelesítési segédfüggvények
-│   └── validation/         # Zod v4-sémák
-└── sse/                    # SSE-proxyfeldolgozási lánc
+│   ├── components/         # React components (.tsx)
+│   ├── constants/          # Provider definitions (329), MCP scopes, 21 routing strategies
+│   ├── utils/              # Circuit breaker, sanitizer, auth helpers
+│   └── validation/         # Zod v4 schemas
+└── sse/                    # SSE proxy pipeline
 
-open-sse/                   # @omniroute/open-sse munkaterület
-├── executors/              # 150 végrehajtómodul (végrehajtóosztályok + szolgáltatónkénti segédfüggvények)
-├── handlers/               # 11 kéréskezelő (csevegés, válaszok, beágyazások, képek stb.)
-├── mcp-server/             # MCP-kiszolgáló (110 egyedi eszköz, 3 átviteli mód, 33 hatókör)
-├── services/               # 178 legfelső szintű szolgáltatás (combo, autoCombo, rateLimitManager stb.)
-├── translator/             # Formátumfordítók (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
-├── transformer/            # Responses API-átalakító
-└── utils/                  # 22 segédmodul (adatfolyam, TLS, proxy, naplózás)
+open-sse/                   # @omniroute/open-sse workspace
+├── executors/              # 150 executor modules (executor classes + per-provider helpers)
+├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
+├── mcp-server/             # MCP server (110 unique tools, 3 transports, 33 scopes)
+├── services/               # 178 top-level services (combo, autoCombo, rateLimitManager, etc.)
+├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
+├── transformer/            # Responses API transformer
+└── utils/                  # 22 utility modules (stream, TLS, proxy, logging)
 
-electron/                   # Electron asztali alkalmazás (platformfüggetlen)
+electron/                   # Electron desktop app (cross-platform)
 
 tests/
-├── unit/                   # Node.js tesztfuttató (1 574 tesztfájl)
-├── integration/            # Integrációs tesztek
-├── e2e/                    # Playwright-tesztek
-├── security/               # Biztonsági tesztek
-├── translator/             # Fordítóspecifikus tesztek
-└── load/                   # Terheléses tesztek
+├── unit/                   # Node.js test runner (1,574 test files)
+├── integration/            # Integration tests
+├── e2e/                    # Playwright tests
+├── security/               # Security tests
+├── translator/             # Translator-specific tests
+└── load/                   # Load tests
 
 docs/
-├── adr/                     # Architektúrális döntési naplók
-├── architecture/            # Rendszerarchitektúra és hibatűrés
-├── comparison/              # OmniRoute és alternatíváinak összehasonlítása
-├── compression/             # Tömörítési útmutatók és szabályok
-├── dev/                     # Fejlesztési útmutatók
-├── diagrams/                # Architektúradiagramok
+├── adr/                     # Architecture Decision Records
+├── architecture/            # System architecture & resilience
+├── comparison/              # OmniRoute vs alternatives
+├── compression/             # Compression guides & rules
+├── dev/                     # Development guides
+├── diagrams/                # Architecture diagrams
 ├── frameworks/              # MCP, A2A, OpenCode, Memory, Skills
-├── guides/                  # Felhasználói útmutató, Docker, beállítás, hibaelhárítás
-├── i18n/                    # Nemzetköziesített README-fordítások
-├── marketing/               # Marketinganyagok
-├── ops/                     # Üzembe helyezés, proxy, lefedettség, kiadások
-├── providers/               # Szolgáltatóspecifikus dokumentáció
-├── reference/               # API-referencia, környezeti változók, CLI-eszközök, ingyenes csomagok
-├── releases/                # Kiadási megjegyzések
-├── routing/                 # Auto-combo motor, következtetési visszajátszás
-├── screenshots/             # Irányítópult-képernyőképek
-├── security/                # Védőkorlátok, megfelelőség, rejtőzködés, tokenek
-└── specs/                   # Tervezési specifikációk
+├── guides/                  # User guide, Docker, setup, troubleshooting
+├── i18n/                    # Internationalized README translations
+├── marketing/               # Marketing materials
+├── ops/                     # Deployment, proxy, coverage, releases
+├── providers/               # Provider-specific docs
+├── reference/               # API reference, env vars, CLI tools, free tiers
+├── releases/                # Release notes
+├── routing/                 # Auto-combo engine, reasoning replay
+├── screenshots/             # Dashboard screenshots
+├── security/                # Guardrails, compliance, stealth, tokens
+└── specs/                   # Design specs
 ```
 
 ---

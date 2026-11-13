@@ -57,29 +57,19 @@ Haɗin OpenRouter na iya adana `preset` na musamman ga kowane haɗi a Advanced S
 
 ---
 
-## 🎨 Haɗe-haɗe
+## 🎨 Combos
 
-Ƙirƙiri haɗe-haɗen karkatar da samfurori ta amfani da dabarun jama'a guda 19: fifiko, mai nauyi, zagaye-bi-da-bi, isar da mahalli, fara-cikawa, p2c (zaɓuɓɓukan ƙarfi-na-biyu), bazuwar, mafi ƙarancin amfani, inganta-farashi, mai-lura-da-sake-saiti, tagar-sake-saiti, sararin-ragi, tsantsar-bazuwar, atomatik, lkgp (mai-bayarwa-na-ƙarshe-da-aka-san-yana-aiki), inganta-mahalli, inganta-ma'ajiyar-wucin-gadi, **fusion** (aika buƙata ga rukunin samfura a layi ɗaya, sannan a haɗa amsa guda ta hannun mai hukunci), da **pipeline**. Kowane haɗe-haɗe yana jeranta samfura da yawa tare da komawa ga madadin ta atomatik, kuma ya haɗa da samfuran farawa cikin sauri da binciken shirye-shiryen aiki.
+Ƙirƙirar haɗe-haɗe na ƙirar ƙira tare da dabarun jama'a 21: fifiko, ma'auni, zagaye-robin, mahallin-relay, cika-farko, p2c (zaɓi-ƙarfi-biyu), bazuwar, mafi ƙarancin amfani, ingantaccen farashi, sake saiti-sane, sake saiti-taga, ƙarewa-farko, headroom, keɓaɓɓen nauyi, tsananin-bazuwar, gp-fita-fita, auto-fitarwa ingantaccen mahallin, ingantaccen cache,** hadewa** (Fan fita zuwa rukunin samfuran a layi ɗaya, sannan haɗa amsa ɗaya ta hanyar alkali), da** bututu** . Kowane sarƙoƙin haɗakarwa yana haɗa nau'ikan ƙira da yawa tare da faɗuwar atomatik kuma ya haɗa da samfura masu sauri da duban shirye-shirye.
 
-Ingantawa na baya-bayan nan ga haɗe-haɗe:
+Haɓaka haɗawa na baya-bayan nan:
 
-- **Tsararren maginin haɗe-haɗe** — ƙirƙiri kowane mataki ta hanyar zaɓar mai bayarwa, samfuri, da takamaiman asusu/haɗi
-- **Tallafin maimaita mai bayarwa** — sake amfani da mai bayarwa ɗaya sau da yawa a cikin haɗe-haɗe guda muddin tuple ɗin `(provider, model, connection)` ya kasance na musamman
-- **Lafiyar maƙasudin haɗe-haɗe** — nazari da bayanan lafiya yanzu suna bambanta maƙasudai/matakan haɗe-haɗe ɗaya bayan ɗaya maimakon haɗa komai cikin kirtanin samfuri
-- **Jerin matakan haɗaka** — `defaultTier -> fallbackTier` yanzu yana tasiri kan tsarin aiwatarwa/komawa ga madadin a lokacin aiki don matakan haɗe-haɗe na matakin sama
-- **Samfuran umarnin tsarin** — `system_message` na haɗe-haɗe yana tallafa wa
-  alamomin madadi na gefen uwar garke `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` da `{{FINGERPRINT}}`,
-  waɗanda ake faɗaɗa daga ainihin maƙasudin da aka karkatar zuwa gare shi jim kaɗan kafin aikawa.
-  An taƙaita su ga jerin da aka amince da su kuma ba sa maimaita kansu; alamomin madadi da ba a sani ba suna nan yadda suke; ƙimomin da babu komai
-  suna faɗaɗa zuwa babu komai; ba a taɓa sake rubuta umarnin tsarin na abokin hulɗa ba. `{{FINGERPRINT}}`
-  yana warwarewa ne kawai ga masu bayarwa kyauta masu amfani da fingerprint waɗanda ke da fingerprint da aka kafe ko
-  wanda ake juyawa ta atomatik — a sauran wurare yana faɗaɗa zuwa babu komai (misali,
-  haɗin fingerprint guda ɗaya, masu bayarwa marasa fp). Faɗaɗawar ta shafi
-  daidaitaccen madaukin aikawa, zagaye-bi-da-bi, da zaman ma'ajiyar mahalli da aka kafe;
-  dabarun fusion, chaos, pipeline da nested-execute ba su faɗaɗa
-  alamomin madadi ba tukuna.
+- **Maginin haɗaɗɗen tsari** — ƙirƙiri kowane mataki ta zaɓar mai bayarwa, samfuri, da ainihin account/connection
+- **Maimaitawar tallafin mai bayarwa** — sake yin amfani da mai bada iri ɗaya sau da yawa a cikin haɗakarwa ɗaya muddin `(provider, model, connection)` tuple na musamman ne
+- **Combo manufa lafiya** Analytics — da saman lafiya yanzu sun bambanta daidaitaccen haɗin targets/steps maimakon ruguza komai cikin kirtani samfurin.
+- **Yin oda mai haɗe-haɗe** — `defaultTier -> fallbackTier` yanzu yana rinjayar odar lokacin gudu execution/fallback don matakan haɗaɗɗiyar matakin matakin sama
+- **Samfuran faɗakarwa na tsarin** — combo `system_message` yana goyan bayan ɓangaren uwar garken `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` da `{{FINGERPRINT}}` masu riƙewa, wanda aka faɗaɗa daga ainihin maƙasudin kai tsaye kafin aikawa. An ba da izini kuma ba mai maimaitawa ba; wuraren da ba a san su ba suna zama na zahiri; ƙimar komai suna faɗaɗa zuwa komai; Ba a taɓa sake rubutawa tsarin abokin ciniki ba. `{{FINGERPRINT}}` yana warwarewa kawai don masu samar da kyauta na tushen sawun yatsa tare da maƙallan yatsa ko jujjuya ta atomatik — yana faɗaɗa zuwa fanko a wani wuri (misali haɗin haɗin yatsa ɗaya, masu ba da fp ba). Fadadawa ya ƙunshi daidaitaccen madaidaicin madauki, zagaye-robin, da maƙallan ma'ajin ma'auni; hadewa, hargitsi, bututun bututu da dabarun aiwatar da gida-gida ba su fadada masu wurin ba tukuna.
 
-![Dashboard na Haɗe-haɗe](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 

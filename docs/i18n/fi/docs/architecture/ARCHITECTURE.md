@@ -14,7 +14,7 @@ OmniRoute on paikallinen AI -reititysyhdyskäytävä ja kojelauta, joka on raken
 
 Ydinominaisuudet:
 
-- OpenAI-yhteensopiva API pinta CLI/tools (381 tarjoajaa, 159 toteuttajamoduulia)
+- OpenAI-yhteensopiva API pinta CLI/tools (393 tarjoajaa, 159 toteuttajamoduulia)
 - Request/response -käännös eri palveluntarjoajien formaateissa
 - Mallin yhdistelmävara (usean mallin sarja)
 - Strukturoidut yhdistelmäaskeleet (`provider + model + connection`) `compositeTiers`:n ajonaikaisessa järjestyksessä
@@ -29,7 +29,7 @@ Ydinominaisuudet:
 - Musiikin luominen `/v1/music/generations` kautta (ComfyUI)
 - Verkkohaku `/v1/search` kautta (20 palveluntarjoajaa)
 - Moderointi `/v1/moderations` kautta
-- Uudelleensijoitus `/v1/rerank` kautta
+- Uudelleenjärjestys `/v1/rerank` kautta
 - Ajattele tagien jäsentämistä (`<think>...</think>`) päättelymalleille
 - Vastauksen desinfiointi tiukan OpenAI SDK -yhteensopivuuden takaamiseksi
 - Roolin normalisointi (kehittäjä-→ järjestelmä, järjestelmän → käyttäjä) palveluntarjoajien välisen yhteensopivuuden varmistamiseksi
@@ -61,18 +61,18 @@ Ydinominaisuudet:
 - Taitojärjestelmä (rekisteri, toimeenpanija, hiekkalaatikko, sisäänrakennetut taidot)
 - MITM -välityspalvelin varmenteiden hallinnan ja DNS -käsittelyn kanssa
 - Nopea ruiskutussuojan väliohjelmisto
-- Nopea pakkausputki, jossa on Caveman, RTK, pinotut putkistot, pakkausyhdistelmät, kielipaketit ja analytiikka
+- Nopea pakkausputki Cavemanilla, RTK, pinotuilla putkistoilla, pakkauskomboilla, kielipaketilla ja analytiikan kanssa
 - ACP (Agent Communication Protocol) -rekisteri
-- Modular OAuth providers (22 individual modules under `src/lib/oauth/providers/`)
+- Modulaariset OAuth toimittajat (22 yksittäistä moduulia `src/lib/oauth/providers/` n alla)
 - Uninstall/full-uninstall -skriptit
 - OAuth ympäristön korjaustoimet
 - WebSocket silta OpenAI-yhteensopiville WS asiakkaille (`/v1/ws`)
 - Synkronointitunnuksen hallinta (issue/revoke, ETag-version määrityspaketin lataus)
 - GLM Thinking (`glmt`) ensiluokkainen palveluntarjoajan esiasetus
 - Hybriditunnusten laskenta (palveluntarjoajan puoleinen `/messages/count_tokens` arvioinnin varalla)
-- Mallin aliaksen automaattinen kylvö (30 + välityspalvelinten välisen murteen normalisoinnit käynnistyksen yhteydessä)
+- Mallin aliaksen automaattinen kylvö (30 + välityspalvelinten välisten murteiden normalisointia käynnistyksen yhteydessä)
 - Turvallinen lähtevä nouto SSRF -suojalla, yksityinen URL -esto ja konfiguroitava uudelleenyritys
-- Cooldown-tietoinen chat-yritys uudelleen määritettävillä `requestRetry` ja `maxRetryIntervalSec` painikkeilla
+- Cooldown-tietoinen chat-yritys uudelleen määritettävillä `requestRetry` ja `maxRetryIntervalSec` llä
 - Ajonaikaisen ympäristön validointi Zod käynnistyksen yhteydessä
 - Vaatimustenmukaisuuden tarkastus v2, jossa on sivutus, palveluntarjoajan CRUD -tapahtumat ja SSRF-estämä vahvistusloki
 
@@ -369,7 +369,7 @@ Automaattinen yhdistelmä tekee dynaamisesti pisteytyksen ja valitsee reititysko
 
 Tärkeimmät ominaisuudet:
 
-- **20 reititysstrategiaa** (prioriteetti, painotettu, täytä ensin, round-robin, P2C, satunnainen, vähiten käytetty, kustannusoptimoitu, reset-tietoinen, nollausikkuna, ylätila, kiintiöpainotettu, tiukka satunnainen,** auto** , lkp, kontekstioptimoitu, välimuistiin optimoitu, kontekstivälitys,** fuusio** , pipeline) — auto on otsikon lisäys versiossa 3.8.0; `fusion` (paneelin fan-out + tuomarin synteesi, `open-sse/services/fusion.ts`) on uusi versiossa 3.8.36.
+- **21 reititysstrategiaa** (prioriteetti, painotettu, täytä ensin, round-robin, P2C, satunnainen, vähiten käytetty, kustannusoptimoitu, reset-tietoinen, nollausikkuna, vanheneminen ensin, varatila, kiintiöpainotettu, tiukka satunnainen,** auto** , lkp, kontekstioptimoitu, välimuistiin optimoitu, kontekstivälitys,** fuusio** , pipeline) — auto on otsikon lisäys versiossa 3.8.0; `fusion` (paneelin fan-out + tuomarisynteesi, `open-sse/services/fusion.ts`) on uusi versiossa 3.8.36.
 - **16-tekijän pisteytys** : kiintiö, terveys, käänteinen hinta, käänteinen latenssi, tehtävän sovitus ja kymmenen muuta. Kanoninen tekijöiden taulukko ja niiden oletuspainot elävät muodossa [`docs/routing/AUTO-COMBO.md`](../routing/AUTO-COMBO.md) —, jos se toistetaan tässä, se antaisi sille toisen paikan vanhentua.
 - **Virtuaalinen tehdas** toteuttaa lyhytaikaisia komboja, kun vastaavaa nimettyä yhdistelmää ei ole olemassa, hankkien ehdokkaat terveistä aktiivisista palveluntarjoajan yhteyksistä.
 - **Automaattiset etuliitteet** : `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`, `auto/smart`, `auto/lkgp` — joista kutakin tukee viritetty painoprofiili.
@@ -858,41 +858,47 @@ flowchart LR
 - `src/lib/db/*`: tuo yksittäiset moduulit suoraan — ei barrel-vientiä (vanha `localDb.ts`-uudelleenvientikerros poistettiin)
 - `src/lib/usageDb.ts`: käyttöhistorian ja kutsulokien rajapinta SQLite-taulujen päällä
 
-## Palvelun tarjoajan suorittimen kattavuus (strategiamalli)
+## Palveluntarjoajan kattavuus (strategiamalli)
 
-Jokaisella palvelun tarjoajalla on `BaseExecutor`-luokkaa laajentava erikoistunut suoritin (`open-sse/executors/base.ts`-tiedostossa). Se tarjoaa URL-osoitteiden muodostamisen, otsakkeiden rakentamisen, eksponentiaalista viivettä käyttävät uudelleenyritykset, tunnistetietojen päivityskoukut ja `execute()`-orkestrointimenetelmän.
+Jokaisella palveluntarjoajalla on erikoistunut toteuttaja, joka laajentaa `BaseExecutor` (in `open-sse/executors/base.ts`), joka tarjoaa URL rakennuksen, otsikkorakenteen, uudelleenyrityksen eksponentiaalisella perääntymisellä, valtuustietojen päivityskoukut ja `execute()` -orkesterimenetelmän.
 
-| Suorittaja                | Palveluntarjoaja(t)                                                                                                                                        | Erityiskäsittely                                                                   |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA jne. | Dynaaminen URL-/otsakemääritys palveluntarjoajakohtaisesti                         |
-| `AntigravityExecutor`     | Google Antigravity                                                                                                                                         | Mukautetut projekti-/istuntotunnukset, Retry-After-jäsennys, 429-häivytys          |
-| `AzureOpenAIExecutor`     | Azure OpenAI                                                                                                                                               | Käyttöönottoon perustuva reititys, api-version-kyselyparametrin pakotus            |
-| `BlackboxWebExecutor`     | Blackbox AI (verkkotila)                                                                                                                                   | Verkkoistunnon käänteismallinnus TLS-sormenjäljen emuloinnilla                     |
-| `ClaudeIdentityExecutor`  | Claude.ai (CCH-polku)                                                                                                                                      | Rajoite- ja työkalujen uudelleenkartoitusputket, sormenjäljen muokkaus             |
-| `CliProxyApiExecutor`     | CLIProxyAPI-yhteensopivat palveluntarjoajat                                                                                                                | Mukautettu todennus ja protokollankäsittely                                        |
-| `CloudflareAiExecutor`    | Cloudflare Workers AI                                                                                                                                      | Tilitunnuksen lisäys, Neurons-pohjainen käytön seuranta                            |
-| `CodexExecutor`           | OpenAI Codex                                                                                                                                               | Lisää järjestelmäohjeet ja pakottaa päättelypanoksen                               |
-| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                        | Selainistunnon Responses API -silta säikeen ja vuoron kiinnityksellä               |
-| `CommandCodeExecutor`     | Command Code                                                                                                                                               | OAuth ja istuntokohtainen otsakkeiden kierrätys                                    |
-| `CursorExecutor`          | Cursor IDE                                                                                                                                                 | ConnectRPC-protokolla, Protobuf-koodaus, pyyntöjen allekirjoitus tarkistussummalla |
-| `DevinCliExecutor`        | Devin CLI                                                                                                                                                  | Devin-tehtävien elinkaaren välitys pilviagenttimoduulin kautta                     |
-| `GithubExecutor`          | GitHub Copilot                                                                                                                                             | Copilot-tunnisteen päivitys, VSCodea jäljittelevät otsakkeet                       |
-| `GitlabExecutor`          | GitLab Duo                                                                                                                                                 | GitLab OAuth ja projektikohtainen reititys                                         |
-| `GlmExecutor`             | Z.AI GLM (mukaan lukien `glmt`-esiasetus)                                                                                                                  | Päättelybudjetin huomioiva, GLMT-esiasetuksen vakiot                               |
-| `GrokWebExecutor`         | xAI Grok -verkkoversio                                                                                                                                     | Verkkoistunnon käänteismallinnus, tilan valinta (päättely/vakio)                   |
-| `KieExecutor`             | KIE                                                                                                                                                        | Mukautettu tunnisteiden myöntäminen vaihtuvilla istuntoankkureilla                 |
-| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                     | AWS EventStream -binäärimuoto → SSE-muunnos                                        |
-| `MuseSparkWebExecutor`    | Muse Spark (verkko)                                                                                                                                        | Verkkoistunnon käänteismallinnus kuvaviestien välityksellä                         |
-| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                  | Palveluntarjoajakohtainen pyyntörungon rakenne                                     |
-| `OpenCodeExecutor`        | OpenCode                                                                                                                                                   | AI SDK -yhteensopiva palveluntarjoajan määritys                                    |
-| `PerplexityWebExecutor`   | Perplexity-verkkoversio                                                                                                                                    | Verkkoistunnon käänteismallinnus keskustelun jatkamista varten                     |
-| `PetalsExecutor`          | Petalsin hajautettu päättely                                                                                                                               | Hajautetun parven reititys                                                         |
-| `PollinationsExecutor`    | Pollinations AI                                                                                                                                            | API-avainta ei vaadita, nopeusrajoitetut pyynnöt                                   |
-| `QoderExecutor`           | Qoder AI                                                                                                                                                   | PAT- ja OAuth-tuki, usean mallin maksuton taso                                     |
-| `VertexExecutor`          | Google Vertex AI                                                                                                                                           | Palvelutilitodennus, aluekohtaiset päätepisteet                                    |
-| `DevinDesktopExecutor`    | Devin Desktop                                                                                                                                              | Tuotu API-avain ja Connect-protobuf-keskustelun suoratoisto                        |
+| Toteuttaja                | Palveluntarjoaja(t)                                                                                                                                      | Erikoiskäsittely                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `DefaultExecutor`         | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Hämmennys, Together, Fireworks, Cerebras, CohereNVIDIA, jne. | Dynaaminen URL/header konfiguraatio tarjoajakohtaisesti                               |
+| `AntigravityExecutor`     | Google Antigravity                                                                                                                                       | Mukautettu project/session IDs, Yritä uudelleen jäsennyksen jälkeen, 429 hämärtäminen |
+| `AzureOpenAIExecutor`     | Taivaansininen OpenAI                                                                                                                                    | Käyttöönottopohjainen reititys, api-version kyselyn pakottaminen                      |
+| `BlackboxWebExecutor`     | Blackbox AI (verkkotila)                                                                                                                                 | Web-istunnon käänteinen TLS sormenjälki-emulointi                                     |
+| `ClaudeIdentityExecutor`  | Claude.ai (CCH polku)                                                                                                                                    | Rajoita + työkalu-remap-liukuhihnat, sormenjälkien muotoilu                           |
+| `CliProxyApiExecutor`     | CLIProxyAPI-yhteensopivat palveluntarjoajat                                                                                                              | Mukautettu todennus- ja protokollakäsittely                                           |
+| `CloudflareAiExecutor`    | Cloudflare Työntekijät AI                                                                                                                                | Tilin ID injektio, Neuroneihin perustuva käytön seuranta                              |
+| `CodexExecutor`           | OpenAI Codex                                                                                                                                             | Ruiskuttaa järjestelmän ohjeita, pakottaa päättelyponnistuksen                        |
+| `ChatGptWebCodexExecutor` | ChatGPT Web (Codex)                                                                                                                                      | Selain-istunnon vastaukset API silta thread/turn -kiinnityksellä                      |
+| `CommandCodeExecutor`     | Komentokoodi                                                                                                                                             | OAuth + istuntokohtainen otsikon kierto                                               |
+| `CursorExecutor`          | Cursor IDE                                                                                                                                               | ConnectRPC protokolla, Protobuf-koodaus, pyynnön allekirjoitus tarkistussumman kautta |
+| `DevinCliExecutor`        | Devin CLI                                                                                                                                                | Devin tehtävän elinkaaren siltaus pilviagenttimoduulin kautta                         |
+| `GithubExecutor`          | GitHub Copilot                                                                                                                                           | Copilot token refresh, VSC-koodia jäljittelevät otsikot                               |
+| `GitlabExecutor`          | GitLab Duo                                                                                                                                               | GitLab OAuth + projektikohtainen reititys                                             |
+| `GlmExecutor`             | Z.AI GLM (sis. `glmt` esiasetus)                                                                                                                         | Budjettitietoinen ajattelu, GLMT esiasetetut vakiot                                   |
+| `GrokWebExecutor`         | xAI Grok web                                                                                                                                             | Verkko-istunnon käänteinen, tilan valinta (think/standard)                            |
+| `KieExecutor`             | KIE                                                                                                                                                      | Mukautettu tunnuksen myöntäminen pyörivillä istuntoankkureilla                        |
+| `KiroExecutor`            | AWS CodeWhisperer/Kiro                                                                                                                                   | AWS EventStream binäärimuodon → SSE muunnos                                           |
+| `MuseSparkWebExecutor`    | Muse Spark (verkko)                                                                                                                                      | Web-istunto käänteinen kuva-viestin siltauksella                                      |
+| `NlpCloudExecutor`        | NLP Cloud                                                                                                                                                | Palveluntarjoajakohtainen kehon muoto                                                 |
+| `OpenCodeExecutor`        | OpenCode                                                                                                                                                 | AI SDK -yhteensopiva palveluntarjoajan asetukset                                      |
+| `PerplexityWebExecutor`   | Hämmennysverkko                                                                                                                                          | Web-istunnon käänteinen keskustelun jatkamista varten                                 |
+| `PetalsExecutor`          | Terälehdet jaettu päätelmä                                                                                                                               | Hajautettu parvireititys                                                              |
+| `PollinationsExecutor`    | Pölytys AI                                                                                                                                               | API -avainta ei tarvita, pyyntöjä on rajoitettu                                       |
+| `QoderExecutor`           | Qoder AI                                                                                                                                                 | PAT ja OAuth -tuki, usean mallin ilmainen taso                                        |
+| `VertexExecutor`          | Google Vertex AI                                                                                                                                         | Palvelutilin todennus, aluekohtaiset päätepisteet                                     |
+| `DevinDesktopExecutor`    | Devin työpöytä                                                                                                                                           | Tuotu API -avain + Connect-protobuf-chat-suoratoisto                                  |
 
-Kaikki muut palveluntarjoajat (mukaan lukien mukautetut yhteensopivat solmut) käyttävät `DefaultExecutor`-suorittajaa.
+Kaikki muut palveluntarjoajat (mukaan lukien mukautetut yhteensopivat solmut) käyttävät `DefaultExecutor`.
+
+### Automaattiset koettimet ja web-istuntotilit
+
+Mallitestit, Testaa kaikki, yhdistelmätestit ja arvioinnit lähettävät todellisia chat-pyyntöjä. Verkkoistunnon tarjoaja toimii sisäänkirjautuneena käyttäjänä, joten jokainen pyyntö tallennettaisiin keskusteluna kyseiselle tilille. automaattiset tutkijat, jotka jättivät tällaiset keskustelut, saivat tilin jäädytetyksi (#14780). Tämän vuoksi chat-putki hylkää jokaisen kohteen, jonka automaattinen luotain tavoittaa ja jonka palveluntarjoaja ottaa verkkoistunnon valtuustiedot, kun kohteen tarjoaja on selvitetty ja ennen kuin valtuustieto on valittu (`src/lib/providers/chatProbePolicy.ts`). Kieltäytyminen on `422` ja `error.code` `chat_probe_not_isolated`, ja koettimen juoksijat raportoivat sen ohitukseksi, eivät virheeksi.
+
+Suoritin, joka suorittaa jokaisen keskustelun palveluntarjoajan omassa ei-historia-tilassa, ilmoittaa sen komennolla `ChatProbeIsolatingExecutor` (`open-sse/executors/chatProbeIsolation.ts`); palveluntarjoajan luotaukset sallitaan. ChatGPT Web ilmoittaa `temporary-chat`. Kiinnitä ilmoitus sen mekanismiin testillä, jotta väite ei voi kestää koodia, joka tekee siitä totta.
 
 ## Palveluntarjoajien yhteensopivuusmatriisi
 

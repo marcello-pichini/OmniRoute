@@ -457,7 +457,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -487,11 +487,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 शीर्ष-स्तर निष्पादक मोड्युलहरू (`*.ts` माइनस `base.ts`, `index.ts` र परीक्षणहरू — गणना `npm run check:docs-counts` उपायहरू)। प्रत्येक निर्वाहक वर्गले `BaseExecutor` (`base.ts`), प्रत्यक्ष वा `DefaultExecutor` वा अर्को एक्जिक्युटर मार्फत विस्तार गर्दछ; बाँकी मोड्युलहरू प्रति-प्रदायक सहयोगीहरू हुन् (उपकरण योजनाहरू, fetch/TTS एडेप्टरहरू, quirk ह्यान्डलरहरू)। कार्यकारीहरू समावेश छन्:
+170 शीर्ष-स्तर निर्वाहक मोड्युलहरू (`*.ts` माइनस `base.ts`, `index.ts` र परीक्षणहरू — गणना `npm run check:docs-counts` उपायहरू)। प्रत्येक निर्वाहक वर्गले `BaseExecutor` (`base.ts`), प्रत्यक्ष वा `DefaultExecutor` वा अर्को एक्जिक्युटर मार्फत विस्तार गर्दछ; बाँकी मोड्युलहरू प्रति-प्रदायक सहयोगीहरू हुन् (उपकरण योजनाहरू, fetch/TTS एडेप्टरहरू, quirk ह्यान्डलरहरू)। कार्यकारीहरू समावेश छन्:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, plus `claudeIdentity.ts` (साझा पहिचान सहायक) र `index.ts` (रजिस्ट्री) `devin-desktop`
 
-> नोट: यहाँ सूचीबद्ध नगरिएका प्रदायकहरूलाई जेनेरिक OpenAI-compatible executor को प्रयोग गरेर `default.ts` द्वारा सेवा दिइन्छ। पूर्ण प्रदायक सूची (381 प्रदायकहरू) `src/shared/constants/providers.ts` मा बस्छन्।
+> नोट: यहाँ सूचीबद्ध नगरिएका प्रदायकहरूलाई जेनेरिक OpenAI-compatible executor को प्रयोग गरेर `default.ts` द्वारा सेवा दिइन्छ। पूर्ण प्रदायक सूची (393 प्रदायकहरू) `src/shared/constants/providers.ts` मा बस्छन्।
 
 ### 4.3 `open-sse/translator/`
 
@@ -513,7 +513,7 @@ open-sse/
 
 | चिन्ता           | फाइलहरू                                                                                                                                                                                                                                                  |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| कम्बो रूटिङ      | `combo.ts` (20 रणनीतिहरू), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| कम्बो रूटिङ      | `combo.ts` (21 रणनीतिहरू), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
 | अटो कम्बो इन्जिन | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | लचिलोपन          | `accountFallback.ts` (कूलडाउन + लकआउट), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                            |
 | कोटाहरू          | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

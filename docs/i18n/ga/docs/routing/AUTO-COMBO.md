@@ -285,7 +285,7 @@ luachanna réitithe isteach sna hionchuir `config.modePack` / `config.budgetCap`
 
 ## Gach Straitéis Ródúcháin
 
-Tacaíonn inneall teaglama OmniRoute'** 20 straitéis ródaithe** (arna dhearbhú i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Tá an t-inneall Auto Combo féin nochta faoin straitéis `auto` ; tá na cinn eile ar fáil le haghaidh combos leanúnach.
+Tacaíonn inneall teaglama OmniRoute'** 21 straitéis ródaithe** (arna dhearbhú i `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Tá an t-inneall Auto Combo féin nochta faoin straitéis `auto` ; tá na cinn eile ar fáil le haghaidh combos leanúnach.
 
 | Straitéis           | Cur síos                                                                                                                                                                                                |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -300,6 +300,7 @@ Tacaíonn inneall teaglama OmniRoute'** 20 straitéis ródaithe** (arna dhearbh�
 | `cost-optimized`    | Íoslaghdaigh $ in aghaidh an iarratais nuair a thugtar praghas catalóige                                                                                                                                |
 | `reset-aware` ⭐    | Tabhair tosaíocht de réir am athshocraithe cuóta — fuinneoga athshocraithe gearr rangaithe níos airde                                                                                                   |
 | `reset-window`      | Is fearr le spriocanna a n-athshocraíonn a bhfuinneog cuóta is túisce                                                                                                                                   |
+| `expiry-first`      | Caith an cuntas a rachadh a chuóta in éag murach sin ar dtús — téann an fuílleach is airde agus an spriocdháta athshocraithe is gaire ar dtús                                                           |
 | `headroom`          | Roghnaigh an sprioc leis an spás cloiginn is mó atá fágtha                                                                                                                                              |
 | `quota-weighted`    | Léim amach cuntais ídithe, ansin roghnaigh i measc an chuid eile i gcomhréir leis an gcuóta fágtha roinnte ar ualach san eitilt; fanann na comhráite atá ann cheana féin pinned                         |
 | `strict-random`     | Randamach gan athdhúbailt a dhéanamh                                                                                                                                                                    |
@@ -327,6 +328,20 @@ Le haghaidh rothlú dian úsáid `round-robin`; meáchain comhionann ar `weighte
 
 Is féidir le teaglama `pipeline` ina bhfuil ar a laghad dhá shamhail rogha a dhéanamh de ródú planner/executor le `config.agenticOrchestration.enabled`. Is leis an gcéad sprioc na freagraí pleanála agus deiridh; scaoileann an dara sprioc glaonna uirlis dúchais cliant. Aimsíonn OmniRoute leanúint ar aghaidh le torthaí uirlisí ón bprótacal iarratais, fiafraíonn sé den phleanálaí an bhfuil gá le babhta uirlisí eile, agus go dinimiciúil déanann sé an seiceadóir nó an pleanálaí an chéim dheireanach os comhair an chliaint.
 
+Cuireann `config.agenticOrchestration.contextCompaction` roghnach buiséad pálasta ar leith i bhfeidhm roimh gach seolta pleanálaí nó seiceadóir. Cumasaigh go soiléir é:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Is buiséid srathaithe carachtar JSON iad seo a roghnaíonn an t-oibreoir, ní fuinneoga comhthéacs comharthacha ná teorainneacha réamhtheachtacha ráthaithe. Sáraíonn múnla cruinn IDs an réamhshocrú. Os cionn na tairsí, baintear sainmhínithe uirlisí comhionanna de bharr dhlúthú, gearrtar fianaise uirlisí rómhór le achoimre, agus baintear seanghrúpaí staire iomlána i dtreo an chóimheas sprice. Coinníonn sé treoracha system/developer, an t-iarratas úsáideora is déanaí, an babhta uirlisí deiridh lena n-áirítear comhthreomhar calls/results, agus príomh-threoir ródaithe Gemini. Coimeádtar treoracha ardleibhéil agus socruithe uirlisí. Taifeadann marcóir easnamh an stair bainte; scamhadh cinntitheach é seo, ní achoimre shéimeantach. Má sháraíonn an comhthéacs pinnáilte an buiséad fós, seolfaidh an t-iarratas 413 ar ais sula ndéantar teagmháil leis an tsamhail. Má bhíonn balcadh díchumasaithe nó faoi bhun na tairsí, téann an t-iarratas ar aghaidh gan athrú.
+
 Maidir le leanúint ar aghaidh le huirlisí-torthaí, cuireann OmniRoute stop leis an bhforghníomhú freisin nuair a athdhéantar na glaonna uirlise céanna le dhá bhabhta críochnaithe i ndiaidh a chéile agus torthaí gan athrú, nó nuair a theip ar gach toradh atá marcáilte go sainráite in dhá bhabhta as a chéile. Ceadaíonn torthaí athraithe glaonna arís agus arís eile (mar shampla, vótaíocht). Athshocraíonn an garda ar iarratas úr úsáideora, grúpálann sé glaonna comhthreomhar isteach i mbabhta amháin, agus tacaíonn sé le Anthropic, Críochnú Comhrá, Freagraí agus stair Gemini. Faigheann an pleanálaí an chúis agus is leis nó léi an freagra deiridh fiú má iarrann sé babhta uirlisí eile.
 
 Ordaítear samhlacha breise tar éis an dara sprioc cúltacaí seiceadóir. Téann freagra teipthe HTTP nó eisceacht iompair ar aghaidh chuig an gcéad seiceadóir eile, ag iompar an chinnidh phleanála chéanna agus na huirlisí dúchais céanna ach céim an tseiceadóra sin a nascadh pras agus réitithe. Cuirtear an chéad fhreagra rathúil ar ais gan athrú, lena n-áirítear sruthú SSE ; ní féidir teipeanna tar éis tosú sruth rathúil a chur ar ais anseo. Má theipeann ar gach seiceadóir, cuirtear an teip dheireanach ar ais. Stopann ginmhilleadh cliant le seoladh.
@@ -341,7 +356,7 @@ Ordaítear samhlacha breise tar éis an dara sprioc cúltacaí seiceadóir. Téa
 }
 ```
 
-Féadfaidh an seiceadóir glaonna neamhspleácha iolracha a astú in aon fhreagra amháin. Déileáiltear le glaonna cleithiúnacha i gcasálacha na gcliant-torthaí níos déanaí, agus déanann an pleanálaí athbhreithniú ar gach toradh. mainneachtainí `maxToolRounds` go `8` agus glacann sé `1`–`32`; Nuair a bheidh sé bainte amach, caithfidh an pleanálaí an freagra deiridh is fearr atá ar fáil a thabhairt. Déantar cinntí pleanála inmheánacha a mhaolánú, agus caomhnaíonn an freagra roghnaithe aghaidh ar an gcliant an bhunrogha sruthú.
+Féadfaidh an seiceadóir glaonna neamhspleácha iolracha a astú in aon fhreagra amháin. Déileáiltear le glaonna cleithiúnacha i gcasálacha na gcliant-torthaí níos déanaí, agus déanann an pleanálaí athbhreithniú ar gach toradh. mainneachtainí `maxToolRounds` go `8` agus glacann sé `1`–`32`; Nuair a bheidh sé bainte amach, caithfidh an pleanálaí an freagra deiridh is fearr atá ar fáil a thabhairt. Déantar cinntí pleanála inmheánacha a mhaolánú, agus coimeádann an freagra roghnaithe aghaidh ar an gcliant an bhunrogha sruthú.
 
 ### baisce greamaitheach `round-robin` agus leathnú cuntas
 
@@ -351,7 +366,7 @@ Is baisceáil an robáin bhabhta, ní aon iarratas amháin in aghaidh na céime:
 - `connectionAwareExpansion` (cumraíocht teaglama, ansin socruithe, réamhshocraithe** bréagach** ) leathnaíonn sé gach céim ar leibhéal an tsoláthraí go spriocanna in aghaidh an chuntais roimh an uainíocht. Straitéisí Grúpa-B (tosaíocht, ualaithe, bhabhta-robín, randamach, p2c, is lú úsáid, cost-optamaithe, lkgp, líonadh-an chéad, docht-randamach, comhthéacs-optamaithe, taisce-optamaithe, comhthéacs-seoladh, comhleá, píblíne) a choinneáil ar an leibhéal soláthraí go dtí go bhfuil sé seo ar siúl. Nochtann an t-eagarthóir teaglama oidhreacht / ar / as; Úsáideann inherit an réamhshocrú domhanda (as).
 - Ródú ceantair pras-taisce (`promptCacheAffinityEnabled`, réamhshocraithe** fíor** ) athordaíonn naisc phionnáilte ionas go bhfanann na heochracha taisce meaitseála ar aon chuntas amháin. Bíonn tús áite aige ar uainíocht bhabhta-robín agus ar rothlú ualaithe thar chéimeanna pinnithe in aghaidh an chuntais. Múch é faoi Socruithe → mainneachtainí teaglama má theastaíonn rothlú dian uait. Níl aon sárú in aghaidh na teaglama.
 
-Le haghaidh rothlú ilchuntais ar mhúnla amháin, is fearr** céim amháin dinimiciúil-chuntas** ( `connectionId` folamh, linn snámha iomlán) le teorainn greamaitheach `1`, ní trí `connectionId` pinned s. Titeann céimeanna pinned agus cleamhnas ar an gcuntas céanna fiú agus an cuntar RR ag dul chun cinn.
+Le haghaidh rothlú ilchuntais ar mhúnla amháin, is fearr** céim amháin dinimiciúil-chuntas** ( `connectionId` folamh, linn snámha ar fad) le teorainn greamaitheach `1`, ní trí pinned `connectionId` s. Titeann céimeanna pinned agus cleamhnas ar an gcuntas céanna fiú agus an cuntar RR ag dul chun cinn.
 
 ## Strataisí Fúnáise
 
@@ -795,45 +810,41 @@ Chun tús áite láidir a thabhairt do Shraith 1 (síntiús), méadaigh meáchan
 
 Féach ar [`docs/guides/TIERS.md`](../guides/TIERS.md) le haghaidh sainmhínithe ar na sraitheanna agus aicmiú na soláthraithe.
 
-## Tástáil agus Clúdach
+## Tástáil & Clúdach
 
-### Maitrícs chinntí ríochtála (`npm run test:combo:matrix`)
+### Maitrís ródú cinntitheach cinntitheach (`npm run test:combo:matrix`)
 
-Déanann `tests/integration/combo-matrix/*.test.ts` deimhniú go bhfuil an cinneadh **riochtála** de gach ceann de na 19
-straitéis phoiblí críochnaithe go hiomlán tríd an tseicheamh chomhcheangail fíor le huaschóras meaitseáilte.
-Tá an clúdach san áireamh:
+`tests/integration/combo-matrix/*.test.ts` go gcruthóidh an ródú** cinneadh** de gach ceann de na 21 straitéis phoiblí ceann go ceann tríd an bpíblíne teaglama fíor le magadh in aghaidh an tsrutha. Áirítear le clúdach:
 
-- Na 19 straitéis `ROUTING_STRATEGY_VALUES` uile (ordaithe, meáite, costas, comhthéacs, leá, …).
-- `quota-share` (inmheánach) críochnaithe go hiomlán: cothromas DRR + tosaíocht sa chomhshó áitiúil trí
-  seac `selectQuotaShareTarget` fíor (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Clúdach handoff uilíoch `context-relay` trasna gach cuntas spriocdhírithe.
+- Gach 21 straitéis `ROUTING_STRATEGY_VALUES` (ordaithe, ualaithe, costas, comhthéacs, comhleá, ...).
+- `quota-share` (inmheánach) deireadh go deireadh: cothroime DRR díréimniú sáithiúcháin + tríd an seam `selectQuotaShareTarget` fíor (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` clúdach uilíoch-handoff ar fud gach comhaireamh sprice.
 
-Ritheann an tsraith seo in CI (`test:integration` post) le `--test-concurrency=1` agus
-`--test-force-exit` ionas go bhfuil sé cinntitheach agus nach gá diarbharrantaí beo a bheith ann.
+Ritheann an tsraith seo i CI ( post `test:integration` ) le `--test-concurrency=1` agus `--test-force-exit` mar sin tá sé cinntitheach agus ní gá dintiúir bheo.
 
-### Smotháiste beo faoi ghlas (NÍL i CI — soláthraithe fíora)
+### Deatach beo gated (NOT i soláthraithe CI — )
 
-| Ordú                                   | Cad a dhéanann sé                                                                                     |
-| :------------------------------------- | :---------------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Ríochtáil fíor in-phróiseas le `RUN.ImageLayoutLIVE=1`; snapshootann sé bunachar sonraí OmniRoute beo |
-| `npm run test:combo:live:vps`          | Glaonna HTTP i gcoinne freastalaí OmniRoute beo (socraigh `COMBO_LIVE_BASE_URL`)                      |
-| `npm run test:combo:live:vps:failover` | Amhlaidh, le cásanna teip éignithe                                                                    |
+| Ordú                                   | Cad a dhéanann sé                                                                |
+| :------------------------------------- | :------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Fíorródú in-phróiseas le `RUN_COMBO_LIVE=1`; snapshots a OmniRoute DB            |
+| `npm run test:combo:live:vps`          | glaonna HTTP i gcoinne freastalaí OmniRoute beo (socraigh `COMBO_LIVE_BASE_URL`) |
+| `npm run test:combo:live:vps:failover` | Mar an gcéanna, le cásanna teipe d'aon ghnó                                      |
 
-Cothaíonn na tástálacha smotháiste seo an cosán fíor sreafa (comhcheangal → soláthraí → críochnú). Tá siad
-dílis faoin dearmad ó CI toisc go dteastaíonn diarbharrantaí beo agus rochtain VPS uathu.
+Feidhmíonn na tástálacha deataigh seo an cosán sreinge fíor (comhlánú soláthraí → soláthraí → ). Déantar iad a eisiamh ó CI d'aon ghnó mar go dteastaíonn dintiúirí beo agus rochtain VPS uathu.
+
+---
 
 ## Comhaid
 
-| Comhad                                                    | Cuspóir                                                                                                                             |
-| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Feidhm scórála 16 fhachtóir, `DEFAULT_WEIGHTS`, norm na linne                                                                       |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Cuardach oiriúnachta samhla × taisc                                                                                                 |
-| `open-sse/services/autoCombo/engine.ts`                   | Loighic roghnúcháin, bandit, teorainn bhuiséid                                                                                      |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Eisiamh, tóireadóirí, mód teagmhais                                                                                                 |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 phróifíl meáchain (seol-go-tapa, coigilteoir-costais, cáilíocht-ar-dtús, fabhrach don as líne, iontaofacht-ar-dtús, mód anordúil) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parsálaí réimíre `auto/` + 6 leagan                                                                                                 |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Tógann `AutoComboConfig` sa chuimhne ó naisc bheo                                                                                   |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Duán tástála chun bréagchlár soláthraithe a chruthú                                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 straitéis)                                                                                            |
-| `src/sse/handlers/chat.ts`                                | Comhtháthú: gearrchiorcad réimíre uathoibríche                                                                                      |
+| Comhad                                                    | Cuspóir                                                                                                                      |
+| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Feidhm scórála 16-fachtóir, `DEFAULT_WEIGHTS`, norm linn snámha                                                              |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Samhail × tasc aclaíochta cuardaigh                                                                                          |
+| `open-sse/services/autoCombo/engine.ts`                   | Loighic roghnúcháin, meirleach, caipín buiséid                                                                               |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Eisiamh, tóireadóirí, modh teagmhais                                                                                         |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 phróifíl meáchain (long-tapa, coigilteas costais, cáilíocht-an chéad, cairdiúil as líne, iontaofacht-an chéad, modh chaos) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | parsálaí réimír `auto/` + 6 leagan                                                                                           |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Tógann sé `AutoComboConfig` i gcuimhne ó naisc bheo                                                                          |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook tástála le haghaidh clárlann soláthraithe magadh                                                                        |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 straitéis)                                                                                     |
+| `src/sse/handlers/chat.ts`                                | Comhtháthú: uathréimír gearrchiorcad                                                                                         |

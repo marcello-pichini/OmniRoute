@@ -283,7 +283,7 @@ lahendatud väärtused edastatakse mootori olemasolevatele sisenditele `config.m
 
 ## Kõik marsruutimisstrateegiad
 
-OmniRoute kombineeritud mootori toed** 20 marsruutimisstrateegiat** (deklareeritud `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo mootor ise on avatud `auto` strateegia alusel; teised on saadaval püsivate kombinatsioonide jaoks.
+OmniRoute kombineeritud mootori toed** 21 marsruutimisstrateegiat** (deklareeritud `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo mootor ise on avatud `auto` strateegia alusel; teised on saadaval püsivate kombinatsioonide jaoks.
 
 | strateegia          | Kirjeldus                                                                                                                                                                                                                      |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -298,6 +298,7 @@ OmniRoute kombineeritud mootori toed** 20 marsruutimisstrateegiat** (deklareerit
 | `cost-optimized`    | Minimeerida $ iga taotluse arvestades kataloogi hinnad                                                                                                                                                                         |
 | `reset-aware` ⭐    | Prioriteet kvoodi lähtestamise aja järgi — lühikesed lähtestusaknad on kõrgemal kohal                                                                                                                                          |
 | `reset-window`      | Eelista sihtmärke, mille kvoodiaken lähtestatakse kõige kiiremini                                                                                                                                                              |
+| `expiry-first`      | Kuluta konto, mille kvoot muidu aeguks kasutamata esimesena — kõige suurem ülejääk lähima lähtestamistähtajaga läheb esimesena                                                                                                 |
 | `headroom`          | Valige sihtmärk, millel on kõige rohkem järelejäänud kvoodiruumi                                                                                                                                                               |
 | `quota-weighted`    | Jätke ammendatud kontod vahele, seejärel valige ülejäänute hulgast proportsionaalselt järelejäänud kvoot jagatud lennukoormusega; olemasolevad vestlused jäävad kinnitatud                                                     |
 | `strict-random`     | Juhuslik ilma korduste dubleerimiseta                                                                                                                                                                                          |
@@ -324,6 +325,20 @@ Rangeks pööramiseks kasutage `round-robin`; `weighted` võrdsed kaalud annavad
 ### Agendi torujuhtme režiim
 
 Vähemalt kahe mudeliga `pipeline` kombo saab valida planner/executor marsruutimise koos `config.agenticOrchestration.enabled`. Esimene sihtmärk omab planeerimist ja lõplikke vastuseid; teine sihtmärk kiirgab kliendipõhiseid tööriistakutseid. OmniRoute tuvastab päringuprotokolli tööriista-tulemuse jätkud, küsib planeerijalt, kas on vaja veel ühte tööriistavooru, ja muudab dünaamiliselt kas täitja või planeerija kliendipoolseks viimaseks sammuks.
+
+Valikuline `config.agenticOrchestration.contextCompaction` rakendab enne iga planeerija või täitja saatmist eraldi kasuliku koormuse eelarvet. Luba see selgesõnaliselt:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Need on operaatori valitud jadapõhised JSON -märgieelarved, mitte loa konteksti aknad ega garanteeritud ülesvoolu piirangud. Täpne mudel IDs alistab vaikeväärtuse. Üle läve eemaldab tihendamine identsed tööriistamääratlused, kärbib liiga suured tööriistade tõendid kokkuvõttega ja eemaldab vanad täielikud ajaloorühmad sihtsuhte suunas. See säilitab system/developer juhised, viimase kasutajapäringu, viimase tööriistavooru, sealhulgas paralleelse calls/results, ja Gemini juhtiva marsruutimisjuhise. Säilitatakse tipptasemel juhised ja tööriista seaded. Väljajätmise marker salvestab eemaldatud ajaloo; see on deterministlik kärpimine, mitte semantiline kokkuvõte. Kui kinnitatud kontekst ületab ikkagi eelarvet, tagastab päring enne mudeliga ühenduse võtmist numbri 413. Kui tihendamine on keelatud või alla läve, edastatakse taotlus muutmata kujul.
 
 Tööriistatulemuse jätkamisel peatab OmniRoute täitmise ka siis, kui kaks järjestikust lõpetatud vooru kordavad sama tööriistakutset muutumatute tulemustega või kui iga selgelt märgitud tulemus kahes järjestikuses voorus ebaõnnestus. Muudetud tulemused võimaldavad korduvaid kõnesid (näiteks küsitlusi). Valvur lähtestub uue kasutaja taotluse alusel, rühmitab paralleelkõned ühte vooru ning toetab Anthropic, vestluse lõpetamist, vastuseid ja Gemini ajalugu. Planeerija saab põhjuse ja talle kuulub lõplik vastus isegi siis, kui ta nõuab uut tööriistavooru.
 
@@ -792,40 +807,41 @@ strateegiat `priority` ja järjestage pakkujad taseme järgi.
 
 Tasemete määratlusi ja pakkujate klassifikatsiooni vaadake failist [`docs/guides/TIERS.md`](../guides/TIERS.md).
 
-## Testimine ja Katvus
+## Testimine ja katvus
 
-### Deterministliku marsruutimise otsuste maatriks (`npm run test:combo:matrix`)
+### Deterministlik marsruutimise-otsustusmaatriks (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` tõendab kõigi 19 avaliku strateegia marsruutimisotsust läbi reaalse kombo toru koos mockitud ülesvooluga. Katvus hõlmab:
+`tests/integration/combo-matrix/*.test.ts` tõestab marsruutimist** otsus** kõigist 21 avalikust strateegiast otsast lõpuni läbi tõelise kombineeritud torujuhtme ja pilkanud ülesvoolu. Katvus sisaldab:
 
-- Kõiki 19 `ROUTING_STRATEGY_VALUES` strateegiat (järjestatud, kaalutud, kulu, kontekst, fusioon, …).
-- `quota-share` (sisemine) lõppläbiviimist: DRR ausus + küllastuse de-prioriseerimine läbi reaalse `selectQuotaShareTarget` õmbluse (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- `context-relay` universaalse üleandmise katvust igal sihtarvul.
+- Kõik 21 `ROUTING_STRATEGY_VALUES` strateegiat (järjestatud, kaalutud, maksumus, kontekst, fusioon jne).
+- `quota-share` (sisemine) otsast lõpuni: DRR õiglus + küllastuse tähtsuse tühistamine tegeliku `selectQuotaShareTarget` õmbluse kaudu (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universaalne üleandmise katvus iga sihtrühma ulatuses.
 
-See komplekt käivitub CI-s (`test:integration` töö) parameetritega `--test-concurrency=1` ja `--test-force-exit`, et olekseterministlik ega nõuaks elavaid volitusi.
+See komplekt töötab CI (`test:integration` -töö) koos `--test-concurrency=1` ja `--test-force-exit`, seega on see deterministlik ega vaja reaalajas mandaate.
 
-### Piiranguga elav suitsukatse (EI ole CI-s — reaalsed pakkujad)
+### Piiratud elav suits (NOT in CI — tegelikud pakkujad)
 
-| Käsk                                   | Mida teeb                                                                                         |
-| :------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| `npm run test:combo:live`              | Reaalne marsruutimine protsessisiseselt `RUN_COMBO_LIVE=1` abil; teeb elava OmniRoute DB hetktõve |
-| `npm run test:combo:live:vps`          | HTTP-päringud elava OmniRoute serveri vastu (sea `COMBO_LIVE_BASE_URL`)                           |
-| `npm run test:combo:live:vps:failover` | Sama, tahtliku üleandmise stsenaariumidega                                                        |
+| Käsk                                   | Mida see teeb                                                                                  |
+| :------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Protsessi käigus reaalne marsruutimine `RUN_COMBO_LIVE=1`; hetktõmmised reaalajas OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP kõned reaalajas OmniRoute serveri vastu (määra `COMBO_LIVE_BASE_URL`)                     |
+| `npm run test:combo:live:vps:failover` | Sama, tahtliku tõrkeotsingu stsenaariumitega                                                   |
 
-Need suitsukatsed kasutavad reaalset kaabli teekonda (kombo → pakkuja → valmimine). Need on tahtlikult CI-st välja jäetud, kuna need nõuavad elavaid volitusi ja VPS-i juurdepääsu.
+Need suitsutestid kasutavad tegelikku juhtmeteed (kombineeritud → pakkuja → lõpetamine). Need on CI st tahtlikult välja jäetud, kuna nõuavad reaalajas mandaate ja VPS juurdepääsu.
+
+---
 
 ## Failid
 
-| Fail                                                      | Otstarve                                                                                                                           |
-| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | 16 teguriga hindamisfunktsioon, `DEFAULT_WEIGHTS`, kogumi norm                                                                     |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Mudeli × ülesande sobivuse otsing                                                                                                  |
-| `open-sse/services/autoCombo/engine.ts`                   | Valikuloogika, bandiit, eelarve ülempiir                                                                                           |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Välistamine, kontrollpäringud, intsidendirežiim                                                                                    |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 kaaluprofiili (kiire tarne, kulusääst, kvaliteet ennekõike, võrguühenduseta kasutuseks sobiv, töökindlus ennekõike, kaoserežiim) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Prefiksi `auto/` parser + 6 varianti                                                                                               |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Loob aktiivsete ühenduste põhjal mälusisese `AutoComboConfig`-i                                                                    |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Testikonks pakkujate registri matkimiseks                                                                                          |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateegiat)                                                                                         |
-| `src/sse/handlers/chat.ts`                                | Integratsioon: automaatprefiksi lühis                                                                                              |
+| Fail                                                      | Eesmärk                                                                                                                       |
+| :-------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-teguriline punktisüsteem, `DEFAULT_WEIGHTS`, basseini norm                                                                 |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Mudeli × ülesande sobivuse otsing                                                                                             |
+| `open-sse/services/autoCombo/engine.ts`                   | Valikuloogika, bandiit, eelarve ülempiir                                                                                      |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Väljajätmine, sondid, intsidentide režiim                                                                                     |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 kaaluprofiili (kiire laev, kulude kokkuhoid, kvaliteet ennekõike, võrguühenduseta sõbralik, esmalt töökindlus, kaoserežiim) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiksi parser + 6 varianti                                                                                          |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Ehitab reaalajas ühendustest mällu `AutoComboConfig`                                                                          |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test konks pakkuja registri mõnitamiseks                                                                                      |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateegiat)                                                                                    |
+| `src/sse/handlers/chat.ts`                                | Integreerimine: automaatse prefiksi lühis                                                                                     |

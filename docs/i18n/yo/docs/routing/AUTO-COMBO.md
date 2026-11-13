@@ -302,7 +302,7 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 ## Gbogbo afisona ogbon
 
-OmniRoute's konbo engine atilẹyin** 20 afisona ogbon** (ti a kede ni `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Awọn Auto Combo engine ara ti wa ni fara labẹ `auto` nwon.Mirza; awọn miiran wa fun awọn combos ti o tẹsiwaju.
+OmniRoute's konbo engine atilẹyin** 21 afisona ogbon** (ti a kede ni `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Awọn Auto Combo engine ara ti wa ni fara labẹ `auto` nwon.Mirza; awọn miiran wa fun awọn combos ti o tẹsiwaju.
 
 | Ilana               | Apejuwe                                                                                                                                                                                       |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -317,13 +317,14 @@ OmniRoute's konbo engine atilẹyin** 20 afisona ogbon** (ti a kede ni `src/shar
 | `cost-optimized`    | Din $ fun ibeere ti a fun ni idiyele katalogi                                                                                                                                                 |
 | `reset-aware` ⭐    | Ṣe iṣaaju nipasẹ akoko atunto akoko — kukuru atunto awọn window ni ipo ti o ga julọ                                                                                                           |
 | `reset-window`      | Ṣe ayanfẹ awọn ibi-afẹde ti ferese ipin wọn tunto laipẹ                                                                                                                                       |
+| `expiry-first`      | Na akọọlẹ ti ipin rẹ yoo bibẹẹkọ pari ti ko lo akọkọ — ajẹkù ti o ga julọ pẹlu akoko ipari atunto to sunmọ julọ yoo kọkọ lọ                                                                   |
 | `headroom`          | Yan ibi-afẹde pẹlu yara ori ipin ipin to ku julọ                                                                                                                                              |
 | `quota-weighted`    | Rekọja awọn akọọlẹ ti o rẹwẹsi, lẹhinna yan laarin awọn iyokù ni ibamu si ipin ti o ṣẹku ti a pin nipasẹ ẹru ọkọ ofurufu; awọn ibaraẹnisọrọ to wa tẹlẹ duro pinni                             |
 | `strict-random`     | ID lai deduplication ti ntun                                                                                                                                                                  |
 | `auto`              | Lo idojukọ Konbo igbelewọn (16-ifosiwewe) —** niyanju**                                                                                                                                       |
 | `lkgp`              | Ọna Ti o dara-kẹhin mọ (awọn pinni si olupese aṣeyọri ti o kẹhin, lẹhinna ṣubu pada si awọn ofin)                                                                                             |
 | `context-optimized` | Mu ibi-afẹde pẹlu ibamu ti o dara julọ fun iwọn ọrọ-ọrọ lọwọlọwọ                                                                                                                              |
-| `cache-optimized`   | Ṣe atunto awọn ibi-afẹde nipasẹ isunmọ kaṣe-kiakia — asopọ o ṣeeṣe julọ lati mu ami-iṣaaju ipamọ ti ibeere yii ti gbiyanju ni akọkọ (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `cache-optimized`   | Ṣe atunto awọn ibi-afẹde nipasẹ isunmọ kaṣe-kiakia — asopọ ti o ṣeeṣe julọ lati mu ami-iṣaaju cache ibeere yii ti gbiyanju ni akọkọ (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
 | `fusion` 🧬         | Ṣe afẹfẹ jade si igbimọ ti awọn awoṣe ni afiwe, lẹhinna ṣajọpọ idahun kan nipasẹ adajọ kan (wo isalẹ)                                                                                         |
 | `pipeline`          | Ṣiṣe awọn ibi-afẹde leralera, titọka abajade igbesẹ kọọkan sinu igbewọle igbesẹ ti nbọ; Idahun ikẹhin nikan ni a da pada (#6396)                                                              |
 
@@ -334,7 +335,7 @@ OmniRoute's konbo engine atilẹyin** 20 afisona ogbon** (ti a kede ni `src/shar
 `weighted` ni a** iwon ID iyaworan fun ìbéèrè** (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), kii ṣe oluṣatunṣe:
 
 - Kọọkan ìbéèrè fa** ọkan** igbese pẹlu iṣeeṣe `weight / totalWeight`; Awọn igbesẹ ti o ku ni a paṣẹ nipasẹ iwuwo ti o sọkalẹ bi ẹwọn fallback fun ibeere yẹn.
-- Igbesẹ ti iwuwo rẹ jẹ `0` (tabi sonu) jẹ** ko kale** nigba ti eyikeyi igbese miiran ni o ni iwuwo > 0 — o le ṣiṣẹ nikan bi ipadabọ lẹhin igbesẹ iyaworan kuna. Nikan nigbati** gbogbo** òṣuwọn ni 0 ṣe yiyan di aṣọ.
+- Igbesẹ ti iwuwo rẹ jẹ `0` (tabi sonu) jẹ** ko kale** nigba ti eyikeyi miiran igbese ni o ni a àdánù > 0 — o le nikan sin bi a fallback lẹhin ti awọn iyaworan igbese kuna. Nikan nigbati** gbogbo** òṣuwọn ni 0 ṣe yiyan di aṣọ.
 - Awọn igbesẹ ti awọn ibi-afẹde ni gbogbo ko si — olupese Circuit breaker `OPEN`, asopọ cooldown, model lockout — ti wa ni kuro lati iyaworan ṣaaju ki o to ṣẹlẹ (`open-sse/services/combo/targetResolution.ts`), ki kan nikan ni ilera igbese le fun igba die win gbogbo ìbéèrè.
 - `stickyWeightedLimit` (konfigi konbo, aiyipada `1` = pipa) pin igbesẹ ti o fa fun ọpọlọpọ awọn aṣeyọri itẹlera ṣaaju ki o to tun yiya.
 
@@ -342,7 +343,21 @@ Fun yiyi to muna lo `round-robin`; òṣuwọn dogba lori `weighted` fun — i�
 
 ### Ipo opo gigun ti epo
 
-Akopọ `pipeline` pẹlu o kere ju awọn awoṣe meji le jade si ọna ọna planner/executor pẹlu `config.agenticOrchestration.enabled`. Ibi-afẹde akọkọ ni eto ati awọn idahun ikẹhin; ibi-afẹde keji njade awọn ipe irinṣẹ abinibi-onibara. OmniRoute ṣe awari awọn itesiwaju esi-irinṣẹ lati ilana ibeere, beere lọwọ oluṣeto boya o nilo iyipo irinṣẹ miiran, ati ni agbara mu boya alaṣẹ tabi oluṣeto ni ipele ikẹhin ti nkọju si alabara.
+Konbo `pipeline` kan pẹlu o kere ju awọn awoṣe meji le jade si ọna ọna planner/executor pẹlu `config.agenticOrchestration.enabled`. Ibi-afẹde akọkọ ni eto ati awọn idahun ikẹhin; ibi-afẹde keji njade awọn ipe irinṣẹ abinibi-onibara. OmniRoute ṣe awari awọn itesiwaju esi-irinṣẹ lati ilana ibeere, beere lọwọ oluṣeto boya o nilo iyipo irinṣẹ miiran, ati ni agbara mu boya alaṣẹ tabi oluṣeto ni ipele ikẹhin ti nkọju si alabara.
+
+Aṣayan `config.agenticOrchestration.contextCompaction` kan isuna isanwo isanwo lọtọ ṣaaju ki oluṣeto kọọkan tabi ifiranšẹ alaṣẹ. Muu ṣiṣẹ ni gbangba:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Iwọnyi jẹ awọn eto isuna iwa JSON ni tẹlentẹle ti a yan nipasẹ oniṣẹ, kii ṣe awọn ferese ọrọ ọrọ toki tabi iṣeduro awọn opin oke. Gangan awoṣe IDs idojuk aiyipada. Loke iloro, iwapọ n yọ awọn asọye irinṣẹ kanna kuro, ge ẹri ọpa ti o tobijulo pẹlu ijẹẹmu, ati yọkuro awọn ẹgbẹ itan pipe atijọ si ipin ibi-afẹde. O da awọn ilana system/developer duro, ibeere olumulo tuntun, iyipo irinṣẹ to kẹhin pẹlu calls/results ti o jọra, ati itọsọna itọsọna itọsọna Gemini. Awọn itọnisọna ipele-oke ati awọn eto irinṣẹ ti wa ni ipamọ. Awọn igbasilẹ asami aisi kuro ni itan-akọọlẹ; eyi jẹ gige ipinnu ipinnu, kii ṣe akopọ atunmọ kan. Ti o ba ti pinni o tọ si tun koja isuna, awọn ìbéèrè pada 413 ṣaaju ki o to kan si awọn awoṣe. Pẹlu iwapọ alaabo tabi ni isalẹ iloro ibeere naa kọja nipasẹ ko yipada.
 
 Lori awọn ilọsiwaju esi-irinṣẹ, OmniRoute tun da ipaniyan duro nigbati awọn iyipo meji ti o pari ni itẹlera tun awọn ipe irinṣẹ kanna ṣe pẹlu awọn abajade ti ko yipada, tabi nigbati gbogbo abajade ti o samisi ni gbangba ni awọn iyipo itẹlera meji kuna. Awọn abajade iyipada gba awọn ipe leralera laaye (fun apẹẹrẹ, idibo). Ẹṣọ tunto lori ibeere olumulo titun, awọn ẹgbẹ ti o jọra awọn ipe sinu iyipo kan, ati atilẹyin Anthropic, Iwiregbe Ipari, Awọn idahun ati awọn itan-akọọlẹ Gemini. Alakoso gba idi naa ati pe o ni idahun ikẹhin paapaa ti o ba beere ọpa miiran yika.
 
@@ -364,11 +379,11 @@ Oluṣeto le gbe awọn ipe ominira lọpọlọpọ jade ni esi kan. Awọn ipe
 
 Yika-robin ti wa ni ipele, kii ṣe ibeere-ọkan-ni-igbesẹ:
 
-- `stickyRoundRobinLimit` (konfigi konbo, lẹhinna `comboStickyRoundRobinLimit`, lẹhinna `settings.stickyRoundRobinLimit`, aiyipada** 3** ) n tọju ibi-afẹde kanna fun ọpọlọpọ awọn aṣeyọri itẹlera ṣaaju yiyi. Ṣeto idojukokoro konbo si `1` fun yiyi-ibeere kan. Olootu konbo fihan iye ti o munadoko ati iru Layer ti o ti wa.
-- `connectionAwareExpansion` (konfigi konbo, lẹhinna awọn eto, aiyipada** eke** ) faagun igbesẹ ipele-olupese kọọkan sinu awọn ibi-apamọ-kọọkan ṣaaju yiyi. Ẹgbẹ-B ogbon ( ayo, iwon, yika-robin, ID, p2c, o kere-lo, iye owo-iṣapeye, lkgp, kun-akọkọ, muna-ID, context-iṣapeye, kaṣe-iṣapeye, context-relay, fusion, pipeline) tọju wiwo ipele olupese titi eyi yoo wa ni titan. Olootu konbo ṣafihan jogun / tan / pipa; jogun nlo aiyipada agbaye (pa).
+- `stickyRoundRobinLimit` (konfigi konbo, lẹhinna `comboStickyRoundRobinLimit`, lẹhinna `settings.stickyRoundRobinLimit`, aiyipada** 3** ) n tọju ibi-afẹde kanna fun ọpọlọpọ awọn aṣeyọri itẹlera ṣaaju yiyi. Ṣeto idojukokoro konbo si `1` fun yiyi-ibeere kan. Olootu konbo fihan iye ti o munadoko ati iru Layer ti o wa.
+- `connectionAwareExpansion` (konfigi konbo, lẹhinna awọn eto, aiyipada** eke** ) faagun igbesẹ ipele-olupese kọọkan sinu awọn ibi-apamọ-kọọkan ṣaaju yiyi. Ẹgbẹ-B ogbon ( ayo, iwon, yika-robin, ID, p2c, o kere-lo, iye owo-iṣapeye, lkgp, kun-akọkọ, muna-ID, context-iṣapeye, cache-iṣapeye, context-relay, fusion, pipeline) tọju wiwo ipele olupese titi eyi yoo wa ni titan. Olootu konbo ṣafihan jogun / tan / pipa; jogun nlo aiyipada agbaye (pa).
 - Itọnisọna agbegbe kaṣe-kia (`promptCacheAffinityEnabled`, aiyipada** ooto** ) tun paṣẹ awọn isopọ pinni nitoribẹẹ awọn bọtini kaṣe ti o baamu duro lori akọọlẹ kan. O gba iṣaaju lori iyipo-robin ati yiyi iwuwo kọja awọn igbesẹ ti a pinni fun-iroyin. Pa a labẹ Eto → Konbo aiyipada ti o ba nilo yiyi to muna. Ko si idakokoro-konbo.
 
-Fun yiyi-iroyin olona lori awoṣe kan, fẹ** ọkan ìmúdàgba-iroyin igbese** ( `connectionId` ofo, gbogbo adagun) pẹlu alalepo iye `1`, kii ṣe pinni `connectionId` s mẹta. Awọn igbesẹ ti a fi ṣopọ pẹlu ifaramọ ibalẹ sori akọọlẹ kanna paapaa lakoko ti kika RR n tẹsiwaju.
+Fun yiyi-iroyin olona lori awoṣe kan, fẹ** ọkan ìmúdàgba-iroyin igbese** ( `connectionId` ofo, gbogbo adagun) pẹlu alalepo `1`, kii ṣe pinni `connectionId` s mẹta. Awọn igbesẹ ti a fi ṣopọ pẹlu ifaramọ ibalẹ sori akọọlẹ kanna paapaa lakoko ti kika RR n tẹsiwaju.
 
 ## Ìlànà Fusion
 
@@ -828,44 +843,41 @@ Láti ṣe ojúrere tó lágbára fún Ipele 1 (ìforúkọsílẹ̀), mú ìw�
 
 Wo [`docs/guides/TIERS.md`](../guides/TIERS.md) fún àwọn ìtumọ̀ ipele àti ìsọ̀rí àwọn olupèsè.
 
-## Ìdánwò & Ìbojú
+## Idanwo & Ibori
 
-### Matrix ìpinnu routing tí kò yípadà (`npm run test:combo:matrix`)
+### Matrix ipinnu ipa-ọna ipinnu (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` fi ìpinnu routing gbogbo ọgbọ́n gbogbogbò 19 hàn láti ìbẹ̀rẹ̀ dé òpin nípasẹ̀ pipeline combo gidi pẹ̀lú upstream àfarawé.
-Ìbojú náà ní:
+`tests/integration/combo-matrix/*.test.ts` safihan afisona** ipinnu** ti gbogbo 21 àkọsílẹ ogbon opin-si-opin nipasẹ awọn gidi konbo opo pẹlu kan ẹgan soke. Ibo pẹlu:
 
-- Gbogbo ọgbọ́n `ROUTING_STRATEGY_VALUES` 19 (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (ti inú) láti ìbẹ̀rẹ̀ dé òpin: ìdájọ́ òdodo DRR + fífi ohun tó ti kún jù sí ipò kékeré nípasẹ̀ seam `selectQuotaShareTarget` gidi (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Ìbojú `context-relay` universal-handoff kọjá gbogbo iye target.
+- Gbogbo awọn ọgbọn `ROUTING_STRATEGY_VALUES` 21 (paṣẹ, iwuwo, idiyele, ọrọ-ọrọ, idapọ,…).
+- `quota-share` (ti abẹnu) opin-si-opin: DRR ododo + imupese itẹlọrun nipasẹ okun `selectQuotaShareTarget` gidi (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` agbegbe-handoff agbegbe kọja gbogbo kika ibi-afẹde.
 
-Suite yìí ń ṣiṣẹ́ nínú CI (iṣẹ́ `test:integration`) pẹ̀lú `--test-concurrency=1` àti
-`--test-force-exit`, kí ó lè máa fúnni ní àbájáde kan náà, kí ó sì má nílò credentials tó ń ṣiṣẹ́.
+Suite yii nṣiṣẹ ni CI (iṣẹ `test:integration` ) pẹlu `--test-concurrency=1` ati `--test-force-exit` nitorina o jẹ ipinnu ati pe ko nilo awọn iwe-ẹri laaye.
 
-### Smoke live tó ní ìdènà (KÒ SÍ nínú CI — àwọn provider gidi)
+### Ẹfin ifiwe laaye (NOT ni awọn olupese gidi CI — )
 
-| Àṣẹ                                    | Ohun tó ń ṣe                                                                      |
-| :------------------------------------- | :-------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Routing gidi inú process pẹ̀lú `RUN_COMBO_LIVE=1`; ó ya snapshot DB OmniRoute live |
-| `npm run test:combo:live:vps`          | Àwọn ìpè HTTP sí server OmniRoute live (ṣètò `COMBO_LIVE_BASE_URL`)               |
-| `npm run test:combo:live:vps:failover` | Bákan náà, pẹ̀lú àwọn ìṣẹ̀lẹ̀ failover tí a mọ̀ọ́mọ̀ dá sílẹ̀                            |
+| Òfin                                   | Ohun ti o ṣe                                                                  |
+| :------------------------------------- | :---------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | Ni-ilana ipa ọna gidi pẹlu `RUN_COMBO_LIVE=1`; snapshots a ifiwe OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP pe lodi si olupin OmniRoute laaye (ṣeto `COMBO_LIVE_BASE_URL`)           |
+| `npm run test:combo:live:vps:failover` | Kanna, pẹlu moomo failover awọn oju iṣẹlẹ                                     |
 
-Àwọn smoke test wọ̀nyí ń dán ipa ọ̀nà asopọ̀ gidi wò (combo → provider → completion). A mọ̀ọ́mọ̀ yọ wọ́n kúrò nínú CI nítorí pé wọ́n nílò credentials tó ń ṣiṣẹ́ àti ààyè ìwọlé VPS.
+Awọn idanwo ẹfin wọnyi ṣe adaṣe ọna okun waya gidi (combo → olupese → Ipari). Wọn mọọmọ yọkuro lati CI nitori wọn nilo awọn iwe-ẹri laaye ati iraye si VPS.
 
 ---
 
-## Àwọn Fáìlì
+## Awọn faili
 
-| Fáìlì                                                     | Ìdí                                                                                                            |
-| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Fọ́ńṣọ̀nù ìṣírò àmì onífákítọ̀ 16, `DEFAULT_WEIGHTS`, ìwọ̀n pool                                                   |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Àwárí ìbámu model × task                                                                                       |
-| `open-sse/services/autoCombo/engine.ts`                   | Lọ́jììkì àṣàyàn, bandit, òpin budget                                                                            |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Ìyọkúrò, àwọn probe, mode incident                                                                             |
-| `open-sse/services/autoCombo/modePacks.ts`                | Àwọn prófáìlì weight 6 (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser prefix `auto/` + àwọn variant 6                                                                         |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Ṣẹ̀dá `AutoComboConfig` inú-memory láti inú àwọn connection tó ń ṣiṣẹ́ lọ́wọ́lọ́wọ́                                  |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Hook ìdánwò fún ṣíṣe àfarawé provider registry                                                                 |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (àwọn strategy 20)                                                                   |
-| `src/sse/handlers/chat.ts`                                | Ìsopọ̀: short-circuit prefix auto                                                                               |
+| Faili                                                     | Idi                                                                                                        |
+| :-------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | 16-ifosiwewe iṣẹ igbelewọn, `DEFAULT_WEIGHTS`, pool iwuwasi                                                |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Awoṣe × wiwa amọdaju ti iṣẹ-ṣiṣe                                                                           |
+| `open-sse/services/autoCombo/engine.ts`                   | Iyan kannaa, bandit, isuna fila                                                                            |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Iyasoto, awọn iwadii, ipo iṣẹlẹ                                                                            |
+| `open-sse/services/autoCombo/modePacks.ts`                | Awọn profaili iwuwo 6 (ọkọ-iyara, ipamọ idiyele, didara-akọkọ, ore-aisinipo, igbẹkẹle-akọkọ, ipo rudurudu) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` ìpele parser + 6 awọn iyatọ                                                                        |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Kọ `AutoComboConfig` -iranti lati awọn asopọ laaye                                                         |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Igbeyewo kio fun ẹlẹgàn olupese iforukọsilẹ                                                                |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (awọn ilana 21)                                                                  |
+| `src/sse/handlers/chat.ts`                                | Integration: auto-prefix kukuru-Circuit                                                                    |

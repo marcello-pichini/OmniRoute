@@ -455,7 +455,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -465,7 +465,7 @@ open-sse/
 
 ### 4.1 `open-sse/handlers/`
 
-| ഹാൻഡ്ലർ                 | ഉദ്ദേശം                                                                                  |
+| ഹാൻഡ്ലർ                 | ഉദ്ദേശ്യം                                                                                |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
 | `chatCore.ts`           | പ്രധാന ചാറ്റ് പൈപ്പ്ലൈൻ (കാഷെ, നിരക്ക് പരിധി, കോംബോ റൂട്ടിംഗ്, എക്സിക്യൂട്ടർ ഡിസ്പാച്ച്) |
 | `responsesHandler.ts`   | OpenAI പ്രതികരണങ്ങൾ API എൻട്രി പോയിൻ്റ്                                                  |
@@ -485,11 +485,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 ടോപ്പ്-ലെവൽ എക്സിക്യൂട്ടർ മൊഡ്യൂളുകൾ (`*.ts` മൈനസ് `base.ts`, `index.ts`, ടെസ്റ്റുകൾ — കൗണ്ട് `npm run check:docs-counts` അളവുകൾ). എല്ലാ എക്സിക്യൂട്ടർ ക്ലാസ്സും `BaseExecutor` (`base.ts`), നേരിട്ടോ അല്ലെങ്കിൽ `DefaultExecutor` വഴിയോ മറ്റൊരു എക്സിക്യൂട്ടർ വഴിയോ നീട്ടുന്നു; ശേഷിക്കുന്ന മൊഡ്യൂളുകൾ ഓരോ പ്രൊവൈഡർ സഹായികളാണ് (ടൂൾ സ്കീമുകൾ, fetch/TTS അഡാപ്റ്ററുകൾ, ക്വിർക്ക് ഹാൻഡ്ലറുകൾ). എക്സിക്യൂട്ടീവുകളിൽ ഉൾപ്പെടുന്നു:
+170 ടോപ്പ്-ലെവൽ എക്സിക്യൂട്ടർ മൊഡ്യൂളുകൾ (`*.ts` മൈനസ് `base.ts`, `index.ts`, ടെസ്റ്റുകൾ — കൗണ്ട് `npm run check:docs-counts` അളവുകൾ). എല്ലാ എക്സിക്യൂട്ടർ ക്ലാസ്സും `BaseExecutor` (`base.ts`), നേരിട്ടോ അല്ലെങ്കിൽ `DefaultExecutor` വഴിയോ മറ്റൊരു എക്സിക്യൂട്ടർ വഴിയോ നീട്ടുന്നു; ശേഷിക്കുന്ന മൊഡ്യൂളുകൾ ഓരോ പ്രൊവൈഡർ സഹായികളാണ് (ടൂൾ സ്കീമുകൾ, fetch/TTS അഡാപ്റ്ററുകൾ, ക്വിർക്ക് ഹാൻഡ്ലറുകൾ). എക്സിക്യൂട്ടീവുകളിൽ ഉൾപ്പെടുന്നു:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex` `vertex` `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `qoder`, പ്ലസ് `devin-desktop`(പങ്കിട്ട ഐഡൻ്റിറ്റി സഹായി) `pollinations` `claudeIdentity.ts` (രജിസ്ട്രി) `index.ts`
 
-> ശ്രദ്ധിക്കുക: ഇവിടെ ലിസ്റ്റുചെയ്തിട്ടില്ലാത്ത ദാതാക്കൾക്ക് പൊതുവായ OpenAI-അനുയോജ്യമായ എക്സിക്യൂട്ടർ ഉപയോഗിച്ച് `default.ts` സേവനം നൽകുന്നു. പൂർണ്ണ ദാതാവിൻ്റെ കാറ്റലോഗ് (381 ദാതാക്കൾ) `src/shared/constants/providers.ts` ൽ താമസിക്കുന്നു.
+> ശ്രദ്ധിക്കുക: ഇവിടെ ലിസ്റ്റുചെയ്തിട്ടില്ലാത്ത ദാതാക്കൾക്ക് പൊതുവായ OpenAI-അനുയോജ്യമായ എക്സിക്യൂട്ടർ ഉപയോഗിച്ച് `default.ts` സേവനം നൽകുന്നു. പൂർണ്ണ ദാതാവിൻ്റെ കാറ്റലോഗ് (393 ദാതാക്കൾ) `src/shared/constants/providers.ts` ൽ താമസിക്കുന്നു.
 
 ### 4.3 `open-sse/translator/`
 
@@ -511,7 +511,7 @@ open-sse/
 
 | ആശങ്ക                | ഫയലുകൾ                                                                                                                                                                                                                                                   |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| കോംബോ റൂട്ടിംഗ്      | `combo.ts` (20 തന്ത്രങ്ങൾ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| കോംബോ റൂട്ടിംഗ്      | `combo.ts` (21 തന്ത്രങ്ങൾ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
 | ഓട്ടോ കോംബോ എഞ്ചിൻ   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | പ്രതിരോധശേഷി         | `accountFallback.ts` (കൂൾഡൗൺ + ലോക്കൗട്ട്), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                        |
 | ക്വാട്ടകൾ            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

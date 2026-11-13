@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -480,17 +480,17 @@ open-sse/
 | `moderations.ts`        | Zmernost                                                                                                |
 | `search.ts`             | Spletno iskanje                                                                                         |
 | `sseParser.ts`          | razčlenjevalnik dogodkov SSE                                                                            |
-| `usageExtractor.ts`     | Potegnite števce žetonov iz tokov navzgor                                                               |
+| `usageExtractor.ts`     | Izvlecite števce žetonov iz tokov navzgor                                                               |
 | `responseSanitizer.ts`  | Odstrani šum, specifičen za ponudnika                                                                   |
 | `responseTranslator.ts` | Lepilo med odzivom ponudnika in plastjo prevajalca                                                      |
 
 ### 4.2 `open-sse/executors/`
 
-159 izvršilnih modulov najvišje ravni (`*.ts` minus `base.ts`, `index.ts` in testi — število meri `npm run check:docs-counts` ). Vsak razred izvajalca razširja `BaseExecutor` (`base.ts`), neposredno ali prek `DefaultExecutor` ali drugega izvajalca; preostali moduli so pomočniki za vsakega ponudnika (sheme orodij, adapterji fetch/TTS, obdelovalci quirk). Izvajalci so:
+170 izvršilnih modulov najvišje ravni (`*.ts` minus `base.ts`, `index.ts` in testi — število meri `npm run check:docs-counts` ). Vsak razred izvajalca razširja `BaseExecutor` (`base.ts`), neposredno ali prek `DefaultExecutor` ali drugega izvajalca; preostali moduli so pomočniki za vsakega ponudnika (sheme orodij, adapterji fetch/TTS, obdelovalci quirk). Izvajalci vključujejo:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (pomočnik pri skupni identiteti) in `index.ts` (register).
 
-> Opomba: ponudnike, ki niso navedeni tukaj, streže `default.ts` z uporabo splošnega izvajalca, združljivega z OpenAI. Celoten katalog ponudnikov (381 ponudnikov) živi v `src/shared/constants/providers.ts`.
+> Opomba: ponudnike, ki niso navedeni tukaj, streže `default.ts` z uporabo splošnega izvajalca, združljivega z OpenAI. Celoten katalog ponudnikov (393 ponudnikov) živi v `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Poudarki (celoten seznam pod `open-sse/services/`):
 
 | Zaskrbljenost            | Datoteke                                                                                                                                                                                                                                                 |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kombinirano usmerjanje   | `combo.ts` (20 strategij), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| Kombinirano usmerjanje   | `combo.ts` (21 strategij), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
 | Auto Combo motor         | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Odpornost                | `accountFallback.ts` (ohlajevalna zapora + ), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                      |
 | Kvote                    | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

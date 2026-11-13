@@ -295,7 +295,7 @@ valuri riżolti jiddaħħlu fl-inputs eżistenti `config.modePack` / `config.bud
 
 ## L-Istrateġiji kollha tar-Rotot
 
-OmniRoute's jappoġġja magna combo** 20 strateġija ta' rotta** (iddikjarat fi `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il-magna Auto Combo nnifisha hija esposta taħt l-istrateġija `auto` ; l-oħrajn huma disponibbli għal combos persistenti.
+OmniRoute's jappoġġja magna combo** 21 strateġiji ta' rotta** (iddikjarat fi `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Il-magna Auto Combo nnifisha hija esposta taħt l-istrateġija `auto` ; l-oħrajn huma disponibbli għal combos persistenti.
 
 | Strateġija          | Deskrizzjoni                                                                                                                                                                                                   |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -310,6 +310,7 @@ OmniRoute's jappoġġja magna combo** 20 strateġija ta' rotta** (iddikjarat fi 
 | `cost-optimized`    | Imminimizza $ għal kull talba mogħtija prezzijiet katalogu                                                                                                                                                     |
 | `reset-aware` ⭐    | Prijoritizza bil-kwota reset time — short reset windows kklassifikati ogħla                                                                                                                                    |
 | `reset-window`      | Ippreferi miri li t-tieqa tal-kwota tagħhom tirrisettja mill-aktar fis                                                                                                                                         |
+| `expiry-first`      | Onfoq il-kont li l-kwota tiegħu inkella tiskadi mhux użat l-ewwel — l-ogħla fadal bl-eqreb skadenza reset tmur l-ewwel                                                                                         |
 | `headroom`          | Agħżel il-mira bl-iktar spazju ta' kwota li fadal                                                                                                                                                              |
 | `quota-weighted`    | Aqbeż il-kontijiet eżawriti, imbagħad agħżel fost il-bqija fi proporzjon mal-kwota li jibqa' diviża bit-tagħbija waqt it-titjira; konversazzjonijiet eżistenti jibqgħu ippinjat                                |
 | `strict-random`     | Bl-addoċċ mingħajr deduplikazzjoni tar-repetizzjonijiet                                                                                                                                                        |
@@ -337,6 +338,20 @@ Għal rotazzjoni stretta uża `round-robin`; piżijiet ugwali fuq `weighted` jag
 
 A `pipeline` combo b'mill-inqas żewġ mudelli jistgħu jagħżlu planner/executor routing ma `config.agenticOrchestration.enabled`. L-ewwel mira għandha l-ippjanar u t-tweġibiet finali; it-tieni mira temetti sejħiet għodda indiġeni tal-klijent. OmniRoute jiskopri l-kontinwazzjonijiet tar-riżultat tal-għodda mill-protokoll tat-talba, jistaqsi lill-pjanifikatur jekk hemmx bżonn ta 'rawnd ta' għodda oħra, u dinamikament jagħmel jew lill-eżekutur jew lill-pjanifikatur il-pass finali li jiffaċċja l-klijent.
 
+`config.agenticOrchestration.contextCompaction` mhux obbligatorja tapplika baġit ta' payload separat qabel kull dispaċċ ta' pjanifikatur jew eżekutur. Ippermettiha b'mod espliċitu:
+
+```json
+{
+  "enabled": true,
+  "defaultMaxChars": 400000,
+  "targetRatio": 0.72,
+  "toolResultMaxChars": 24000,
+  "modelMaxChars": { "provider/planner": 175000, "provider/executor": 300000 }
+}
+```
+
+Dawn huma baġits ta 'karattri JSON serialized magħżula mill-operatur, mhux twieqi ta' kuntest token jew limiti upstream garantiti. Il-mudell eżatt IDs jegħleb il-default. Fuq il-limitu, il-kompattazzjoni tneħħi definizzjonijiet identiċi tal-għodda, ittrimmja l-evidenza tal-għodda ta 'daqs eċċessiv b'diġest, u tneħħi gruppi qodma tal-istorja kompluta lejn il-proporzjon fil-mira. Hija żżomm l-istruzzjonijiet system/developer, l-aħħar talba tal-utent, l-aħħar rawnd tal-għodda inkluż calls/results parallel , u l-istruzzjoni ewlenija tar-rotot ta' Gemini. L-istruzzjonijiet tal-ogħla livell u s-settings tal-għodda huma ppreservati. Marker ta' ommissjoni jirreġistra l-istorja mneħħija; dan huwa tirqim deterministiku, mhux sommarju semantiku. Jekk il-kuntest ippinjat xorta jaqbeż il-baġit, it-talba tagħti lura 413 qabel ma tikkuntattja lill-mudell. Bil-kompattazzjoni diżattivata jew taħt il-limitu, it-talba tgħaddi mingħajr tibdil.
+
 Fuq il-kontinwazzjonijiet tar-riżultat tal-għodda, OmniRoute twaqqaf ukoll l-eżekuzzjoni meta żewġ rawnds konsekuttivi kompluti jirrepetu l-istess sejħiet tal-għodda b'riżultati mhux mibdula, jew meta kull riżultat immarkat b'mod espliċitu f'żewġ rawnds konsekuttivi fallew. Ir-riżultati mibdula jippermettu sejħiet ripetuti (per eżempju, polling). Il-gwardja reset fuq talba ġdida ta' utent, tiġbor sejħiet paralleli f'rawnd wieħed, u tappoġġja Anthropic, Tlestija ta' Chat, Risposti u storja Gemini. Il-pjanifikatur jirċievi r-raġuni u jippossjedi t-tweġiba finali anki jekk jitlob rawnd ta 'għodda oħra.
 
 Mudelli addizzjonali wara t-tieni mira huma ordnati backups eżekutur. Rispons HTTP fallut jew eċċezzjoni tat-trasport tavvanza lill-eżekutur li jmiss, li jġorr l-istess deċiżjoni tal-pjanifikatur u għodod indiġeni iżda l-pass ta 'dak l-eżekutur stess konnessjoni fil-pront u riżolta. L-ewwel tweġiba b'suċċess hija rritornata mhux mibdula, inkluż SSE streaming; fallimenti wara li jibda fluss b'suċċess ma jistgħux jerġgħu jiġu ppruvati hawn. Jekk l-eżekuturi kollha jfallu, l-aħħar falliment jiġi rritornat. Klijent abort stop dispatch.
@@ -358,7 +373,7 @@ L-eżekutur jista' jarmi sejħiet indipendenti multipli f'rispons wieħed. Is-se
 Round-robin huwa lott, mhux talba waħda għal kull pass:
 
 - `stickyRoundRobinLimit` (konfigurazzjoni kombinata, imbagħad `comboStickyRoundRobinLimit`, imbagħad `settings.stickyRoundRobinLimit`, default** 3** ) iżomm l-istess mira għal dak ħafna suċċessi konsekuttivi qabel ma jdur. Issettja l-combo override għal `1` għal rotazzjoni ta 'talba waħda. L-editur combo juri l-valur effettiv u minn liema saff ġie.
-- `connectionAwareExpansion` (konfigurazzjoni kombo, imbagħad settings, default** falza** ) tespandi kull pass fil-livell tal-fornitur f'miri għal kull kont qabel ir-rotazzjoni. L-istrateġiji tal-Grupp B (prijoritarji, peżati, round-robin, każwali, p2c, l-inqas użati, kost-ottimizzati, lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fużjoni, pipeline) iżommu viżjoni fil-livell tal-fornitur sakemm din tkun mixgħula. L-editur combo jesponi wiret / mixgħul / mitfi; wiret juża l-inadempjenza globali (off).
+- `connectionAwareExpansion` (konfigurazzjoni kombo, imbagħad settings, default** falza** ) jespandi kull pass fil-livell tal-fornitur f'miri għal kull kont qabel ir-rotazzjoni. L-istrateġiji tal-Grupp B (prijorità, peżati, round-robin, każwali, p2c, l-inqas użati, ottimizzati skont l-ispejjeż, lkgp, jimlew l-ewwel, stretti bl-addoċċ, ottimizzati skont il-kuntest, ottimizzati bil-cache, kuntest-relay, fużjoni, pipeline) iżommu veduta fil-livell tal-fornitur sakemm din tkun mixgħula. L-editur combo jesponi wiret / mixgħul / mitfi; wiret juża l-inadempjenza globali (off).
 - Rotot tal-lokalità fil-pront-cache (`promptCacheAffinityEnabled`, default** veru** ) jordna mill-ġdid konnessjonijiet ippinjati sabiex iċ-ċwievet tal-cache li jaqblu jibqgħu fuq kont wieħed. Tieħu preċedenza fuq ir-round-robin u r-rotazzjoni peżata fuq passi ippinjati għal kull kont. Itfih taħt Settings → Combo defaults jekk għandek bżonn rotazzjoni stretta. M'hemm l-ebda override per-combo.
 
 Għal rotazzjoni b'ħafna kontijiet fuq mudell wieħed, ippreferi** pass wieħed ta' kont dinamiku** ( `connectionId` vojta , pool kollu) b limitu li jwaħħal `1`, mhux tliet pinned `connectionId` s. Passi ippinjat flimkien ma' affinità kollass fuq l-istess kont anke waqt li l-counter RR javvanza.
@@ -829,45 +844,39 @@ Ara [`docs/guides/TIERS.md`](../guides/TIERS.md) għad-definizzjonijiet tal-live
 
 ## Ittestjar u Kopertura
 
-### Matriċi deterministika tad-deċiżjonijiet tar-routing (`npm run test:combo:matrix`)
+### Matriċi deterministika tar-rotta-deċiżjoni (`npm run test:combo:matrix`)
 
-`tests/integration/combo-matrix/*.test.ts` juri d-**deċiżjoni** tar-routing tad-19-il
-strateġija pubblika kollha minn tarf sa tarf permezz tal-pipeline reali tal-combo b’upstream simulat.
-Il-kopertura tinkludi:
+`tests/integration/combo-matrix/*.test.ts` jipprova r-routing** deċiżjoni** tal-21 strateġija pubblika tarf sa tarf permezz tal-pipeline combo reali b'mocked upstream. Il-kopertura tinkludi:
 
-- Id-19-il strateġija kollha ta’ `ROUTING_STRATEGY_VALUES` (ordered, weighted, cost, context, fusion, …).
-- `quota-share` (interna) minn tarf sa tarf: ġustizzja DRR + tnaqqis fil-prijorità minħabba saturazzjoni permezz tal-
-  punt ta’ integrazzjoni reali `selectQuotaShareTarget` (`registerQuotaFetcher` / `setLKGP` /
-  `__setHeadroomSaturationFetcherForTests`).
-- Kopertura ta’ trasferiment universali ta’ `context-relay` għal kull għadd ta’ destinazzjonijiet.
+- Il-21 strateġija `ROUTING_STRATEGY_VALUES` kollha (ordnata, peżata, spiża, kuntest, fużjoni, …).
+- `quota-share` (intern) tarf sa tarf: DRR ekwità + saturazzjoni deprioritizzazzjoni permezz tal-ħjata `selectQuotaShareTarget` reali (`registerQuotaFetcher` / `setLKGP` / `__setHeadroomSaturationFetcherForTests`).
+- `context-relay` universal-handoff coverage f'kull għadd fil-mira.
 
-Din is-suite titħaddem fis-CI (il-job `test:integration`) b’`--test-concurrency=1` u
-`--test-force-exit` sabiex tkun deterministika u ma teħtieġx kredenzjali attivi.
+Din is-suite taħdem CI (xogħol `test:integration` ) `--test-concurrency=1` u `--test-force-exit` għalhekk hija deterministika u ma teħtieġx kredenzjali ħajjin.
 
-### Smoke tests live ikkontrollati (MHUX fis-CI — fornituri reali)
+### Duħħan ħaj magħluq (NOT fi CI — fornituri reali)
 
-| Kmand                                  | X’jagħmel                                                                                      |
-| :------------------------------------- | :--------------------------------------------------------------------------------------------- |
-| `npm run test:combo:live`              | Routing reali fl-istess proċess b’`RUN_COMBO_LIVE=1`; jieħu snapshot ta’ DB live ta’ OmniRoute |
-| `npm run test:combo:live:vps`          | Sejħiet HTTP lejn server OmniRoute live (issettja `COMBO_LIVE_BASE_URL`)                       |
-| `npm run test:combo:live:vps:failover` | L-istess, b’xenarji intenzjonati ta’ failover                                                  |
+| Kmand                                  | X'tagħmel                                                                     |
+| :------------------------------------- | :---------------------------------------------------------------------------- |
+| `npm run test:combo:live`              | In-process reali routing ma `RUN_COMBO_LIVE=1`; Snapshots a live OmniRoute DB |
+| `npm run test:combo:live:vps`          | HTTP sejħiet kontra server OmniRoute ħaj (sett `COMBO_LIVE_BASE_URL`)         |
+| `npm run test:combo:live:vps:failover` | L-istess, b'xenarji ta' failover intenzjonati                                 |
 
-Dawn l-smoke tests jeżerċitaw il-mogħdija reali fuq il-wire (combo → fornitur → completion). Huma
-esklużi intenzjonalment mis-CI għax jeħtieġu kredenzjali attivi u aċċess għal VPS.
+Dawn it-testijiet tad-duħħan jeżerċitaw il-mogħdija tal-wajer reali (combo → provider → completement). Huma intenzjonalment esklużi minn CI minħabba li jeħtieġu kredenzjali ħajjin u aċċess VPS.
 
 ---
 
 ## Fajls
 
-| Fajl                                                      | Għan                                                                                                           |
-| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| `open-sse/services/autoCombo/scoring.ts`                  | Funzjoni ta' punteġġ bi 16-il fattur, `DEFAULT_WEIGHTS`, norma tal-pool                                        |
-| `open-sse/services/autoCombo/taskFitness.ts`              | Tabella ta' tfittxija għall-idoneità tal-mudell × kompitu                                                      |
-| `open-sse/services/autoCombo/engine.ts`                   | Loġika tal-għażla, bandit, limitu tal-baġit                                                                    |
-| `open-sse/services/autoCombo/selfHealing.ts`              | Esklużjoni, sondi, modalità tal-inċidenti                                                                      |
-| `open-sse/services/autoCombo/modePacks.ts`                | 6 profili tal-piżijiet (ship-fast, cost-saver, quality-first, offline-friendly, reliability-first, chaos-mode) |
-| `open-sse/services/autoCombo/autoPrefix.ts`               | Parser tal-prefiss `auto/` + 6 varjanti                                                                        |
-| `open-sse/services/autoCombo/virtualFactory.ts`           | Jibni `AutoComboConfig` fil-memorja minn konnessjonijiet attivi                                                |
-| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Punt ta' aċċess għat-testijiet biex jiġi ssimulat ir-reġistru tal-fornituri                                    |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strateġija)                                                                      |
-| `src/sse/handlers/chat.ts`                                | Integrazzjoni: short-circuit tal-prefiss auto                                                                  |
+| Fajl                                                      | Għan                                                                                                                             |
+| :-------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `open-sse/services/autoCombo/scoring.ts`                  | Funzjoni ta 'punteġġ ta' 16-il fattur, `DEFAULT_WEIGHTS`, norma tal-pool                                                         |
+| `open-sse/services/autoCombo/taskFitness.ts`              | Mudell × kompitu fitness lookup                                                                                                  |
+| `open-sse/services/autoCombo/engine.ts`                   | Loġika tal-għażla, bandit, limitu tal-baġit                                                                                      |
+| `open-sse/services/autoCombo/selfHealing.ts`              | Esklużjoni, sondi, mod inċident                                                                                                  |
+| `open-sse/services/autoCombo/modePacks.ts`                | 6 profili ta' piż (mgħaġġla bil-vapur, li jiffrankaw l-ispejjeż, l-ewwel kwalità, faċli offline, l-ewwel affidabbiltà, mod kaos) |
+| `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefiss parser + 6 varjanti                                                                                              |
+| `open-sse/services/autoCombo/virtualFactory.ts`           | Tibni `AutoComboConfig` fil-memorja minn konnessjonijiet ħajjin                                                                  |
+| `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Ganċ tat-test għar-reġistru tal-fornitur mocking                                                                                 |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (21 strateğija)                                                                                        |
+| `src/sse/handlers/chat.ts`                                | Integrazzjoni: auto-prefiss short-circuit                                                                                        |

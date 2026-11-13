@@ -457,7 +457,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -487,11 +487,11 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-159 üst düzey yürütücü modül (`*.ts` eksi `base.ts`, `index.ts` ve — sayımı `npm run check:docs-counts` ölçümlerini test eder). Her yürütücü sınıfı `BaseExecutor` (`base.ts`) doğrudan veya `DefaultExecutor` veya başka bir yürütücü aracılığıyla genişletir; geri kalan modüller sağlayıcı başına yardımcılardır (araç şemaları, fetch/TTS bağdaştırıcıları, tuhaf işleyiciler). Yürütücüler şunları içerir:
+170 üst düzey yürütücü modül (`*.ts` eksi `base.ts`, `index.ts` ve — sayımı `npm run check:docs-counts` ölçümlerini test eder). Her yürütücü sınıfı `BaseExecutor` (`base.ts`) doğrudan veya `DefaultExecutor` veya başka bir yürütücü aracılığıyla genişletir; geri kalan modüller sağlayıcı başına yardımcılardır (araç şemaları, fetch/TTS bağdaştırıcıları, tuhaf işleyiciler). Yürütücüler şunları içerir:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`, `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`, `pollinations`, `qoder`, `vertex`, `devin-desktop`, plus `claudeIdentity.ts` (paylaşılan kimlik yardımcısı) ve `index.ts` (kayıt defteri).
 
-> Not: Burada listelenmeyen sağlayıcılar, genel OpenAI uyumlu yürütücü kullanılarak `default.ts` tarafından sunulur. Sağlayıcı kataloğunun tamamı (381 sağlayıcı) `src/shared/constants/providers.ts` bulunmaktadır.
+> Not: Burada listelenmeyen sağlayıcılar, genel OpenAI uyumlu yürütücü kullanılarak `default.ts` tarafından sunulur. Sağlayıcı kataloğunun tamamı (393 sağlayıcı) `src/shared/constants/providers.ts` bulunmaktadır.
 
 ### 4.3 `open-sse/translator/`
 
@@ -513,7 +513,7 @@ Hub ve bağlı bileşen çevirisi (OpenAI hub'dır).
 
 | Kaygı                       | Dosyalar                                                                                                                                                                                                                                                 |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Birleşik yönlendirme        | `combo.ts` (20 strateji), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                      |
+| Birleşik yönlendirme        | `combo.ts` (21 strateji), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                      |
 | Otomatik Kombinasyon motoru | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Dayanıklılık                | `accountFallback.ts` (bekleme süresi + kilitleme), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                 |
 | Kotalar                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

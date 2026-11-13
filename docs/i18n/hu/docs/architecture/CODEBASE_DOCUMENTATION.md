@@ -456,7 +456,7 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Provider registries, header profiles, identity, …
 ├── handlers/               Request handlers (chat, embeddings, audio, image, …)
-├── executors/              159 provider executor modules (executor classes + per-provider helpers)
+├── executors/              170 provider executor modules (executor classes + per-provider helpers)
 ├── translator/             Format conversion (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions stream transformer
 ├── services/               80+ service modules (combos, fallback, quotas, identity, …)
@@ -480,17 +480,17 @@ open-sse/
 | `moderations.ts`        | Moderálás                                                                                     |
 | `search.ts`             | Webes keresés                                                                                 |
 | `sseParser.ts`          | SSE eseményelemző                                                                             |
-| `usageExtractor.ts`     | Húzza ki a tokenszámlálást az upstream adatfolyamokból                                        |
+| `usageExtractor.ts`     | Húzza ki a token számlálását az upstream adatfolyamokból                                      |
 | `responseSanitizer.ts`  | Szalagszolgáltató-specifikus zaj                                                              |
 | `responseTranslator.ts` | Ragasztó a szolgáltatói válasz és a fordítói réteg között                                     |
 
 ### 4.2 `open-sse/executors/`
 
-159 legfelső szintű végrehajtó modul (`*.ts` mínusz `base.ts`, `index.ts` és tesztek — a count `npm run check:docs-counts` intézkedések). Minden végrehajtó osztály kiterjeszti `BaseExecutor` (`base.ts`), közvetlenül vagy `DefaultExecutor` vagy egy másik végrehajtón keresztül; a többi modul szolgáltatónkénti segítők (eszközsémák, fetch/TTS adapterek, quirk-kezelők). A végrehajtók közé tartozik:
+170 legfelső szintű végrehajtó modul (`*.ts` mínusz `base.ts`, `index.ts` és tesztek — a count `npm run check:docs-counts` intézkedések). Minden végrehajtó osztály kiterjeszti `BaseExecutor` (`base.ts`), közvetlenül vagy `DefaultExecutor` vagy egy másik végrehajtón keresztül; a többi modul szolgáltatónkénti segítők (eszközsémák, fetch/TTS adapterek, quirk-kezelők). A végrehajtók közé tartozik:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`, `chatgpt-web-codex`, `cloudflare-ai`, `codex` `vertex` `commandCode` `cursor` `default` `devin-cli` `muse-spark-web` `nlpcloud` `opencode` `perplexity-web` `petals` `pollinations` `qoder` `devin-desktop` `claudeIdentity.ts` ) `index.ts`
 
-> Megjegyzés: az itt fel nem sorolt szolgáltatókat `default.ts` az általános OpenAI-kompatibilis végrehajtóval szolgálja ki. A teljes szolgáltatókatalógus (381 szolgáltató) `src/shared/constants/providers.ts` ben található.
+> Megjegyzés: az itt fel nem sorolt szolgáltatókat `default.ts` az általános OpenAI-kompatibilis végrehajtóval szolgálja ki. A teljes szolgáltatókatalógus (393 szolgáltató) `src/shared/constants/providers.ts` ben található.
 
 ### 4.3 `open-sse/translator/`
 
@@ -512,7 +512,7 @@ Fénypontok (a teljes lista `open-sse/services/` alatt):
 
 | Vonatkozik                 | Fájlok                                                                                                                                                                                                                                                   |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kombinált útválasztás      | `combo.ts` (20 stratégia), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
+| Kombinált útválasztás      | `combo.ts` (21 stratégia), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                     |
 | Auto Combo motor           | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | Rugalmasság                | `accountFallback.ts` (lehűlés + lockout), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                          |
 | Kvóták                     | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |

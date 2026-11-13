@@ -57,28 +57,19 @@ OpenRouteri ühendused saavad hoida iga ühenduse kohta eraldi `preset` väärtu
 
 ---
 
-## 🎨 Kombod
+## 🎨 kombinatsioonid
 
-Loo mudelite ruutimiskombosid 19 avaliku strateegiaga: priority, weighted, round-robin, context-relay, fill-first, p2c (power-of-two choices), random, least-used, cost-optimized, reset-aware, reset-window, headroom, strict-random, auto, lkgp (last-known-good-provider), context-optimized, cache-optimized, **fusion** (paralleelne edastamine mudelite paneelile, misjärel üks vastus koostatakse kokku hindaja abil) ja **pipeline**. Iga kombo ühendab mitu mudelit automaatse tõrketaluvusega ning sisaldab kiirmalle ja valmisoleku kontrolle.
+Looge mudelimarsruutimiskombinatsioone 21 avaliku strateegiaga: prioriteetne, kaalutud, ring-robin, kontekstirelee, täitmine enne, p2c (kahe valiku võimsus), juhuslik, vähim kasutatud, kuluoptimeeritud, lähtestamisteadlik, lähtestamisaken, aegumine-kõigepealt, vaba aeg, kvoodiga kaalutud, rangelt-juhuslik, (automaatne kvoodiga kaalutud, range-lkgpood,- konteksti optimeeritud, vahemälu optimeeritud,** sulandumine** (tuulutage paralleelselt välja mudelite paneelile, seejärel sünteesige üks vastus kohtuniku kaudu) ja** torujuhe** . Iga kombinatsioon ühendab mitu mudelit automaatse varuga ning sisaldab kiireid malle ja valmisoleku kontrolle.
 
-Viimased kombode täiendused:
+Viimased kombineeritud täiustused:
 
-- **Struktureeritud kombode koostaja** — loo iga etapp, valides teenusepakkuja, mudeli ja täpse konto/ühenduse
-- **Korduva teenusepakkuja toetus** — kasuta ühte teenusepakkujat ühes kombos korduvalt, kuni `(provider, model, connection)` kombinatsioon on kordumatu
-- **Kombo sihtmärgi tervis** — analüütika ja tervisevaated eristavad nüüd üksikuid kombo sihtmärke/etappe, mitte koondavad kõike mudelistringidesse
-- **Kompositsiooniline tasemejärjestus** — `defaultTier -> fallbackTier` mõjutab nüüd tippkombo etappide käitusaegset täitmis- ja tõrketaluvuse järjekorda
-- **Süsteemipäise mallid** — kombo `system_message` toetab serveripoolseid
-  `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ja `{{FINGERPRINT}}`
-  kohatäitjaid, mis laiendatakse tegelikult ruuditud sihtmärgi põhjal vahetult enne edastamist.
-  Lubatud loend on piiratud ja mitte-rekursiivne; tundmatud kohatäitjad jäävad muutmata; tühjad väärtused
-  laienevad tühjaks; kliendi süsteemipäiseid kunagi ümber ei kirjutata. `{{FINGERPRINT}}`
-  lahendub vaid sõrmejälgi kasutavatele tasuta teenusepakkujatele, kellel on kinnistatud või
-  automaatselt vahelduv sõrmejälg — mujal laieneb see tühjaks (nt
-  ühesõrmejäljelised ühendused, mitte-sõrmejälje teenusepakkujad). Laiendamine hõlmab
-  standardset edastustsüklit, round-robin't ja kinnistatud kontekstipuhvri seansse;
-  fusion, chaos, pipeline ja pesastatud käivitusstrateegiad kohatäitjaid veel ei laienda.
+- **Struktureeritud kombineeritud ehitaja** — looge iga samm, valides pakkuja, mudeli ja täpse account/connection
+- **Korduv pakkuja tugi** — taaskasutab sama pakkujat mitu korda ühes kombinatsioonis seni, kuni `(provider, model, connection)` korteež on ainulaadne
+- **Kombineeritud eesmärk on tervis** — analüütika ja tervisepinnad eristavad nüüd individuaalset kombineeritud targets/steps selle asemel, et koondada kõik mudeli stringidesse
+- **Komposiittasandi tellimine** — `defaultTier -> fallbackTier` mõjutab nüüd tipptaseme kombineeritud sammude käitusaja execution/fallback järjekorda
+- **Süsteemiviipade mallid** — combo `system_message` toetab serveripoolseid `{{MODEL_ID}}`, `{{PROVIDER_ID}}`, `{{ACCOUNT}}` ja `{{FINGERPRINT}}` kohahoidjaid, mida laiendatakse tegelikult marsruuditud sihtmärgist vahetult enne saatmist. Lubatud ja mitterekursiivne; tundmatud kohatähed jäävad sõnasõnaliseks; tühjad väärtused laienevad tühjaks; kliendisüsteemi viipasid ei kirjutata kunagi ümber. `{{FINGERPRINT}}` lahendab ainult sõrmejäljepõhiste tasuta pakkujate puhul, millel on kinnitatud või automaatselt pööratud sõrmejälg — see laieneb mujal tühjaks (nt ühe sõrmejäljega ühendused, mitte-fp pakkujad). Laiendus hõlmab standardset väljasaatmistsüklit, ümbertöötlemist ja kinnitatud konteksti vahemälu seansse; fusioon, kaos, konveier ja pesastatud käivitamise strateegiad ei laienda veel kohahoidjaid.
 
-![Kombode juhtpaneel](../screenshots/02-combos.png)
+![Combos Dashboard](../screenshots/02-combos.png)
 
 ---
 
